@@ -68,7 +68,6 @@ public class ServiceDiscovery implements ServiceListener, IServiceDiscovery {
 						dns.registerService(serviceInfo);
 						dns.addServiceListener(FILEBOX_TYPE, ServiceDiscovery.this);
 					}
-					dns.close();
 				} catch (Throwable e) {
 					logger.log(LogService.LOG_ERROR, "An Error Occured", e);
 				}
@@ -79,10 +78,10 @@ public class ServiceDiscovery implements ServiceListener, IServiceDiscovery {
 
 	public void stop() {
 		if(dns != null) {
-			synchronized (waitInitialization) {
+//			synchronized (waitInitialization) {
 				//TODO is this close method call really nesessary in zeroconf protocol: http://www.zeroconf.org/
-				dns.close();
-			}
+//				dns.close();
+//			}
 		}
 	}
 
