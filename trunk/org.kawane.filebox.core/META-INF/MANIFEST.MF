@@ -10,4 +10,4 @@ Import-Package: org.osgi.framework;version="1.3.0",
  org.osgi.service.log;version="1.3.0",
  org.osgi.util.tracker;version="1.3.3"
 Bundle-ActivationPolicy: lazy
-Export-Package: org.kawane.filebox.core.internal;x-friends:="org.kawane.filebox.ui"
+Export-Package: org.kawane.filebox.core

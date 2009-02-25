@@ -3,7 +3,7 @@
  * LGPL License.
  */
 
-package org.kawane.filebox.core.internal;
+package org.kawane.filebox.core;
 
 /**
  * @author Jean-Charles Roger

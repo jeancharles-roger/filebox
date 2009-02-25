@@ -1,9 +1,8 @@
 /**
- * Filebox.
- * Kawane.
- * LGPL.
+ * Filebox developed by Kawane.
+ * LGPL License.
  */
-package org.kawane.filebox.ui.internal;
+package org.kawane.filebox.ui;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -19,8 +18,8 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
-import org.kawane.filebox.core.internal.Contact;
-import org.kawane.filebox.core.internal.FileboxApplication;
+import org.kawane.filebox.core.Contact;
+import org.kawane.filebox.core.FileboxApplication;
 
 /**
  * @author Jean-Charles Roger
