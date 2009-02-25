@@ -7,7 +7,7 @@ import java.util.Map;
 public interface IServiceDiscovery {
 	int DEFAULT_PORT = 9999;
 	// dns specifice
-    String FILEBOX_TYPE = "_filebox._tcp.local";
+    String FILEBOX_TYPE = "_filebox._tcp.local.";
 	int FILEBOX_WEIGHT = 10;
 	int FILEBOX_PRIORITY = 10;
 	

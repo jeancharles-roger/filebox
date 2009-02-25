@@ -1,6 +1,5 @@
 package org.kawane.filebox.core.internal;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
@@ -15,7 +14,6 @@ import javax.jmdns.JmDNS;
 import javax.jmdns.ServiceEvent;
 import javax.jmdns.ServiceInfo;
 import javax.jmdns.ServiceListener;
-import javax.jmdns.impl.JmDNSImpl;
 
 import org.kawane.filebox.core.discovery.FileboxService;
 import org.kawane.filebox.core.discovery.IFileboxServiceListener;
@@ -26,7 +24,7 @@ public class ServiceDiscovery implements ServiceListener, IServiceDiscovery {
 
 	private static LogService logger = Activator.getInstance().getLogger();
 
-	private JmDNSImpl dns;
+	private JmDNS dns;
 	private ServiceInfo serviceInfo;
 	private String name;
 	private Collection<IFileboxServiceListener> listeners = new HashSet<IFileboxServiceListener>();
@@ -62,7 +60,7 @@ public class ServiceDiscovery implements ServiceListener, IServiceDiscovery {
 			public void run() {
 				try {
 					synchronized (waitInitialization) {
-						dns = new JmDNSImpl();
+						dns = JmDNS.create();
 						serviceInfo = ServiceInfo.create(FILEBOX_TYPE, name, port, FILEBOX_WEIGHT, FILEBOX_PRIORITY, new Hashtable<String, String>(
 							properties));
 						dns.registerService(serviceInfo);
@@ -128,6 +126,7 @@ public class ServiceDiscovery implements ServiceListener, IServiceDiscovery {
 
 	public void serviceAdded(ServiceEvent event) {
 		// the service is added but not resolved, not interesting for our application
+		System.out.println("a service have been added");
 	}
 
 	public void serviceRemoved(ServiceEvent event) {
@@ -139,7 +138,7 @@ public class ServiceDiscovery implements ServiceListener, IServiceDiscovery {
 	}
 
 	public void serviceResolved(ServiceEvent event) {
-		logger.log(LogService.LOG_INFO, "A service has been added");
+		logger.log(LogService.LOG_INFO, "A service has been added: " + event.getInfo().getName() + " on " + event.getInfo().getHostAddress());
 		HashSet<IFileboxServiceListener> listenersCopy = new HashSet<IFileboxServiceListener>(listeners);
 		for (IFileboxServiceListener listener : listenersCopy) {
 			listener.serviceAdded(createFileboxService(event.getInfo()));
