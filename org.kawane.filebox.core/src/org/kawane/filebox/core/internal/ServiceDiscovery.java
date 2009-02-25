@@ -1,5 +1,6 @@
 package org.kawane.filebox.core.internal;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
@@ -34,8 +35,8 @@ public class ServiceDiscovery implements ServiceListener, IServiceDiscovery {
 
 	public ServiceDiscovery(String name, int port, Map<String, String> properties) {
 		this.name = name;
-		this.properties = properties;
 		this.port = port;
+		this.properties = properties;
 	}
 
 	public String getName() {
@@ -54,6 +55,30 @@ public class ServiceDiscovery implements ServiceListener, IServiceDiscovery {
 		return dns.getHostName();
 	}
 
+	public void apply(String name, int port, Map<String, String> properties) {
+		this.name = name;
+		this.port = port;
+		this.properties = properties;
+		if(dns ==null) {
+			start();
+		} else {
+			synchronized (waitInitialization) {
+				Thread thread = new Thread() {
+					@Override
+					public void run() {
+						try {
+							dns.unregisterService(serviceInfo);
+							dns.registerService(serviceInfo);
+						} catch (IOException e) {
+							logger.log(LogService.LOG_ERROR, "An Error Occured", e);
+						}
+					}
+				};
+				thread.start();
+			}
+		}
+	}
+
 	public void start() {
 		Timer timer = new Timer();
 		TimerTask task = new TimerTask() {
@@ -62,9 +87,11 @@ public class ServiceDiscovery implements ServiceListener, IServiceDiscovery {
 					synchronized (waitInitialization) {
 						dns = JmDNS.create();
 						serviceInfo = ServiceInfo.create(FILEBOX_TYPE, name, port, FILEBOX_WEIGHT, FILEBOX_PRIORITY, new Hashtable<String, String>(
-							properties));
-						dns.registerService(serviceInfo);
+								properties));
 						dns.addServiceListener(FILEBOX_TYPE, ServiceDiscovery.this);
+						dns.registerService(serviceInfo);
+						// first call of it is always slow
+						getServices();
 					}
 				} catch (Throwable e) {
 					logger.log(LogService.LOG_ERROR, "An Error Occured", e);
@@ -75,20 +102,20 @@ public class ServiceDiscovery implements ServiceListener, IServiceDiscovery {
 	}
 
 	public void stop() {
-		if(dns != null) {
-//			synchronized (waitInitialization) {
-				//TODO is this close method call really nesessary in zeroconf protocol: http://www.zeroconf.org/
-//				dns.close();
-//			}
+		if (dns != null) {
+			//			synchronized (waitInitialization) {
+			//TODO is this close method call really nesessary in zeroconf protocol: http://www.zeroconf.org/
+			//				dns.close();
+			//			}
 		}
 	}
 
 	/* (non-Javadoc)
-	 * @see org.kawane.filebox.core.internal.IServiceDiscovery#getServices()
+	 * @see org.kawane.filebox.core.IServiceDiscovery#getServices()
 	 */
 	public Collection<FileboxService> getServices() {
 		Collection<FileboxService> services = new ArrayList<FileboxService>();
-		if(dns != null) {
+		if (dns != null) {
 			ServiceInfo[] servicesInfo = dns.list(FILEBOX_TYPE);
 			for (ServiceInfo serviceInfo : servicesInfo) {
 				FileboxService fileboxService = createFileboxService(serviceInfo);
@@ -99,14 +126,14 @@ public class ServiceDiscovery implements ServiceListener, IServiceDiscovery {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.kawane.filebox.core.internal.IServiceDiscovery#addServiceListener(org.kawane.filebox.core.discovery.IFileboxServiceListener)
+	 * @see org.kawane.filebox.core.IServiceDiscovery#addServiceListener(org.kawane.filebox.core.discovery.IFileboxServiceListener)
 	 */
 	public void addServiceListener(IFileboxServiceListener listener) {
 		listeners.add(listener);
 	}
 
 	/* (non-Javadoc)
-	 * @see org.kawane.filebox.core.internal.IServiceDiscovery#removeServiceListener(org.kawane.filebox.core.discovery.IFileboxServiceListener)
+	 * @see org.kawane.filebox.core.IServiceDiscovery#removeServiceListener(org.kawane.filebox.core.discovery.IFileboxServiceListener)
 	 */
 	public void removeServiceListener(IFileboxServiceListener listener) {
 		listeners.remove(listener);
@@ -128,8 +155,8 @@ public class ServiceDiscovery implements ServiceListener, IServiceDiscovery {
 		System.out.println("*********************************************************");
 		// the service is added but not resolved, not interesting for our application
 		System.out.println("a service have been added" + event);
-		
-		if(event.getInfo() != null) {
+
+		if (event.getInfo() != null) {
 			System.out.println("A service has been added: " + event.getInfo().getName() + " on " + event.getInfo().getHostAddress());
 		} else {
 			event.getDNS().requestServiceInfo(event.getType(), event.getName());
@@ -138,7 +165,7 @@ public class ServiceDiscovery implements ServiceListener, IServiceDiscovery {
 
 	public void serviceRemoved(ServiceEvent event) {
 		System.out.println("*********************************************************");
-		System.out.println("A service has been resolved: " + event);
+		System.out.println("A service has been Removed: " + event);
 		HashSet<IFileboxServiceListener> listenersCopy = new HashSet<IFileboxServiceListener>(listeners);
 		for (IFileboxServiceListener listener : listenersCopy) {
 			listener.serviceRemoved(createFileboxService(event.getInfo()));
