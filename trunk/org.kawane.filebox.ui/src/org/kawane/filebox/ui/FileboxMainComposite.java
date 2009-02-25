@@ -8,6 +8,8 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -98,14 +100,14 @@ public class FileboxMainComposite extends Composite {
 		contactsTable.setItemCount(0);
 		
 		// test button
-//		testButton = new Button(this, SWT.PUSH);
-//		testButton.setText("Add contact");
-//		testButton.addSelectionListener(new SelectionAdapter() {
-//			@Override
-//			public void widgetSelected(SelectionEvent e) {
-//				getApplication().addContact(0, new Contact("Lolo"));
-//			}
-//		});
+		testButton = new Button(this, SWT.PUSH);
+		testButton.setText("Add contact");
+		testButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				getApplication().addContact(0, new Contact("Lolo"));
+			}
+		});
 		
 		
 	}
