@@ -1,11 +1,9 @@
 package org.kawane.filebox.core.internal;
 
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.Timer;
-import java.util.TimerTask;
 
-import org.kawane.filebox.core.discovery.FileboxService;
+import org.kawane.filebox.core.Contact;
+import org.kawane.filebox.core.FileboxApplication;
 import org.kawane.filebox.core.discovery.IServiceDiscovery;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -28,20 +26,17 @@ public class Activator implements BundleActivator {
 		logTracker.open();
 		// properties associated with the profile
 		HashMap<String, String> properties = new HashMap<String, String>();
-		// TODO get name, properties and port that come with preference or FileboxApplication let JC do this
-		serviceDiscovery = new ServiceDiscovery("nom du contact courant", IServiceDiscovery.DEFAULT_PORT, properties);
+		
+		// initialize filebox application
+		FileboxApplication fileboxApplication = new FileboxApplication("Loulou");
+		context.registerService(FileboxApplication.class.getName(), fileboxApplication, null);
+		
+		Contact me = fileboxApplication.getMe();
+		properties.put(me.getStatus().getClass().getSimpleName(), me.getStatus().toString());
+		serviceDiscovery = new ServiceDiscovery(me.getName(), IServiceDiscovery.DEFAULT_PORT, properties);
+		// automatically connect to the network for now
 		serviceDiscovery.start();
 		context.registerService(IServiceDiscovery.class.getName(), serviceDiscovery, null);
-		Timer timer = new Timer();
-		timer.schedule(new TimerTask() {
-			@Override
-			public void run() {
-				Collection<FileboxService> services = serviceDiscovery.getServices();
-				for (FileboxService service : services) {
-					System.out.println("service: " + service.getName());
-				}
-			}
-		}, 0, 1000);
 	}
 
 	/*
