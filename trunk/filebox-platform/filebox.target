@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?pde version="3.2"?>
+
+<target name="filebox">
+
+   <location path="${workspace_loc}/filebox-platform/"/>
+
+   <content useAllPlugins="true">
+      <plugins>
+      </plugins>
+      <features>
+      </features>
+      <extraLocations>
+         <location path="${workspace_loc}/filebox-platform/source/"/>
+      </extraLocations>
+   </content>
+
+</target>
