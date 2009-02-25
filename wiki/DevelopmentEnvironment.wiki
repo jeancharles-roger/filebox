@@ -13,6 +13,9 @@ You have to checkout all folder under trunk as an eclipse project.
     * Go to Window/Preferences: Plug-in Development/Target Platform. In plug-in tab, browse and select the target that is under filebox-platform: Load the target.
     * Go to Run/Debug Configurations...: Select Filebox UI in OSGI Framework and press Debug
 
+[preferences.png]
+[running.png]
+
 And voilà you have a file box running.
 
 please add comment if you have any problem.
