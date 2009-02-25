@@ -18,8 +18,14 @@ public interface IServiceDiscovery {
 	Map<String, String> getProperties();
 	
 	String getHostname();
-	
+	/**
+	 * first call of this method may be slow.
+	 * you instead listener system please.
+	 * @return
+	 */
 	Collection<FileboxService> getServices();
+
+	void apply(String name, int port, Map<String, String> properties);
 
 	void addServiceListener(IFileboxServiceListener listener);
 
