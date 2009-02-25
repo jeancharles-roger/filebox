@@ -125,11 +125,14 @@ public class ServiceDiscovery implements ServiceListener, IServiceDiscovery {
 	}
 
 	public void serviceAdded(ServiceEvent event) {
+		System.out.println("*********************************************************");
 		// the service is added but not resolved, not interesting for our application
-		System.out.println("a service have been added");
+		System.out.println("a service have been added" + event);
 		
 		if(event.getInfo() != null) {
 			System.out.println("A service has been added: " + event.getInfo().getName() + " on " + event.getInfo().getHostAddress());
+		} else {
+			event.getDNS().requestServiceInfo(event.getType(), event.getName());
 		}
 	}
 
@@ -142,7 +145,8 @@ public class ServiceDiscovery implements ServiceListener, IServiceDiscovery {
 	}
 
 	public void serviceResolved(ServiceEvent event) {
-		logger.log(LogService.LOG_INFO, "A service has been added: " + event.getInfo().getName() + " on " + event.getInfo().getHostAddress());
+		System.out.println("*********************************************************");
+		System.out.println("A service has been resolved: " + event);
 		HashSet<IFileboxServiceListener> listenersCopy = new HashSet<IFileboxServiceListener>(listeners);
 		for (IFileboxServiceListener listener : listenersCopy) {
 			listener.serviceAdded(createFileboxService(event.getInfo()));
