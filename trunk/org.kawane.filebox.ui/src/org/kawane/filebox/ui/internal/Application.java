@@ -8,6 +8,12 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.kawane.filebox.core.FileboxApplication;
 import org.kawane.filebox.ui.FileboxMainComposite;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.Constants;
+import org.osgi.framework.InvalidSyntaxException;
+import org.osgi.framework.ServiceEvent;
+import org.osgi.framework.ServiceListener;
+import org.osgi.framework.ServiceReference;
 import org.osgi.service.log.LogService;
 
 public class Application implements IApplication {
@@ -18,6 +24,9 @@ public class Application implements IApplication {
 	public Object start(IApplicationContext context) throws Exception {
 		// this the way to retrieve command line option
 		//Object args = context.getArguments().get(IApplicationContext.APPLICATION_ARGS);
+		// TODO I don't know how to do this without global var if you a better idea
+		BundleContext bundleContext = Activator.getInstance().getContext();
+		
 		
 		display = Display.getDefault();
 		logger.log(LogService.LOG_INFO, "Start file box ui");
@@ -28,9 +37,8 @@ public class Application implements IApplication {
 		shell.setSize(300, 300);
 		shell.setText("FileBox");
 		
-		FileboxApplication application = new FileboxApplication("Mezos");
 		FileboxMainComposite composite = new FileboxMainComposite(shell, SWT.NONE);
-		composite.setApplication(application);
+		retrieveFileboxApplication(bundleContext, composite);
 			
 		shell.open();
 		context.applicationRunning();
@@ -44,6 +52,29 @@ public class Application implements IApplication {
 		}
 		logger.log(LogService.LOG_INFO, "Stop file box ui");
 		return null;
+	}
+
+	private void retrieveFileboxApplication(final BundleContext bundleContext, final FileboxMainComposite composite) throws InvalidSyntaxException {
+		// retrieve filebox application from osgi service registry
+		ServiceListener serviceListener = new ServiceListener() {
+			public void serviceChanged(ServiceEvent event) {
+				if(event.getType() == ServiceEvent.REGISTERED) {
+					FileboxApplication application = (FileboxApplication)bundleContext.getService(event.getServiceReference());
+					composite.setApplication(application);
+				} else if(event.getType() == ServiceEvent.UNREGISTERING){
+					composite.setApplication(null);
+				}
+			}
+		};
+		
+		String filter = "(" + Constants.OBJECTCLASS + "="+ FileboxApplication.class.getName() +")";
+		ServiceReference[] serviceReferences = bundleContext.getServiceReferences(null,filter);
+		if(serviceReferences != null) {
+			for (ServiceReference serviceReference : serviceReferences) {
+				serviceListener.serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED,serviceReference));
+			}
+		}
+		bundleContext.addServiceListener(serviceListener, filter);
 	}
 
 	public void stop() {

@@ -9,6 +9,7 @@ public class Activator implements BundleActivator {
 
 	static private Activator instance;
 	private ServiceTracker logTracker;
+	private BundleContext context;
 
 	/*
 	 * (non-Javadoc)
@@ -18,6 +19,7 @@ public class Activator implements BundleActivator {
 		instance = this;
 		logTracker = new ServiceTracker(context, LogService.class.getName(), null);
 		logTracker.open();
+		this.context = context;
 	}
 
 	/*
@@ -30,6 +32,10 @@ public class Activator implements BundleActivator {
 	
 	static public Activator getInstance() {
 		return instance;
+	}
+	
+	public BundleContext getContext() {
+		return context;
 	}
 	
 	public LogService getLogger() {
