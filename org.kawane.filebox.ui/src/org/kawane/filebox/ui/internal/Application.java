@@ -1,4 +1,4 @@
-package org.kawane.filebox.ui;
+package org.kawane.filebox.ui.internal;
 
 import org.eclipse.equinox.app.IApplication;
 import org.eclipse.equinox.app.IApplicationContext;
@@ -7,7 +7,7 @@ import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.kawane.filebox.core.FileboxApplication;
-import org.kawane.filebox.ui.internal.Activator;
+import org.kawane.filebox.ui.FileboxMainComposite;
 import org.osgi.service.log.LogService;
 
 public class Application implements IApplication {

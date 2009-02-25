@@ -9,7 +9,7 @@
             thread="main"
             visible="true">
          <run
-               class="org.kawane.filebox.ui.Application">
+               class="org.kawane.filebox.ui.internal.Application">
          </run>
       </application>
    </extension>
