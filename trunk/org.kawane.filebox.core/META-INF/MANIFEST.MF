@@ -1,0 +1,12 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Filebox Core Plug-in
+Bundle-SymbolicName: org.kawane.filebox.core
+Bundle-Version: 1.0.0
+Bundle-Activator: org.kawane.filebox.core.internal.Activator
+Bundle-Vendor: Kawane
+Bundle-RequiredExecutionEnvironment: J2SE-1.5
+Import-Package: org.osgi.framework;version="1.3.0",
+ org.osgi.service.log;version="1.3.0",
+ org.osgi.util.tracker;version="1.3.3"
+Bundle-ActivationPolicy: lazy
