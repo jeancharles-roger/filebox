@@ -127,6 +127,10 @@ public class ServiceDiscovery implements ServiceListener, IServiceDiscovery {
 	public void serviceAdded(ServiceEvent event) {
 		// the service is added but not resolved, not interesting for our application
 		System.out.println("a service have been added");
+		
+		if(event.getInfo() != null) {
+			System.out.println("A service has been added: " + event.getInfo().getName() + " on " + event.getInfo().getHostAddress());
+		}
 	}
 
 	public void serviceRemoved(ServiceEvent event) {
