@@ -1,4 +1,4 @@
-package org.kawane.filebox.core.internal;
+package org.kawane.filebox.core;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;

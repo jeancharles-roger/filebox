@@ -1,4 +1,4 @@
-package org.kawane.filebox.core.internal;
+package org.kawane.filebox.core;
 
 import java.util.ArrayList;
 import java.util.Collections;
