@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="File box" default="build">
+	<property file="build.properties"/>
+		<delete dir="${destination}"/>
+		<mkdir dir="${destination}"/>
+	    <target name="build">
+	    	<pde.exportPlugins destination="${destination}" 
+	    		exportSource="false" 
+	    		plugins="${bundles}"  
+	    		exportType="directory" 
+	    		useJARFormat="true"/>
+	    <copy todir="${destination}/plugins">
+	    	<fileset dir="${platform_dir}" >
+	    		<include name="*.jar"/>
+		    </fileset>
+	    </copy>
+    	<copy todir="${destination}">
+	    	<fileset dir="${template_dir}" >
+	    		<include name="**/*"/>
+	    		<exclude name="**/.svn"/>
+		    </fileset>
+	    </copy>
+	    <eclipse.refreshLocal resource="dist"/>
+    </target>
+
+</project>
