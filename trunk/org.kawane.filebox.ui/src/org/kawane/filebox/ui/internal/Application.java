@@ -14,7 +14,6 @@ public class Application implements IApplication {
 	
 	private Display display;
 	
-	@Override
 	public Object start(IApplicationContext context) throws Exception {
 		// this the way to retrieve command line option
 		Object args = context.getArguments().get(IApplicationContext.APPLICATION_ARGS);
@@ -38,7 +37,6 @@ public class Application implements IApplication {
 		return null;
 	}
 
-	@Override
 	public void stop() {
 		if(display != null && !display.isDisposed()) {
 			display.dispose();
