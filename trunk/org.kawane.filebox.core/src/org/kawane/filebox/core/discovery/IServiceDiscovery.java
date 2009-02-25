@@ -20,7 +20,7 @@ public interface IServiceDiscovery {
 	String getHostname();
 	/**
 	 * first call of this method may be slow.
-	 * you instead listener system please.
+	 * you may use instead listener system please.
 	 * @return
 	 */
 	Collection<FileboxService> getServices();
