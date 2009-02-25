@@ -137,7 +137,8 @@ public class ServiceDiscovery implements ServiceListener, IServiceDiscovery {
 	}
 
 	public void serviceRemoved(ServiceEvent event) {
-		logger.log(LogService.LOG_INFO, "A service has been removed");
+		System.out.println("*********************************************************");
+		System.out.println("A service has been resolved: " + event);
 		HashSet<IFileboxServiceListener> listenersCopy = new HashSet<IFileboxServiceListener>(listeners);
 		for (IFileboxServiceListener listener : listenersCopy) {
 			listener.serviceRemoved(createFileboxService(event.getInfo()));
