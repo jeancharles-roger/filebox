@@ -6,8 +6,9 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
-import org.kawane.filebox.core.FileboxApplication;
+import org.kawane.filebox.core.Filebox;
 import org.kawane.filebox.ui.FileboxMainComposite;
+import org.kawane.filebox.ui.MenuManager;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.InvalidSyntaxException;
@@ -19,7 +20,23 @@ import org.osgi.service.log.LogService;
 public class Application implements IApplication {
 	private static LogService logger = Activator.getInstance().getLogger();
 	
+	protected Filebox filebox;
+	
 	private Display display;
+	private FileboxMainComposite composite;
+	
+	public Shell getActiveShell() {
+		return display.getActiveShell();
+	}
+	
+	public Filebox getFilebox() {
+		return filebox;
+	}
+	
+	protected void setFileBox(Filebox filebox) {
+		this.filebox = filebox;
+		composite.setFilebox(filebox);
+	}
 	
 	public Object start(IApplicationContext context) throws Exception {
 		// this the way to retrieve command line option
@@ -37,8 +54,11 @@ public class Application implements IApplication {
 		shell.setSize(300, 300);
 		shell.setText("FileBox");
 		
-		FileboxMainComposite composite = new FileboxMainComposite(shell, SWT.NONE);
-		retrieveFileboxApplication(bundleContext, composite);
+		MenuManager menuManager = new MenuManager(this);
+		menuManager.createMenuBar(shell);
+		
+		composite = new FileboxMainComposite(shell, SWT.NONE);
+		retrieveFilebox(bundleContext, this);
 			
 		shell.open();
 		context.applicationRunning();
@@ -54,20 +74,20 @@ public class Application implements IApplication {
 		return null;
 	}
 
-	private void retrieveFileboxApplication(final BundleContext bundleContext, final FileboxMainComposite composite) throws InvalidSyntaxException {
-		// retrieve filebox application from osgi service registry
+	private void retrieveFilebox(final BundleContext bundleContext, final Application application) throws InvalidSyntaxException {
+		// retrieve filebox from osgi service registry
 		ServiceListener serviceListener = new ServiceListener() {
 			public void serviceChanged(ServiceEvent event) {
 				if(event.getType() == ServiceEvent.REGISTERED) {
-					FileboxApplication application = (FileboxApplication)bundleContext.getService(event.getServiceReference());
-					composite.setApplication(application);
+					Filebox filebox = (Filebox)bundleContext.getService(event.getServiceReference());
+					application.setFileBox(filebox);
 				} else if(event.getType() == ServiceEvent.UNREGISTERING){
-					composite.setApplication(null);
+					application.setFileBox(null);
 				}
 			}
 		};
 		
-		String filter = "(" + Constants.OBJECTCLASS + "="+ FileboxApplication.class.getName() +")";
+		String filter = "(" + Constants.OBJECTCLASS + "="+ Filebox.class.getName() +")";
 		ServiceReference[] serviceReferences = bundleContext.getServiceReferences(null,filter);
 		if(serviceReferences != null) {
 			for (ServiceReference serviceReference : serviceReferences) {

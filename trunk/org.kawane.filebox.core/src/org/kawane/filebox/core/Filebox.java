@@ -1,18 +1,23 @@
 package org.kawane.filebox.core;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class FileboxApplication extends Observable {
+public class Filebox extends Observable {
 
 	public static final String MY_CONTACTS = "myContacts";
 	
 	final protected Contact me;
 	final private List<Contact> myContacts = new ArrayList<Contact>();
 
-	public FileboxApplication(String name) {
-		this.me = new Contact(name);
+	final protected Preferences preferences;
+	
+	public Filebox(File configurationFile) {
+		preferences = new Preferences(configurationFile);
+		String name = preferences.getProperty(Preferences.NAME);
+		this.me = new Contact(name == null ? "Me" : name);
 	}
 	
 	public int getContactsCount() {
@@ -36,6 +41,10 @@ public class FileboxApplication extends Observable {
 	
 	public Contact getMe() {
 		return me;
+	}
+	
+	public Preferences getPreferences() {
+		return preferences;
 	}
 	
 }

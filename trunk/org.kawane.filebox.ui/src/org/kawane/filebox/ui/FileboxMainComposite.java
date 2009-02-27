@@ -21,7 +21,8 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.kawane.filebox.core.Contact;
-import org.kawane.filebox.core.FileboxApplication;
+import org.kawane.filebox.core.Filebox;
+import org.kawane.filebox.core.Preferences;
 
 /**
  * @author Jean-Charles Roger
@@ -39,29 +40,37 @@ public class FileboxMainComposite extends Composite {
 		public void handleEvent(Event e) {
 			TableItem item = (TableItem)e.item;
 			int index = contactsTable.indexOf(item);
-			item.setData(application.getContacts().get(index));
-			item.setText("Item "+ application.getContacts().get(index).getName());
+			item.setData(filebox.getContacts().get(index));
+			item.setText("Item "+ filebox.getContacts().get(index).getName());
 		}
 	};
 	
 	
 	protected Button testButton;
 	
-	protected FileboxApplication application;
+	protected Filebox filebox;
 	protected PropertyChangeListener propertiesListener = new PropertyChangeListener() {
 		public void propertyChange(PropertyChangeEvent evt) {
-			// do something only if application isn't null.
-			if ( getApplication() == null ) return;
+
+			// application changed
+			if ( evt.getSource() == getApplication() ) {
+				if ( Filebox.MY_CONTACTS.equals(evt.getPropertyName()) ) {
+					contactsTable.setItemCount(getApplication().getContactsCount());
+				}
+				return;
+			}
 			
-			System.out.println("Application property " + evt.getPropertyName() + " changed.");
-			if ( evt.getSource() == application && FileboxApplication.MY_CONTACTS.equals(evt.getPropertyName()) ) {
-				contactsTable.setItemCount(getApplication().getContactsCount());
+			// preferences changed
+			if (evt.getSource() == getApplication().getPreferences() ) {
+				if ( Preferences.NAME.equals(evt.getPropertyName()) ) {
+					meLabel.setText(getApplication().getPreferences().getName());
+				}
+				return;
 			}
-			if ( evt.getSource() == getApplication().getMe() && Contact.STATUS.equals(evt.getPropertyName()) ) {
-				statusCombo.select(getApplication().getMe().getStatus().ordinal());
-			}
+			
 		}
 	};
+	
 	
 	public FileboxMainComposite(Composite parent, int style) {
 		super(parent, style);
@@ -112,16 +121,22 @@ public class FileboxMainComposite extends Composite {
 		
 	}
 	
-	public void setApplication(FileboxApplication application) {
-		if ( this.application != null ) this.application.removePropertyChangeListener(propertiesListener);
-		if ( application != null ) application.addPropertyChangeListener(propertiesListener);
-		this.application = application;
+	public void setFilebox(Filebox filebox) {
+		if ( this.filebox != null ) {
+			this.filebox.removePropertyChangeListener(propertiesListener);
+			this.filebox.getPreferences().removePropertyChangeListener(propertiesListener);
+		}
+		if ( filebox != null ) {
+			filebox.addPropertyChangeListener(propertiesListener);
+			filebox.getPreferences().addPropertyChangeListener(propertiesListener);
+		}
+		this.filebox = filebox;
 		
-		meLabel.setText(application.getMe().getName() + ":");
+		meLabel.setText(filebox.getMe().getName() + ":");
 	}
 
-	public FileboxApplication getApplication() {
-		return application;
+	public Filebox getApplication() {
+		return filebox;
 	}
 	
 }
