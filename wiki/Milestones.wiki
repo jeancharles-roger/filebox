@@ -1,0 +1,11 @@
+#summary Projects milestones
+#labels Phase-Design
+
+= M1 (no date yet) =
+
+ * Uses of an OSGI Architecture,
+ * Basic UI using SWT,
+ * Preferences save,
+ * Services discovery over a local network (with zeroconfig network),
+ * Simple file transfer over a local network,
+ * _what else ?_
