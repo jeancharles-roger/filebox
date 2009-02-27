@@ -7,5 +7,8 @@
  * Basic UI using SWT,
  * Preferences save,
  * Services discovery over a local network (with zeroconfig network),
- * Simple file transfer over a local network,
- * _what else ?_
+ * Simple file transfer over a local network.
+
+= M2 (no date yet) =
+
+*(to be defined)*
