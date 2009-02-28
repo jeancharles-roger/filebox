@@ -1,6 +1,9 @@
 package org.kawane.filebox.core.internal;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.rmi.Naming;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -17,7 +20,6 @@ import javax.jmdns.ServiceEvent;
 import javax.jmdns.ServiceInfo;
 import javax.jmdns.ServiceListener;
 
-import org.kawane.filebox.core.DistantFilebox;
 import org.kawane.filebox.core.IFilebox;
 import org.kawane.filebox.core.discovery.IFileboxServiceListener;
 import org.kawane.filebox.core.discovery.IServiceDiscovery;
@@ -150,9 +152,20 @@ public class ServiceDiscovery implements ServiceListener, IServiceDiscovery {
 			properties.put(propertyName, serviceInfo.getPropertyString(propertyName));
 		}
 		try  {
-			IFilebox fileboxService = new DistantFilebox(serviceInfo.getName(), serviceInfo.getHostAddress(), serviceInfo.getPort());
+			
+			
+//			IFilebox fileboxService = new DistantFilebox(serviceInfo.getName(), serviceInfo.getHostAddress(), serviceInfo.getPort());
+			String url = "rmi://" + serviceInfo.getHostAddress() + ":" + serviceInfo.getPort() + "/" + serviceInfo.getName();
+			IFilebox fileboxService = (IFilebox) Naming.lookup(url);
+			
 			return fileboxService;
 		} catch (RemoteException e) {
+			logger.log(LogService.LOG_ERROR, "Can't connect Filebox", e);
+			return null;
+		} catch (MalformedURLException e) {
+			logger.log(LogService.LOG_ERROR, "Can't connect Filebox", e);
+			return null;
+		} catch (NotBoundException e) {
 			logger.log(LogService.LOG_ERROR, "Can't connect Filebox", e);
 			return null;
 		}
