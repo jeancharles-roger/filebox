@@ -61,26 +61,28 @@ public class FileboxMainComposite extends Composite {
 	
 	protected LocalFilebox filebox;
 	protected PropertyChangeListener propertiesListener = new PropertyChangeListener() {
-		public void propertyChange(PropertyChangeEvent evt) {
-
-			// application changed
-			if ( evt.getSource() == getLocalFilebox() ) {
-				if ( LocalFilebox.FILEBOXES.equals(evt.getPropertyName()) ) {
-					contactsTable.setItemCount(getLocalFilebox().getFileboxesCount());
+		public void propertyChange(final PropertyChangeEvent evt) {
+			getDisplay().asyncExec(new Runnable(){
+				public void run() {
+					// application changed
+					if ( evt.getSource() == getLocalFilebox() ) {
+						if ( LocalFilebox.FILEBOXES.equals(evt.getPropertyName()) ) {
+							contactsTable.setItemCount(getLocalFilebox().getFileboxesCount());
+						}
+						return;
+					}
+					
+					// preferences changed
+					if (evt.getSource() == getLocalFilebox().getPreferences() ) {
+						if ( Preferences.NAME.equals(evt.getPropertyName()) ) {
+							meLabel.setText(getLocalFilebox().getPreferences().getName());
+							// refresh parent's layout for label length
+							meLabel.getParent().layout();
+						}
+						return;
+					}
 				}
-				return;
-			}
-			
-			// preferences changed
-			if (evt.getSource() == getLocalFilebox().getPreferences() ) {
-				if ( Preferences.NAME.equals(evt.getPropertyName()) ) {
-					meLabel.setText(getLocalFilebox().getPreferences().getName());
-					// refresh parent's layout for label length
-					meLabel.getParent().layout();
-				}
-				return;
-			}
-			
+			});
 		}
 	};
 	
