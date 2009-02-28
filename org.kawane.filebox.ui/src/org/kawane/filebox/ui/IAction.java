@@ -11,7 +11,7 @@ import org.eclipse.swt.graphics.Image;
  * @author Jean-Charles Roger
  *
  */
-public interface Action {
+public interface IAction {
 
 	/** No special style */
 	public static final int STYLE_NONE = 0;
@@ -58,10 +58,10 @@ public interface Action {
 	
 	
 	/**
-	 * A stub implementation of interface {@link Action}, suitable as a base
+	 * A stub implementation of interface {@link IAction}, suitable as a base
 	 * class for concrete implementations.
 	 */
-	public class Stub implements Action {
+	public class Stub implements IAction {
 
 		protected String label;
 

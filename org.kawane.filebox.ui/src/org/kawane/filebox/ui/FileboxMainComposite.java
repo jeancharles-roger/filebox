@@ -20,8 +20,8 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
-import org.kawane.filebox.core.Contact;
-import org.kawane.filebox.core.Filebox;
+import org.kawane.filebox.core.IFilebox;
+import org.kawane.filebox.core.LocalFilebox;
 import org.kawane.filebox.core.Preferences;
 
 /**
@@ -34,36 +34,47 @@ public class FileboxMainComposite extends Composite {
 
 	protected Label meLabel;
 	protected Combo statusCombo;
+	protected SelectionAdapter statusComboListener = new SelectionAdapter(){
+		@Override
+		public void widgetSelected(SelectionEvent e) {
+			if ( statusCombo.getSelectionIndex() == 0 ) {
+				getLocalFilebox().connect();
+			} else {
+				getLocalFilebox().disconnect();
+			}
+		}
+	};
 	
 	protected Table contactsTable;
 	protected Listener contactsDataListener = new Listener() {
 		public void handleEvent(Event e) {
 			TableItem item = (TableItem)e.item;
 			int index = contactsTable.indexOf(item);
-			item.setData(filebox.getContacts().get(index));
-			item.setText("Item "+ filebox.getContacts().get(index).getName());
+			IFilebox distantFilebox = filebox.getFilebox(index);
+			item.setData(distantFilebox);
+			item.setText(distantFilebox.getName());
 		}
 	};
 	
 	
 	protected Button testButton;
 	
-	protected Filebox filebox;
+	protected LocalFilebox filebox;
 	protected PropertyChangeListener propertiesListener = new PropertyChangeListener() {
 		public void propertyChange(PropertyChangeEvent evt) {
 
 			// application changed
-			if ( evt.getSource() == getApplication() ) {
-				if ( Filebox.MY_CONTACTS.equals(evt.getPropertyName()) ) {
-					contactsTable.setItemCount(getApplication().getContactsCount());
+			if ( evt.getSource() == getLocalFilebox() ) {
+				if ( LocalFilebox.FILEBOXES.equals(evt.getPropertyName()) ) {
+					contactsTable.setItemCount(getLocalFilebox().getFileboxesCount());
 				}
 				return;
 			}
 			
 			// preferences changed
-			if (evt.getSource() == getApplication().getPreferences() ) {
+			if (evt.getSource() == getLocalFilebox().getPreferences() ) {
 				if ( Preferences.NAME.equals(evt.getPropertyName()) ) {
-					meLabel.setText(getApplication().getPreferences().getName());
+					meLabel.setText(getLocalFilebox().getPreferences().getName());
 					// refresh parent's layout for label length
 					meLabel.getParent().layout();
 				}
@@ -94,6 +105,7 @@ public class FileboxMainComposite extends Composite {
 		statusCombo.setLayoutData(new GridData(SWT.END, SWT.CENTER, true, false));
 		statusCombo.setItems( new String[] { "On line", "Off line", "Don't disturb"} );
 		statusCombo.select(1);
+		statusCombo.addSelectionListener(statusComboListener);
 		
 		// a separator
 		Label separator = new Label(this, SWT.SEPARATOR | SWT.HORIZONTAL);
@@ -116,14 +128,14 @@ public class FileboxMainComposite extends Composite {
 		testButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				getApplication().addContact(0, new Contact("Lolo"));
+				getLocalFilebox().addFilebox(0, new IFilebox.Stub("Lolo"));
 			}
 		});
 		
 		
 	}
 	
-	public void setFilebox(Filebox filebox) {
+	public void setFilebox(LocalFilebox filebox) {
 		if ( this.filebox != null ) {
 			this.filebox.removePropertyChangeListener(propertiesListener);
 			this.filebox.getPreferences().removePropertyChangeListener(propertiesListener);
@@ -133,12 +145,17 @@ public class FileboxMainComposite extends Composite {
 			filebox.getPreferences().addPropertyChangeListener(propertiesListener);
 		}
 		this.filebox = filebox;
-		
-		meLabel.setText(filebox.getMe().getName());
+		if ( filebox != null ) {
+			meLabel.setText(filebox.getName());
+			statusCombo.select(filebox.isConnected() ? 0 : 1);
+		} else {
+			meLabel.setText("Me");
+			statusCombo.select(1);
+		}
 		
 	}
 
-	public Filebox getApplication() {
+	public LocalFilebox getLocalFilebox() {
 		return filebox;
 	}
 	

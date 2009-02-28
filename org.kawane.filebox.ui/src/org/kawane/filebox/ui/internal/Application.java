@@ -6,7 +6,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
-import org.kawane.filebox.core.Filebox;
+import org.kawane.filebox.core.LocalFilebox;
 import org.kawane.filebox.ui.FileboxMainComposite;
 import org.kawane.filebox.ui.MenuManager;
 import org.osgi.framework.BundleContext;
@@ -20,7 +20,7 @@ import org.osgi.service.log.LogService;
 public class Application implements IApplication {
 	private static LogService logger = Activator.getInstance().getLogger();
 	
-	protected Filebox filebox;
+	protected LocalFilebox filebox;
 	
 	private Display display;
 	private FileboxMainComposite composite;
@@ -29,11 +29,11 @@ public class Application implements IApplication {
 		return display.getActiveShell();
 	}
 	
-	public Filebox getFilebox() {
+	public LocalFilebox getFilebox() {
 		return filebox;
 	}
 	
-	protected void setFileBox(Filebox filebox) {
+	protected void setFileBox(LocalFilebox filebox) {
 		this.filebox = filebox;
 		composite.setFilebox(filebox);
 	}
@@ -79,7 +79,7 @@ public class Application implements IApplication {
 		ServiceListener serviceListener = new ServiceListener() {
 			public void serviceChanged(ServiceEvent event) {
 				if(event.getType() == ServiceEvent.REGISTERED) {
-					Filebox filebox = (Filebox)bundleContext.getService(event.getServiceReference());
+					LocalFilebox filebox = (LocalFilebox)bundleContext.getService(event.getServiceReference());
 					application.setFileBox(filebox);
 				} else if(event.getType() == ServiceEvent.UNREGISTERING){
 					application.setFileBox(null);
@@ -87,7 +87,7 @@ public class Application implements IApplication {
 			}
 		};
 		
-		String filter = "(" + Constants.OBJECTCLASS + "="+ Filebox.class.getName() +")";
+		String filter = "(" + Constants.OBJECTCLASS + "="+ LocalFilebox.class.getName() +")";
 		ServiceReference[] serviceReferences = bundleContext.getServiceReferences(null,filter);
 		if(serviceReferences != null) {
 			for (ServiceReference serviceReference : serviceReferences) {
