@@ -3,6 +3,8 @@ package org.kawane.filebox.core.discovery;
 import java.util.Collection;
 import java.util.Map;
 
+import org.kawane.filebox.core.IFilebox;
+
 
 public interface IServiceDiscovery {
 	int DEFAULT_PORT = 9999;
@@ -23,7 +25,7 @@ public interface IServiceDiscovery {
 	 * you may use instead listener system please.
 	 * @return
 	 */
-	Collection<FileboxService> getServices();
+	Collection<IFilebox> getServices();
 
 	void apply(String name, int port, Map<String, String> properties);
 
