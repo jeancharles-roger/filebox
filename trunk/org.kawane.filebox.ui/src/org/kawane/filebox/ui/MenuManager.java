@@ -39,7 +39,7 @@ public class MenuManager {
 	protected Menu menuBar = null;
 
 	/** FileBox menu action list */
-	protected List<Action> fileBoxActions = null;
+	protected List<IAction> fileBoxActions = null;
 	
 	public MenuManager(Application application) {
 		this.application = application;
@@ -54,8 +54,8 @@ public class MenuManager {
 		@Override
 		public void widgetSelected(SelectionEvent e) {
 			// TODO handles toolitems
-			if (e.getSource() instanceof MenuItem && ((MenuItem) e.getSource()).getData() instanceof Action) {
-				Action action = (Action) ((MenuItem) e.getSource()).getData();
+			if (e.getSource() instanceof MenuItem && ((MenuItem) e.getSource()).getData() instanceof IAction) {
+				IAction action = (IAction) ((MenuItem) e.getSource()).getData();
 				// TODO handles end status
 				action.run();
 			}
@@ -73,7 +73,7 @@ public class MenuManager {
 	}
 
 	/** Creates a cascaded {@link MenuItem} from a list of actions. */
-	protected Menu createMenu(final Shell shell, final Menu bar, final String name, final List<Action> actions) {
+	protected Menu createMenu(final Shell shell, final Menu bar, final String name, final List<IAction> actions) {
 		MenuItem menuItem = new MenuItem(bar, SWT.CASCADE);
 		menuItem.setText(name);
 
@@ -92,19 +92,19 @@ public class MenuManager {
 	}
 
 	/** Populates menu with the given actions.  */
-	protected void populateMenu(Menu menu, List<Action> actions) {
-		for (Action oneAction : actions) {
+	protected void populateMenu(Menu menu, List<IAction> actions) {
+		for (IAction oneAction : actions) {
 
 			int visibility = oneAction.getVisibility();
-			if (visibility != Action.VISIBILITY_HIDDEN ) {
-				if (oneAction.hasStyle(Action.STYLE_SEPARATOR)) {
+			if (visibility != IAction.VISIBILITY_HIDDEN ) {
+				if (oneAction.hasStyle(IAction.STYLE_SEPARATOR)) {
 					new MenuItem(menu, SWT.SEPARATOR);
 				} else {
 					MenuItem menuItem = new MenuItem(menu, SWT.PUSH);
 					menuItem.setText(oneAction.getLabel());
 					menuItem.setImage(oneAction.getImage());
 					menuItem.setData(oneAction);
-					menuItem.setEnabled(visibility == Action.VISIBILITY_ENABLE);
+					menuItem.setEnabled(visibility == IAction.VISIBILITY_ENABLE);
 					menuItem.addSelectionListener(selectionListener);
 				}
 			}
@@ -119,12 +119,12 @@ public class MenuManager {
 	}
 
 	
-	public List<Action> getFileBoxActions() {
+	public List<IAction> getFileBoxActions() {
 		if ( fileBoxActions == null ) {
-			fileBoxActions = new ArrayList<Action>();
+			fileBoxActions = new ArrayList<IAction>();
 			
 			
-			fileBoxActions.add(new Action.Stub("About") {
+			fileBoxActions.add(new IAction.Stub("About") {
 				@Override
 				public int run() {
 					Shell dialog = tk.dialogShell(application.getActiveShell(), "About");
@@ -139,7 +139,7 @@ public class MenuManager {
 				}
 			});
 			
-			fileBoxActions.add(new Action.Stub("Preferences") {
+			fileBoxActions.add(new IAction.Stub("Preferences") {
 				@Override
 				public int run() {
 					Shell dialog = tk.dialogShell(application.getActiveShell(), "Preferences");
@@ -159,9 +159,9 @@ public class MenuManager {
 				}
 			});
 			
-			fileBoxActions.add(new Action.Stub(Action.STYLE_SEPARATOR));
+			fileBoxActions.add(new IAction.Stub(IAction.STYLE_SEPARATOR));
 			
-			fileBoxActions.add(new Action.Stub("Quit") {
+			fileBoxActions.add(new IAction.Stub("Quit") {
 				@Override
 				public int run() {
 					application.stop();
