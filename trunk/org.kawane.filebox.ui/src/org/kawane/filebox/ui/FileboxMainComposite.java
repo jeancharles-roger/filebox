@@ -64,6 +64,8 @@ public class FileboxMainComposite extends Composite {
 			if (evt.getSource() == getApplication().getPreferences() ) {
 				if ( Preferences.NAME.equals(evt.getPropertyName()) ) {
 					meLabel.setText(getApplication().getPreferences().getName());
+					// refresh parent's layout for label length
+					meLabel.getParent().layout();
 				}
 				return;
 			}
@@ -85,7 +87,7 @@ public class FileboxMainComposite extends Composite {
 		// my name label
 		meLabel = new Label(meComposite, SWT.NONE);
 		meLabel.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false, false));
-		meLabel.setText("Me" + ":");
+		meLabel.setText("Me");
 		
 		// status combo
 		statusCombo = new Combo(meComposite, SWT.READ_ONLY);
@@ -132,7 +134,8 @@ public class FileboxMainComposite extends Composite {
 		}
 		this.filebox = filebox;
 		
-		meLabel.setText(filebox.getMe().getName() + ":");
+		meLabel.setText(filebox.getMe().getName());
+		
 	}
 
 	public Filebox getApplication() {
