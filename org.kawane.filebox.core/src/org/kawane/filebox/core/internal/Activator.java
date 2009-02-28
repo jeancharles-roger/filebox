@@ -3,8 +3,7 @@ package org.kawane.filebox.core.internal;
 import java.io.File;
 import java.util.HashMap;
 
-import org.kawane.filebox.core.Contact;
-import org.kawane.filebox.core.Filebox;
+import org.kawane.filebox.core.LocalFilebox;
 import org.kawane.filebox.core.discovery.IServiceDiscovery;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -38,12 +37,11 @@ public class Activator implements BundleActivator {
 		HashMap<String, String> properties = new HashMap<String, String>();
 		
 		// initialize filebox application
-		Filebox fileboxApplication = new Filebox(configurationFile);
-		context.registerService(Filebox.class.getName(), fileboxApplication, null);
+		LocalFilebox filebox = new LocalFilebox(configurationFile);
+		context.registerService(LocalFilebox.class.getName(), filebox, null);
 		
-		Contact me = fileboxApplication.getMe();
-		properties.put(me.getStatus().getClass().getSimpleName(), me.getStatus().toString());
-		serviceDiscovery = new ServiceDiscovery(me.getName(), IServiceDiscovery.DEFAULT_PORT, properties);
+//		properties.put(filebox.getStatus().getClass().getSimpleName(), filebox.getStatus().toString());
+		serviceDiscovery = new ServiceDiscovery(filebox.getName(), IServiceDiscovery.DEFAULT_PORT, properties);
 		// automatically connect to the network for now
 		serviceDiscovery.start();
 		context.registerService(IServiceDiscovery.class.getName(), serviceDiscovery, null);
