@@ -1,6 +1,7 @@
 package org.kawane.filebox.core;
 
 import java.io.File;
+import java.rmi.Remote;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -11,7 +12,7 @@ import org.kawane.filebox.core.discovery.IFileboxServiceListener;
 import org.kawane.filebox.core.discovery.IServiceDiscovery;
 import org.kawane.filebox.core.internal.Activator;
 
-public class LocalFilebox extends Observable implements IFilebox {
+public class LocalFilebox extends Observable implements IFilebox, Remote {
 
 	public static final String FILEBOXES = "fileboxes";
 	

@@ -1,6 +1,8 @@
 package org.kawane.filebox.core.internal;
 
 import java.io.File;
+import java.rmi.Naming;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.HashMap;
 
 import org.kawane.filebox.core.LocalFilebox;
@@ -39,6 +41,10 @@ public class Activator implements BundleActivator {
 		// initialize filebox application
 		LocalFilebox filebox = new LocalFilebox(configurationFile);
 		context.registerService(LocalFilebox.class.getName(), filebox, null);
+	
+		// publish object on rmi 
+		UnicastRemoteObject.exportObject(filebox, filebox.getPort());
+		Naming.rebind(ServiceDiscovery.FILEBOX_TYPE, filebox);
 		
 //		properties.put(filebox.getStatus().getClass().getSimpleName(), filebox.getStatus().toString());
 		serviceDiscovery = new ServiceDiscovery(filebox.getName(), IServiceDiscovery.DEFAULT_PORT, properties);
