@@ -1,6 +1,7 @@
 package org.kawane.filebox.core.internal;
 
 import java.io.IOException;
+import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
@@ -16,7 +17,8 @@ import javax.jmdns.ServiceEvent;
 import javax.jmdns.ServiceInfo;
 import javax.jmdns.ServiceListener;
 
-import org.kawane.filebox.core.discovery.FileboxService;
+import org.kawane.filebox.core.DistantFilebox;
+import org.kawane.filebox.core.IFilebox;
 import org.kawane.filebox.core.discovery.IFileboxServiceListener;
 import org.kawane.filebox.core.discovery.IServiceDiscovery;
 import org.osgi.service.log.LogService;
@@ -113,12 +115,12 @@ public class ServiceDiscovery implements ServiceListener, IServiceDiscovery {
 	/* (non-Javadoc)
 	 * @see org.kawane.filebox.core.IServiceDiscovery#getServices()
 	 */
-	public Collection<FileboxService> getServices() {
-		Collection<FileboxService> services = new ArrayList<FileboxService>();
+	public Collection<IFilebox> getServices() {
+		Collection<IFilebox> services = new ArrayList<IFilebox>();
 		if (dns != null) {
 			ServiceInfo[] servicesInfo = dns.list(FILEBOX_TYPE);
 			for (ServiceInfo serviceInfo : servicesInfo) {
-				FileboxService fileboxService = createFileboxService(serviceInfo);
+				IFilebox fileboxService = createFileboxService(serviceInfo);
 				services.add(fileboxService);
 			}
 		}
@@ -139,7 +141,7 @@ public class ServiceDiscovery implements ServiceListener, IServiceDiscovery {
 		listeners.remove(listener);
 	}
 
-	private FileboxService createFileboxService(ServiceInfo serviceInfo) {
+	private IFilebox createFileboxService(ServiceInfo serviceInfo) {
 		Map<String, String> properties = new HashMap<String, String>();
 		@SuppressWarnings("unchecked")
 		Enumeration<String> propertyNames = serviceInfo.getPropertyNames();
@@ -147,8 +149,13 @@ public class ServiceDiscovery implements ServiceListener, IServiceDiscovery {
 			String propertyName = propertyNames.nextElement();
 			properties.put(propertyName, serviceInfo.getPropertyString(propertyName));
 		}
-		FileboxService fileboxService = new FileboxService(serviceInfo.getHostAddress(), serviceInfo.getPort(), serviceInfo.getName(), properties);
-		return fileboxService;
+		try  {
+			IFilebox fileboxService = new DistantFilebox(serviceInfo.getName(), serviceInfo.getHostAddress(), serviceInfo.getPort());
+			return fileboxService;
+		} catch (RemoteException e) {
+			logger.log(LogService.LOG_ERROR, "Can't connect Filebox", e);
+			return null;
+		}
 	}
 
 	public void serviceAdded(ServiceEvent event) {
