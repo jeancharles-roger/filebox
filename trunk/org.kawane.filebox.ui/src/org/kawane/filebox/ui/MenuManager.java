@@ -143,8 +143,8 @@ public class MenuManager {
 				@Override
 				public int run() {
 					Shell dialog = tk.dialogShell(application.getActiveShell(), "Preferences");
-					String nameValue = getPreferences().getName();
-					Text nameText = tk.textField(dialog, "Name:", nameValue == null ? "" : nameValue );
+					Text nameText = tk.textField(dialog, "Name:", getPreferences().getName() );
+					Text portText = tk.textField(dialog, "Port:", Integer.toString(getPreferences().getPort()) );
 					Button[] buttons = tk.buttons(dialog, "Ok", "Cancel");
 					dialog.setDefaultButton(buttons[0]);
 					tk.computeSizes(dialog, 300);
@@ -152,6 +152,9 @@ public class MenuManager {
 					int result = tk.waitSelectedButton(buttons);
 					if (result == 0) {
 						getPreferences().setName(nameText.getText());
+						try {
+							getPreferences().setPort(Integer.valueOf(portText.getText()));
+						} catch (NumberFormatException e) { /* do nothing */ }
 						getPreferences().saveProperties();
 					}
 					dialog.dispose();
