@@ -3,11 +3,11 @@
 
 = M1 (no date yet) =
 
- * Uses of an OSGI Architecture,
- * Basic UI using SWT,
- * Preferences save,
- * Services discovery over a local network (with zeroconfig network),
- * Simple network operations (including file transfer) through RMI.
+ * Uses of an OSGI Architecture (*under development*),
+ * Basic UI using SWT (*under development*),
+ * Preferences save (*done*),
+ * Services discovery over a local network (with zeroconfig network) (*under development*),
+ * Simple network operations (including file transfer) through RMI (*under development*).
 
 = M2 (no date yet) =
 
