@@ -12,7 +12,6 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
@@ -56,8 +55,6 @@ public class FileboxMainComposite extends Composite {
 		}
 	};
 	
-	
-	protected Button testButton;
 	
 	protected LocalFilebox filebox;
 	protected PropertyChangeListener propertiesListener = new PropertyChangeListener() {
@@ -123,17 +120,6 @@ public class FileboxMainComposite extends Composite {
 		contactsTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		contactsTable.addListener(SWT.SetData, contactsDataListener);
 		contactsTable.setItemCount(0);
-		
-		// test button
-		testButton = new Button(this, SWT.PUSH);
-		testButton.setText("Add contact");
-		testButton.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				getLocalFilebox().addFilebox(0, new IFilebox.Stub("Lolo"));
-			}
-		});
-		
 		
 	}
 	
