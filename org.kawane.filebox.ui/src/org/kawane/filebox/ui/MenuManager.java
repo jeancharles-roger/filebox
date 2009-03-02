@@ -19,6 +19,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.kawane.filebox.core.Preferences;
 import org.kawane.filebox.ui.internal.Application;
+import org.kawane.filebox.ui.internal.Resources;
 import org.kawane.filebox.ui.toolkit.ToolKit;
 
 /**
@@ -29,6 +30,9 @@ import org.kawane.filebox.ui.toolkit.ToolKit;
  */
 public class MenuManager {
 
+	/** Shared resources instances. */
+	protected Resources resources = Resources.getInstance();
+	
 	/** Parent application */
 	protected final Application application;
 	
