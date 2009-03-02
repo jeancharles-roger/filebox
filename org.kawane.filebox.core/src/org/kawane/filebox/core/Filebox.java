@@ -12,7 +12,7 @@ import org.kawane.filebox.core.discovery.IFileboxServiceListener;
 import org.kawane.filebox.core.discovery.IServiceDiscovery;
 import org.kawane.filebox.core.internal.Activator;
 
-public class LocalFilebox extends Observable implements IFilebox {
+public class Filebox extends Observable implements IFilebox {
 
 	public static final String FILEBOXES = "fileboxes";
 	
@@ -36,7 +36,7 @@ public class LocalFilebox extends Observable implements IFilebox {
 	protected final Map<String, String> properties = new HashMap<String, String>();
 	protected boolean connected = false;
 	
-	public LocalFilebox(File configurationFile) {
+	public Filebox(File configurationFile) {
 		preferences = new Preferences(configurationFile);
 		String preferencesName = preferences.getName();
 		this.name = preferencesName == null ? "Me" : preferencesName;
@@ -137,7 +137,7 @@ public class LocalFilebox extends Observable implements IFilebox {
 	}
 	
 	/** @return true if the filebox is connected. */
-	public boolean isConnected() {
+	public boolean isConnected() throws RemoteException {
 		return connected;
 	}
 }

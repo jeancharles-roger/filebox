@@ -1,18 +1,14 @@
 package org.kawane.filebox.core.internal;
 
 import java.io.File;
-import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.rmi.server.LoaderHandler;
-import java.rmi.server.RMIClassLoader;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.HashMap;
 
 import org.eclipse.osgi.service.datalocation.Location;
-import org.kawane.filebox.core.IFilebox;
-import org.kawane.filebox.core.LocalFilebox;
+import org.kawane.filebox.core.Filebox;
 import org.kawane.filebox.core.discovery.IServiceDiscovery;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -57,8 +53,8 @@ public class Activator implements BundleActivator {
 		HashMap<String, String> properties = new HashMap<String, String>();
 		
 		// initialize filebox application
-		LocalFilebox filebox = new LocalFilebox(configurationFile);
-		context.registerService(LocalFilebox.class.getName(), filebox, null);
+		Filebox filebox = new Filebox(configurationFile);
+		context.registerService(Filebox.class.getName(), filebox, null);
 	
 		// publish object on rmi 
 		try { 
@@ -74,6 +70,7 @@ public class Activator implements BundleActivator {
 		// automatically connect to the network for now
 		serviceDiscovery.start();
 		context.registerService(IServiceDiscovery.class.getName(), serviceDiscovery, null);
+		
 	}
 
 	/*

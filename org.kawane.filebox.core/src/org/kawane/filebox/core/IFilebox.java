@@ -26,4 +26,6 @@ public interface IFilebox extends Remote {
 	
 	public int getPort() throws RemoteException;
 	
+	public boolean isConnected() throws RemoteException;
+	
 }
