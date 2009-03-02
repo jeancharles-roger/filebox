@@ -6,10 +6,12 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.HashMap;
 
+import org.eclipse.osgi.service.datalocation.Location;
 import org.kawane.filebox.core.LocalFilebox;
 import org.kawane.filebox.core.discovery.IServiceDiscovery;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
 import org.osgi.service.log.LogService;
 import org.osgi.util.tracker.ServiceTracker;
 
@@ -32,6 +34,17 @@ public class Activator implements BundleActivator {
 		instance = this;
 		logTracker = new ServiceTracker(context, LogService.class.getName(), null);
 		logTracker.open();
+		ServiceReference[] serviceReferences = context.getServiceReferences(Location.class.getName(), Location.CONFIGURATION_FILTER);
+		if (serviceReferences != null) {
+			for (ServiceReference serviceReference : serviceReferences) {
+				Location configLocation = (Location) context.getService(serviceReference);
+				configurationFile = new File(configLocation.getURL().getFile(), CONFIG_FILENAME);
+			}
+		}
+		// configuration file
+		if(configurationFile == null) {
+			configurationFile = context.getDataFile(CONFIG_FILENAME);
+		}
 		
 		// configuration file
 		configurationFile = context.getDataFile(CONFIG_FILENAME);
