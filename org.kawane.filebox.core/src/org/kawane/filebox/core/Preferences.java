@@ -21,6 +21,10 @@ import org.osgi.service.log.LogService;
 public class Preferences extends Observable {
 	
 	public static final String NAME = "filebox.name";
+	public static final String PORT = "filebox.port";
+	
+	protected static final int DEFAULT_PORT = 9999;
+	
 	
 	protected final LogService logger = Activator.getInstance().getLogger();
 	
@@ -113,11 +117,29 @@ public class Preferences extends Observable {
 
 	
 	public String getName() {
-		return getProperty(NAME);
+		String name = getProperty(NAME);
+		if ( name == null || name.length() == 0  ) {
+			name = "Me";
+		}
+		return name;
 	}
 	
 	public void setName(String value) {
 		setProperty(NAME, value);
+	}
+
+	
+	public int getPort() {
+		String stringValue = getProperty(PORT);
+		int value = DEFAULT_PORT;
+		try {
+			value = Integer.valueOf(stringValue);
+		} catch( NumberFormatException e)  { /* do nothing */ }
+		return value;
+	}
+	
+	public void setPort(int value) {
+		setProperty(PORT, Integer.toString(value));
 	}
 
 }

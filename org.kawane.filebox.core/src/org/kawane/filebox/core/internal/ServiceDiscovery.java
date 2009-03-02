@@ -156,6 +156,7 @@ public class ServiceDiscovery implements ServiceListener, IServiceDiscovery {
 			
 //			IFilebox fileboxService = new DistantFilebox(serviceInfo.getName(), serviceInfo.getHostAddress(), serviceInfo.getPort());
 			String url = "rmi://" + serviceInfo.getHostAddress() + ":" + serviceInfo.getPort() + "/" + serviceInfo.getName();
+			//String url = serviceInfo.getName();
 			IFilebox fileboxService = (IFilebox) Naming.lookup(url);
 			
 			return fileboxService;

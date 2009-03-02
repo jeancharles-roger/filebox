@@ -2,6 +2,7 @@ package org.kawane.filebox.core.internal;
 
 import java.io.File;
 import java.rmi.Naming;
+import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.HashMap;
 
@@ -43,11 +44,15 @@ public class Activator implements BundleActivator {
 		context.registerService(LocalFilebox.class.getName(), filebox, null);
 	
 		// publish object on rmi 
-		UnicastRemoteObject.exportObject(filebox, filebox.getPort());
-		Naming.rebind(ServiceDiscovery.FILEBOX_TYPE, filebox);
+		try { 
+			UnicastRemoteObject.exportObject(filebox, filebox.getPort());
+			Naming.rebind(filebox.getName(), filebox);
+		} catch (RemoteException e) {
+			getLogger().log(LogService.LOG_ERROR, "Can't connect Filebox", e);
+		}
 		
 //		properties.put(filebox.getStatus().getClass().getSimpleName(), filebox.getStatus().toString());
-		serviceDiscovery = new ServiceDiscovery(filebox.getName(), IServiceDiscovery.DEFAULT_PORT, properties);
+		serviceDiscovery = new ServiceDiscovery(filebox.getName(), filebox.getPort(), properties);
 		// automatically connect to the network for now
 		serviceDiscovery.start();
 		context.registerService(IServiceDiscovery.class.getName(), serviceDiscovery, null);
