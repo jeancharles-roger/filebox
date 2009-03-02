@@ -19,11 +19,13 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.kawane.filebox.core.IFilebox;
-import org.kawane.filebox.core.LocalFilebox;
+import org.kawane.filebox.core.Filebox;
 import org.kawane.filebox.core.Preferences;
 import org.kawane.filebox.ui.internal.Activator;
+import org.kawane.filebox.ui.internal.Resources;
 import org.osgi.service.log.LogService;
 
 /**
@@ -34,6 +36,9 @@ public class FileboxMainComposite extends Composite {
 	
 	private static LogService logger = Activator.getInstance().getLogger();
 
+	/** Shared resources instances. */
+	protected Resources resources = Resources.getInstance();
+	
 	protected GridLayout layout;
 
 	protected Label meLabel;
@@ -50,29 +55,43 @@ public class FileboxMainComposite extends Composite {
 	};
 	
 	protected Table contactsTable;
-	protected Listener contactsDataListener = new Listener() {
+	protected TableColumn statusColumn;
+	protected TableColumn nameColumn;
+	protected TableColumn hostColumn;
+	protected Listener contactsTableListener = new Listener() {
 		public void handleEvent(Event e) {
-			try {
-				TableItem item = (TableItem)e.item;
-				int index = contactsTable.indexOf(item);
-				IFilebox distantFilebox = filebox.getFilebox(index);
-				item.setData(distantFilebox);
-				item.setText(distantFilebox.getName());
-			} catch (RemoteException e1) {
-				logger.log(LogService.LOG_ERROR, "An Error Occured", e1);
+			if ( e.type == SWT.SetData ) {
+				try {
+					TableItem item = (TableItem)e.item;
+					int index = contactsTable.indexOf(item);
+					IFilebox distantFilebox = filebox.getFilebox(index);
+					item.setData(distantFilebox);
+					item.setImage(0, resources.getImage(distantFilebox.isConnected() ? "connected.png" : "disconnected.png"));
+					item.setText(1, distantFilebox.getName());
+					item.setText(2, distantFilebox.getHost());
+				} catch (RemoteException e1) {
+					logger.log(LogService.LOG_ERROR, "An Error Occured", e1);
+				}
+				return;
+			}
+			
+			if ( e.type == SWT.Resize ) {
+				resizeContactTable();
+				return;
 			}
 		}
 	};
 	
 	
-	protected LocalFilebox filebox;
+	
+	protected Filebox filebox;
 	protected PropertyChangeListener propertiesListener = new PropertyChangeListener() {
 		public void propertyChange(final PropertyChangeEvent evt) {
 			getDisplay().asyncExec(new Runnable(){
 				public void run() {
 					// application changed
 					if ( evt.getSource() == getLocalFilebox() ) {
-						if ( LocalFilebox.FILEBOXES.equals(evt.getPropertyName()) ) {
+						if ( Filebox.FILEBOXES.equals(evt.getPropertyName()) ) {
 							contactsTable.setItemCount(getLocalFilebox().getFileboxesCount());
 						}
 						return;
@@ -91,8 +110,6 @@ public class FileboxMainComposite extends Composite {
 			});
 		}
 	};
-	
-	
 	public FileboxMainComposite(Composite parent, int style) {
 		super(parent, style);
 		layout = new GridLayout(1,false);
@@ -111,9 +128,9 @@ public class FileboxMainComposite extends Composite {
 		// status combo
 		statusCombo = new Combo(meComposite, SWT.READ_ONLY);
 		statusCombo.setLayoutData(new GridData(SWT.END, SWT.CENTER, true, false));
-		statusCombo.setItems( new String[] { "On line", "Off line", "Don't disturb"} );
-		statusCombo.select(1);
+		statusCombo.setItems( new String[] { "On line", "Off line" } );
 		statusCombo.addSelectionListener(statusComboListener);
+//		statusCombo.select(0);
 		
 		// a separator
 		Label separator = new Label(this, SWT.SEPARATOR | SWT.HORIZONTAL);
@@ -125,14 +142,30 @@ public class FileboxMainComposite extends Composite {
 		contactsLabel.setText("Contacts" + ":");
 		
 		// contacts table
-		contactsTable = new Table(this,  SWT.VIRTUAL | SWT.BORDER);
+		contactsTable = new Table(this,  SWT.MULTI | SWT.VIRTUAL | SWT.BORDER);
 		contactsTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-		contactsTable.addListener(SWT.SetData, contactsDataListener);
+		contactsTable.setLinesVisible(true);
+		statusColumn = new TableColumn(contactsTable, SWT.CENTER);
+		nameColumn = new TableColumn(contactsTable, SWT.NONE);
+		hostColumn = new TableColumn(contactsTable, SWT.RIGHT);
+		contactsTable.addListener(SWT.SetData, contactsTableListener);
+		contactsTable.addListener(SWT.Resize, contactsTableListener);
 		contactsTable.setItemCount(0);
-		
+		resizeContactTable();
 	}
 	
-	public void setFilebox(LocalFilebox filebox) {
+	protected void resizeContactTable() {
+		final float hostRatio = 0.4f;
+		final int statusSize = 20;
+		final int margin = 10;
+		int width = contactsTable.getSize().x - margin - statusSize;
+		int hostSize = (int) (hostRatio * width);
+		statusColumn.setWidth( statusSize );
+		nameColumn.setWidth( width - hostSize - statusSize);
+		hostColumn.setWidth(hostSize);
+	}
+	
+	public void setFilebox(Filebox filebox) {
 		if ( this.filebox != null ) {
 			this.filebox.removePropertyChangeListener(propertiesListener);
 			this.filebox.getPreferences().removePropertyChangeListener(propertiesListener);
@@ -145,10 +178,10 @@ public class FileboxMainComposite extends Composite {
 		if ( filebox != null ) {
 			try {
 				meLabel.setText(filebox.getName());
+				statusCombo.select(filebox.isConnected() ? 0 : 1);
 			} catch (RemoteException e) {
 				logger.log(LogService.LOG_ERROR, "An Error Occured", e);
 			}
-			statusCombo.select(filebox.isConnected() ? 0 : 1);
 		} else {
 			meLabel.setText("Me");
 			statusCombo.select(1);
@@ -156,7 +189,7 @@ public class FileboxMainComposite extends Composite {
 		
 	}
 
-	public LocalFilebox getLocalFilebox() {
+	public Filebox getLocalFilebox() {
 		return filebox;
 	}
 	
