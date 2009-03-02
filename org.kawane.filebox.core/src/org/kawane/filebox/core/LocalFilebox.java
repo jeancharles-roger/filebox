@@ -1,6 +1,7 @@
 package org.kawane.filebox.core;
 
 import java.io.File;
+import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -85,7 +86,7 @@ public class LocalFilebox extends Observable implements IFilebox {
 	}
 	
 	
-	public String getHost() {
+	public String getHost() throws RemoteException{
 		return host;
 	}
 	
@@ -95,7 +96,7 @@ public class LocalFilebox extends Observable implements IFilebox {
 		getObservable().firePropertyChange(HOST, oldValue, host);
 	}
 	
-	public int getPort() {
+	public int getPort() throws RemoteException{
 		return port;
 	}
 	
@@ -105,7 +106,7 @@ public class LocalFilebox extends Observable implements IFilebox {
 		getObservable().firePropertyChange(PORT, oldValue, port);
 	}
 	
-	public String getName() {
+	public String getName() throws RemoteException{
 		return name;
 	}
 	

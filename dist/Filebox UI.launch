@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <launchConfiguration type="org.eclipse.pde.ui.EquinoxLauncher">
 <booleanAttribute key="append.args" value="true"/>
 <booleanAttribute key="automaticAdd" value="true"/>
@@ -17,8 +17,8 @@
 <stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Declipse.ignoreApp=false -Dosgi.noShutdown=false"/>
 <stringAttribute key="pde.version" value="3.3"/>
 <booleanAttribute key="show_selected_only" value="false"/>
-<stringAttribute key="target_bundles" value="org.eclipse.equinox.registry.source@default:default,org.eclipse.swt.win32.win32.x86.source@default:default,org.eclipse.swt@default:default,org.eclipse.swt.gtk.linux.x86.source@default:default,org.eclipse.osgi@:,org.eclipse.swt.cocoa.macosx.source@default:default,org.eclipse.equinox.launcher.source@default:default,org.eclipse.swt.cocoa.macosx@default:false,org.eclipse.osgi.services.source@default:default,org.eclipse.equinox.app@default:default,org.eclipse.swt.win32.win32.x86@default:false,org.eclipse.osgi.services@default:default,org.eclipse.equinox.log@2:default,org.eclipse.osgi.source@default:default,org.eclipse.equinox.common.source@default:default,org.eclipse.equinox.app.source@default:default,org.eclipse.equinox.launcher@default:default,org.eclipse.swt.gtk.linux.x86@default:false,org.eclipse.equinox.log.source@default:default,org.eclipse.equinox.registry@default:default,org.eclipse.equinox.common@default:default"/>
+<stringAttribute key="target_bundles" value="org.eclipse.swt.gtk.linux.x86.source@default:default,org.eclipse.equinox.log@2:default,org.eclipse.equinox.common@default:default,org.eclipse.equinox.registry.source@default:default,org.eclipse.osgi.source@default:default,org.eclipse.equinox.common.source@default:default,org.eclipse.equinox.log.source@default:default,org.eclipse.osgi@:,org.eclipse.osgi.services@default:default,org.eclipse.equinox.registry@default:default,org.eclipse.swt.win32.win32.x86@default:false,org.eclipse.swt.gtk.linux.x86@default:false,org.eclipse.equinox.app.source@default:default,org.eclipse.swt@default:default,org.eclipse.osgi.services.source@default:default,org.eclipse.equinox.launcher@default:default,org.eclipse.equinox.app@default:default,org.eclipse.swt.win32.win32.x86.source@default:default,org.eclipse.equinox.launcher.source@default:default"/>
 <booleanAttribute key="tracing" value="false"/>
 <booleanAttribute key="useDefaultConfigArea" value="true"/>
-<stringAttribute key="workspace_bundles" value="org.kawane.filebox.core@3:default,org.kawane.filebox.ui@4:default"/>
+<stringAttribute key="workspace_bundles" value="org.kawane.filebox.ui@4:default,org.kawane.filebox.core@3:default"/>
 </launchConfiguration>

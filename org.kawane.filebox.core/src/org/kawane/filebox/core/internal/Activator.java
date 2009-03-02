@@ -3,10 +3,15 @@ package org.kawane.filebox.core.internal;
 import java.io.File;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.LoaderHandler;
+import java.rmi.server.RMIClassLoader;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.HashMap;
 
 import org.eclipse.osgi.service.datalocation.Location;
+import org.kawane.filebox.core.IFilebox;
 import org.kawane.filebox.core.LocalFilebox;
 import org.kawane.filebox.core.discovery.IServiceDiscovery;
 import org.osgi.framework.BundleActivator;
@@ -16,7 +21,6 @@ import org.osgi.service.log.LogService;
 import org.osgi.util.tracker.ServiceTracker;
 
 public class Activator implements BundleActivator {
-
 	protected static final String CONFIG_FILENAME = "filebox.properties";
 
 	static private Activator instance;
@@ -58,8 +62,9 @@ public class Activator implements BundleActivator {
 	
 		// publish object on rmi 
 		try { 
+			Registry registry = LocateRegistry.createRegistry(filebox.getPort());
 			UnicastRemoteObject.exportObject(filebox, filebox.getPort());
-			Naming.rebind(filebox.getName(), filebox);
+			registry.rebind(filebox.getName(), filebox);
 		} catch (RemoteException e) {
 			getLogger().log(LogService.LOG_ERROR, "Can't connect Filebox", e);
 		}

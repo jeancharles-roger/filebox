@@ -5,6 +5,7 @@ import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
@@ -94,8 +95,8 @@ public class ServiceDiscovery implements ServiceListener, IServiceDiscovery {
 								properties));
 						dns.addServiceListener(FILEBOX_TYPE, ServiceDiscovery.this);
 						dns.registerService(serviceInfo);
-						// first call of it is always slow
-						getServices();
+//						// first call of it is always slow
+//						getServices();
 					}
 				} catch (Throwable e) {
 					logger.log(LogService.LOG_ERROR, "An Error Occured", e);
@@ -155,15 +156,12 @@ public class ServiceDiscovery implements ServiceListener, IServiceDiscovery {
 			
 			
 //			IFilebox fileboxService = new DistantFilebox(serviceInfo.getName(), serviceInfo.getHostAddress(), serviceInfo.getPort());
-			String url = "rmi://" + serviceInfo.getHostAddress() + ":" + serviceInfo.getPort() + "/" + serviceInfo.getName();
+//			String url = "rmi://localhost" + ":" + serviceInfo.getPort() + "/" + serviceInfo.getName();
 			//String url = serviceInfo.getName();
-			IFilebox fileboxService = (IFilebox) Naming.lookup(url);
+			IFilebox fileboxService = (IFilebox) LocateRegistry.getRegistry(serviceInfo.getHostAddress(), serviceInfo.getPort()).lookup(serviceInfo.getName());
 			
 			return fileboxService;
 		} catch (RemoteException e) {
-			logger.log(LogService.LOG_ERROR, "Can't connect Filebox", e);
-			return null;
-		} catch (MalformedURLException e) {
 			logger.log(LogService.LOG_ERROR, "Can't connect Filebox", e);
 			return null;
 		} catch (NotBoundException e) {
