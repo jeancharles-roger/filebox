@@ -6,6 +6,7 @@ package org.kawane.filebox.ui;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.rmi.RemoteException;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -22,12 +23,16 @@ import org.eclipse.swt.widgets.TableItem;
 import org.kawane.filebox.core.IFilebox;
 import org.kawane.filebox.core.LocalFilebox;
 import org.kawane.filebox.core.Preferences;
+import org.kawane.filebox.ui.internal.Activator;
+import org.osgi.service.log.LogService;
 
 /**
  * @author Jean-Charles Roger
  *
  */
 public class FileboxMainComposite extends Composite {
+	
+	private static LogService logger = Activator.getInstance().getLogger();
 
 	protected GridLayout layout;
 
@@ -47,11 +52,15 @@ public class FileboxMainComposite extends Composite {
 	protected Table contactsTable;
 	protected Listener contactsDataListener = new Listener() {
 		public void handleEvent(Event e) {
-			TableItem item = (TableItem)e.item;
-			int index = contactsTable.indexOf(item);
-			IFilebox distantFilebox = filebox.getFilebox(index);
-			item.setData(distantFilebox);
-			item.setText(distantFilebox.getName());
+			try {
+				TableItem item = (TableItem)e.item;
+				int index = contactsTable.indexOf(item);
+				IFilebox distantFilebox = filebox.getFilebox(index);
+				item.setData(distantFilebox);
+				item.setText(distantFilebox.getName());
+			} catch (RemoteException e1) {
+				logger.log(LogService.LOG_ERROR, "An Error Occured", e1);
+			}
 		}
 	};
 	
@@ -134,7 +143,11 @@ public class FileboxMainComposite extends Composite {
 		}
 		this.filebox = filebox;
 		if ( filebox != null ) {
-			meLabel.setText(filebox.getName());
+			try {
+				meLabel.setText(filebox.getName());
+			} catch (RemoteException e) {
+				logger.log(LogService.LOG_ERROR, "An Error Occured", e);
+			}
 			statusCombo.select(filebox.isConnected() ? 0 : 1);
 		} else {
 			meLabel.setText("Me");

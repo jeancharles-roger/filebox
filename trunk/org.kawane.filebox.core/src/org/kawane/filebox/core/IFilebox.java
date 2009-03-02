@@ -5,6 +5,7 @@
 package org.kawane.filebox.core;
 
 import java.rmi.Remote;
+import java.rmi.RemoteException;
 
 
 /**
@@ -19,10 +20,10 @@ public interface IFilebox extends Remote {
 	public static final String PORT = "port";
 	public static final String PROPERTIES = "properties";
 	
-	public String getName();
+	public String getName() throws RemoteException;
 
-	public String getHost();
+	public String getHost() throws RemoteException;
 	
-	public int getPort();
+	public int getPort() throws RemoteException;
 	
 }
