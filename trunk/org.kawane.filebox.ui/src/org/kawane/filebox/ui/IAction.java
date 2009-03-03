@@ -19,6 +19,18 @@ public interface IAction {
 	/** Action is a separator */
 	public static final int STYLE_SEPARATOR = 1;
 	
+	/** Action will appears in the main menu bar */
+	public static final int STYLE_MENUBAR = 2;
+	
+	/** Action will appears in the system tray menu */
+	public static final int STYLE_MENUTRAY = 4;
+		
+	/** Action will appears in a popup menu */
+	public static final int STYLE_MENUPOPUP = 8;
+	
+	/** Action will be considered as default action */
+	public static final int STYLE_DEFAULTACTION = 16;
+	
 	/** The action is enable */
 	public static final int VISIBILITY_ENABLE = 1;
 	
