@@ -1,26 +1,47 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="File box" default="build">
-	<property file="build.properties"/>
-		<delete dir="${destination}"/>
-		<mkdir dir="${destination}"/>
-	    <target name="build">
-	    	<pde.exportPlugins destination="${destination}" 
-	    		exportSource="false" 
-	    		plugins="${bundles}"  
-	    		exportType="directory" 
-	    		useJARFormat="true"/>
-	    <copy todir="${destination}/plugins">
-	    	<fileset dir="${platform_dir}" >
-	    		<include name="*.jar"/>
-		    </fileset>
-	    </copy>
-    	<copy todir="${destination}">
-	    	<fileset dir="${template_dir}" >
-	    		<include name="**/*"/>
-	    		<exclude name="**/.svn"/>
-		    </fileset>
-	    </copy>
-	    <eclipse.refreshLocal resource="dist"/>
-    </target>
+<project name="File box" default="build.macosx">
+	<property file="build.properties" />
+	<delete dir="${destination}" />
+	<mkdir dir="${destination}" />
+
+	<target name="build.linux">
+		<pde.exportPlugins destination="${destination}" exportSource="false" plugins="${bundles}" exportType="directory" useJARFormat="true" />
+		<copy todir="${destination}/plugins">
+			<fileset dir="${platform_dir}">
+				<include name="*.jar" />
+				<exclude name="*macosx*.jar"/>
+				<exclude name="*win32*.jar"/>
+			</fileset>
+		</copy>
+		<copy todir="${destination}">
+			<fileset dir="${template_dir}/linux">
+				<include name="**/*" />
+				<exclude name="**/.svn" />
+			</fileset>
+		</copy>
+		<chmod perm="+x" file="${destination}/filebox/filebox.sh"/>
+		<eclipse.refreshLocal resource="dist" />
+	</target>
+
+	
+	<target name="build.macosx">
+		<copy todir="${destination}">
+			<fileset dir="${template_dir}/macosx">
+				<include name="**/*" />
+				<exclude name="**/.svn" />
+			</fileset>
+		</copy>
+		<rename dest="${template_dir}/macosx/Filebox.app_" src="${template_dir}/macosx/Filebox.app"/>
+		<pde.exportPlugins destination="${destination}/Filebox.app/Contents/MacOS" exportSource="false" plugins="${bundles}" exportType="directory" useJARFormat="true" />
+		<copy todir="${destination}/Filebox.app/Contents/MacOS/plugins">
+			<fileset dir="${platform_dir}">
+				<include name="*.jar" />
+				<exclude name="*linux*.jar"/>
+				<exclude name="*win32*.jar"/>
+			</fileset>
+		</copy>
+		<chmod perm="+x" file="${destination}/Filebox.app/Contents/MacOS/filebox"/>
+		<eclipse.refreshLocal resource="dist" />
+	</target>
 
 </project>
