@@ -100,7 +100,7 @@ public class Application implements IApplication {
 			System.out.println("The system tray is not available");
 		} else {
 			final TrayItem item = new TrayItem(tray, SWT.NONE);
-			item.setToolTipText("SWT TrayItem");
+			item.setToolTipText("Filebox");
 			
 			final Menu menu = new Menu(shell, SWT.POP_UP);
 			MenuItem quitMenu = new MenuItem(menu, SWT.PUSH);
