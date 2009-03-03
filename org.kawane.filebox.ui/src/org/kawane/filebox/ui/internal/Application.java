@@ -59,13 +59,16 @@ public class Application implements IApplication {
 		resources = Resources.getInstance();
 
 		// our first window
-		Shell shell = new Shell(display);
+		final Shell shell = new Shell(display);
 		shell.setImage(resources.getImage("filebox.png"));
 		shell.setLayout(new FillLayout());
 		shell.setSize(300, 300);
 		shell.setText("FileBox");
 		shell.addListener(SWT.Close, new Listener() {
 			public void handleEvent(Event event) {
+				boolean visible = !shell.isVisible();
+				shell.setVisible(visible);
+				
 				// do not quit the application when closing the shell
 				event.doit = false;
 			}
@@ -83,8 +86,12 @@ public class Application implements IApplication {
 		shell.open();
 		context.applicationRunning();
 		while (!shell.isDisposed()) {
-			if (!display.readAndDispatch()) {
-				display.sleep();
+			try {
+				if (!display.readAndDispatch()) {
+					display.sleep();
+				}
+			} catch (Throwable e) {
+				logger.log(LogService.LOG_ERROR, "Internal Error", e);
 			}
 		}
 		if (!display.isDisposed()) {
