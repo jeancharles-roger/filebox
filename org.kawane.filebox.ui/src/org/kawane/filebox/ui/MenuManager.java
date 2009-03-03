@@ -13,14 +13,20 @@ import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.Tray;
+import org.eclipse.swt.widgets.TrayItem;
 import org.kawane.filebox.core.Preferences;
+import org.kawane.filebox.ui.internal.Activator;
 import org.kawane.filebox.ui.internal.Application;
 import org.kawane.filebox.ui.internal.Resources;
 import org.kawane.filebox.ui.toolkit.ToolKit;
+import org.osgi.service.log.LogService;
 
 /**
  * 
@@ -30,9 +36,11 @@ import org.kawane.filebox.ui.toolkit.ToolKit;
  */
 public class MenuManager {
 
+	protected static LogService logger = Activator.getInstance().getLogger();
+
 	/** Shared resources instances. */
 	protected Resources resources = Resources.getInstance();
-	
+
 	/** Parent application */
 	protected final Application application;
 	
@@ -42,6 +50,13 @@ public class MenuManager {
 	/** The handled menu bar  */
 	protected Menu menuBar = null;
 
+	protected IAction quitAction = null;
+	protected IAction showHideAction = null;
+	
+	
+	/** FileBox system tray menu action list */
+	protected List<IAction> systemTrayActions = null;
+	
 	/** FileBox menu action list */
 	protected List<IAction> fileBoxActions = null;
 	
@@ -68,15 +83,32 @@ public class MenuManager {
 	
 	/** Creates the shell menu bar */
 	public void createMenuBar(Shell shell) {
-
 		menuBar = new Menu(shell, SWT.BAR);
 		shell.setMenuBar(menuBar);
-		
-		createMenu(shell, menuBar, "FileBox", getFileBoxActions());
-
+		createMenu(shell, menuBar, "FileBox", getFileBoxActions(shell));
 	}
 
-	/** Creates a cascaded {@link MenuItem} from a list of actions. */
+	/** Creates the system tray (if available) */
+	public void createSystemTray(final Shell shell) {
+		final Tray tray = application.getDisplay().getSystemTray();
+		if (tray == null) {
+			logger.log(LogService.LOG_WARNING, "The system tray is not available");
+		} else {
+			final TrayItem item = new TrayItem(tray, SWT.NONE);
+			final Menu menu = createPopupMenu(shell, getSystemTrayActions(shell));
+			
+			item.setImage(resources.getImage("filebox-small.png"));
+			item.setToolTipText("Filebox");
+			item.addListener(SWT.MenuDetect, new Listener() {
+				public void handleEvent(Event event) {
+					menu.setVisible(true);
+				}
+			});
+		}
+	}
+
+	
+	/** Creates a cascaded {@link MenuItem} in a SWT.BAR menu from a list of actions. */
 	protected Menu createMenu(final Shell shell, final Menu bar, final String name, final List<IAction> actions) {
 		MenuItem menuItem = new MenuItem(bar, SWT.CASCADE);
 		menuItem.setText(name);
@@ -94,7 +126,20 @@ public class MenuManager {
 
 		return menu;
 	}
-
+	
+	/** Creates a popup menu from a list of actions */
+	protected Menu createPopupMenu(final Shell shell, final List<IAction> actions) {
+		final Menu menu = new Menu(shell, SWT.POP_UP);
+		menu.addMenuListener(new MenuAdapter() {
+			@Override
+			public void menuShown(MenuEvent e) {
+				depopulateMenu(menu);
+				populateMenu(menu, actions);
+			}
+		});
+		return menu;
+	}
+	
 	/** Populates menu with the given actions.  */
 	protected void populateMenu(Menu menu, List<IAction> actions) {
 		for (IAction oneAction : actions) {
@@ -110,6 +155,7 @@ public class MenuManager {
 					menuItem.setData(oneAction);
 					menuItem.setEnabled(visibility == IAction.VISIBILITY_ENABLE);
 					menuItem.addSelectionListener(selectionListener);
+					if ( oneAction.hasStyle(IAction.STYLE_DEFAULTACTION)) menu.setDefaultItem(menuItem);
 				}
 			}
 		}
@@ -122,8 +168,41 @@ public class MenuManager {
 		}
 	}
 
+	public IAction getQuitAction(final Shell shell) {
+		if ( quitAction == null ) {
+			quitAction = new IAction.Stub("Quit") {
+				@Override
+				public int run() {
+					application.stop();
+					return STATUS_OK;
+				}
+			};
+		}
+		return quitAction;
+	}
 	
-	public List<IAction> getFileBoxActions() {
+	public IAction getShowHideAction(final Shell shell) {
+		if ( showHideAction == null ) {
+			showHideAction = new IAction.Stub(IAction.STYLE_DEFAULTACTION) {
+				
+				@Override
+				public String getLabel() {
+					return shell.isVisible() ? "Hide" : "Show";
+				}
+				
+				@Override
+				public int run() {
+					// Show hide filebox
+					boolean visible = !shell.getVisible();
+					shell.setVisible(visible);
+					return STATUS_OK;
+				}
+			};
+		}
+		return showHideAction;
+	}
+	
+	public List<IAction> getFileBoxActions(final Shell shell) {
 		if ( fileBoxActions == null ) {
 			fileBoxActions = new ArrayList<IAction>();
 			
@@ -165,18 +244,19 @@ public class MenuManager {
 					return result == 0 ? STATUS_OK : STATUS_CANCEL;
 				}
 			});
-			
 			fileBoxActions.add(new IAction.Stub(IAction.STYLE_SEPARATOR));
-			
-			fileBoxActions.add(new IAction.Stub("Quit") {
-				@Override
-				public int run() {
-					application.stop();
-					return STATUS_OK;
-				}
-			});
+			fileBoxActions.add(getQuitAction(shell));
 			
 		}
 		return fileBoxActions;
+	}
+	
+	public List<IAction> getSystemTrayActions(final Shell shell) {
+		if ( systemTrayActions == null ) {
+			systemTrayActions = new ArrayList<IAction>();
+			systemTrayActions.add(getShowHideAction(shell));
+			systemTrayActions.add(getQuitAction(shell));
+		}
+		return systemTrayActions;
 	}
 }
