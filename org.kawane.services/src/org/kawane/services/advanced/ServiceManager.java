@@ -1,0 +1,119 @@
+package org.kawane.services.advanced;
+
+import java.lang.reflect.Method;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import org.kawane.services.IServiceListener;
+import org.kawane.services.Service;
+import org.kawane.services.ServiceRegistry;
+
+
+@SuppressWarnings("unchecked")
+public class ServiceManager implements IServiceListener {
+	
+	Map<Method, Class<?>> methodToClass = new HashMap<Method, Class<?>>();
+	
+	private ServiceRegistry serviceRegistry;
+
+	private Class<?> managedClass;
+
+	private Class<?> [] servicesClassToRegister;
+
+	public ServiceManager(Class<?> managedClass) {
+		this.managedClass = managedClass;
+		Service annotation = managedClass.getAnnotation(Service.class);
+		if(annotation != null) {
+			this.servicesClassToRegister = annotation.classes();
+		}
+		init(analyse(managedClass));
+	}
+	
+	public ServiceManager(Class<?> managedClass, Class<?> ... serviceClassToRegister) {
+		this.managedClass = managedClass;
+		this.servicesClassToRegister = serviceClassToRegister;
+		init(analyse(managedClass));
+	}
+	
+	public ServiceManager(Class<?> managedClass, Map<Method, Class<?>> methodToClass, Class<?> ... serviceClassToRegister) {
+		this.managedClass = managedClass;
+		this.servicesClassToRegister = serviceClassToRegister;
+		init(methodToClass);
+	}
+
+	private void init(Map<Method, Class<?>> methodToClass) {
+		this.methodToClass = methodToClass;
+		serviceRegistry = ServiceRegistry.instance;
+		if(verifyCondition()) {
+			instanciateObject();
+		} else {
+			for (Entry<Method, Class<?>> entry : methodToClass.entrySet()) {
+				Class<?> serviceClass = entry.getValue();
+				serviceRegistry.addListener(serviceClass, this);
+			}
+		}
+	}
+	
+	public void serviceAdded(Class serviceClass, Object service) {
+		if(verifyCondition()) {
+			instanciateObject();
+		}
+	}
+
+	private boolean verifyCondition() {
+		for(Entry<Method, Class<?>> entry: methodToClass.entrySet()) {
+			Method method = entry.getKey();
+			Inject inject = method.getAnnotation(Inject.class);
+			Collection<?> services = serviceRegistry.getServices(entry.getValue());
+			if(inject != null && services.size() < inject.min()) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private void instanciateObject() {
+		Object managedObject;
+		try {
+			managedObject = managedClass.newInstance();
+			new ServiceInjector(managedObject, methodToClass, true);
+			if(servicesClassToRegister != null) {
+				for (Class<?> serviceClass : servicesClassToRegister) {
+					serviceRegistry.register(serviceClass, managedObject);
+				}
+			}
+		} catch (Throwable e) {
+			e.printStackTrace();
+		}
+		// remove all listener
+		for(Entry<Method, Class<?>> entry: methodToClass.entrySet()) {
+			serviceRegistry.removeListener(entry.getValue(), this);
+		}
+		// clear instance variable
+		serviceRegistry = null;
+		methodToClass = null;
+		managedClass = null;
+	}
+	
+	public void serviceRemoved(Class serviceClass, Object service) {
+		
+	}
+
+	private Map<Method, Class<?>> analyse(Class<?> managedClass) {
+		Method[] methods = managedClass.getMethods();
+		for (Method method : methods) {
+			Inject inject = method.getAnnotation(Inject.class);
+			if (inject != null) {
+				if (method.getParameterTypes().length == 1) {
+					methodToClass.put(method, method.getParameterTypes()[0]);
+				}
+			} else {
+				throw new IllegalArgumentException("An inject method must have only one argument");
+			}
+		}
+		return methodToClass;
+	}
+
+}
