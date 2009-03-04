@@ -5,7 +5,6 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -45,7 +44,7 @@ public class Activator implements BundleActivator {
 		}
 
 		// properties associated with the profile
-		HashMap<String, String> properties = new HashMap<String, String>();
+//		HashMap<String, String> properties = new HashMap<String, String>();
 		
 		// initialize filebox application
 		Filebox filebox = new Filebox(configurationFile);
@@ -61,7 +60,7 @@ public class Activator implements BundleActivator {
 			logger.log(Level.SEVERE, "Can't connect Filebox", e);
 		}
 //		properties.put(filebox.getStatus().getClass().getSimpleName(), filebox.getStatus().toString());
-		serviceDiscovery = new ServiceDiscovery(filebox.getName(), filebox.getPort(), properties);
+		serviceDiscovery = new ServiceDiscovery();
 		// automatically connect to the network for now
 		serviceDiscovery.start();
 		ServiceRegistry.instance.register(IServiceDiscovery.class, serviceDiscovery);

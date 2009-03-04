@@ -1,9 +1,6 @@
 package org.kawane.filebox.core.discovery;
 
-import java.util.Collection;
 import java.util.Map;
-
-import org.kawane.filebox.core.IFilebox;
 
 
 public interface IServiceDiscovery {
@@ -20,17 +17,9 @@ public interface IServiceDiscovery {
 	Map<String, String> getProperties();
 	
 	String getHostname();
-	/**
-	 * first call of this method may be slow.
-	 * you may use instead listener system please.
-	 * @return
-	 */
-	Collection<IFilebox> getServices();
 
-	void apply(String name, int port, Map<String, String> properties);
-
-	void addServiceListener(IFileboxServiceListener listener);
-
-	void removeServiceListener(IFileboxServiceListener listener);
+	void connect(String name, int port, Map<String, String> properties, IConnectionListener notifier);
+	
+	void disconnect();
 
 }

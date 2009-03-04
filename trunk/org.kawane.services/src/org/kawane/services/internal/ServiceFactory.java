@@ -1,6 +1,5 @@
 package org.kawane.services.internal;
 
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.kawane.services.ServiceRegistry;

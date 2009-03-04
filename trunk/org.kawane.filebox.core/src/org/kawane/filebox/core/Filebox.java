@@ -8,10 +8,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.kawane.filebox.core.discovery.IFileboxServiceListener;
+import org.kawane.filebox.core.discovery.IConnectionListener;
 import org.kawane.filebox.core.discovery.IServiceDiscovery;
-import org.kawane.filebox.core.internal.Activator;
-import org.kawane.filebox.core.internal.ServiceDiscovery;
+import org.kawane.services.IServiceListener;
+import org.kawane.services.ServiceRegistry;
 import org.kawane.services.advanced.Inject;
 
 public class Filebox extends Observable implements IFilebox {
@@ -19,13 +19,13 @@ public class Filebox extends Observable implements IFilebox {
 	public static final String FILEBOXES = "fileboxes";
 	
 	final private List<IFilebox> fileboxes = new ArrayList<IFilebox>();
-	final private IFileboxServiceListener serviceListener = new IFileboxServiceListener(){
+	final private IServiceListener<IFilebox> serviceListener = new IServiceListener<IFilebox>(){
 		
-		public void serviceAdded(IFilebox service) {
+		public void serviceAdded(Class<IFilebox> clazz, IFilebox service) {
 			addFilebox(service);
 		}
 	
-		public void serviceRemoved(IFilebox service) {
+		public void serviceRemoved(Class<IFilebox> clazz, IFilebox service) {
 			removeFilebox(service);
 		}
 	};
@@ -52,6 +52,7 @@ public class Filebox extends Observable implements IFilebox {
 	@Inject
 	public void setServiceDiscovery(IServiceDiscovery serviceDiscovery) {
 		this.serviceDiscovery = serviceDiscovery;
+		ServiceRegistry.instance.addListener(IFilebox.class, serviceListener, true);
 	}
 	
 	public int getFileboxesCount() {
@@ -128,18 +129,18 @@ public class Filebox extends Observable implements IFilebox {
 	/** connects this to fileboxes network */
 	public void connect() {
 		if ( connected ) return;
-		for ( IFilebox oneFilebox : serviceDiscovery.getServices() ) {
-			addFilebox(oneFilebox);
-		}
-		serviceDiscovery.addServiceListener(serviceListener);
-		connected = true;
-		setHost(serviceDiscovery.getHostname());
+		serviceDiscovery.connect(name, port, properties, new IConnectionListener () {
+			public void connected(IServiceDiscovery serviceDiscovery) {
+				connected = true;
+				setHost(serviceDiscovery.getHostname());
+			}
+		});
 	}
 	
 	/** disconnects this from fileboxes network */
 	public void disconnect() {
 		if ( !connected ) return;
-		serviceDiscovery.removeServiceListener(serviceListener);
+		serviceDiscovery.disconnect();
 		clearFileboxes();
 		setHost("localhost");
 		connected = false;
