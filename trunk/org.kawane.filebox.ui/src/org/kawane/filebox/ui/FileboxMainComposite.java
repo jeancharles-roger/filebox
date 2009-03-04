@@ -26,6 +26,7 @@ import org.kawane.filebox.core.Filebox;
 import org.kawane.filebox.core.Preferences;
 import org.kawane.filebox.ui.internal.Activator;
 import org.kawane.filebox.ui.internal.Resources;
+import org.kawane.services.advanced.Inject;
 import org.osgi.service.log.LogService;
 
 /**
@@ -165,7 +166,8 @@ public class FileboxMainComposite extends Composite {
 		hostColumn.setWidth(hostSize);
 	}
 	
-	public void setFilebox(Filebox filebox) {
+	@Inject
+	public void setFilebox(final Filebox filebox) {
 		if ( this.filebox != null ) {
 			this.filebox.removePropertyChangeListener(propertiesListener);
 			this.filebox.getPreferences().removePropertyChangeListener(propertiesListener);
@@ -175,18 +177,21 @@ public class FileboxMainComposite extends Composite {
 			filebox.getPreferences().addPropertyChangeListener(propertiesListener);
 		}
 		this.filebox = filebox;
-		if ( filebox != null ) {
-			try {
-				meLabel.setText(filebox.getName());
-				statusCombo.select(filebox.isConnected() ? 0 : 1);
-			} catch (RemoteException e) {
-				logger.log(LogService.LOG_ERROR, "An Error Occured", e);
+		getShell().getDisplay().asyncExec(new Runnable() {
+			public void run() {
+				if ( filebox != null ) {
+				try {
+					meLabel.setText(filebox.getName());
+					statusCombo.select(filebox.isConnected() ? 0 : 1);
+				} catch (RemoteException e) {
+					logger.log(LogService.LOG_ERROR, "An Error Occured", e);
+				}
+			} else {
+				meLabel.setText("Me");
+				statusCombo.select(1);
 			}
-		} else {
-			meLabel.setText("Me");
-			statusCombo.select(1);
 		}
-		
+		});
 	}
 
 	public Filebox getLocalFilebox() {

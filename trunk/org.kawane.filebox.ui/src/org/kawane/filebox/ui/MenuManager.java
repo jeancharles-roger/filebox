@@ -21,11 +21,14 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tray;
 import org.eclipse.swt.widgets.TrayItem;
+import org.kawane.filebox.core.Filebox;
 import org.kawane.filebox.core.Preferences;
 import org.kawane.filebox.ui.internal.Activator;
 import org.kawane.filebox.ui.internal.Application;
 import org.kawane.filebox.ui.internal.Resources;
+import org.kawane.filebox.ui.internal.UIFileboxApplication;
 import org.kawane.filebox.ui.toolkit.ToolKit;
+import org.kawane.services.advanced.Inject;
 import org.osgi.service.log.LogService;
 
 /**
@@ -41,9 +44,6 @@ public class MenuManager {
 	/** Shared resources instances. */
 	protected Resources resources = Resources.getInstance();
 
-	/** Parent application */
-	protected final Application application;
-	
 	/** Toolkit used for dialogs */
 	protected final ToolKit tk = new ToolKit();
 
@@ -59,13 +59,23 @@ public class MenuManager {
 	
 	/** FileBox menu action list */
 	protected List<IAction> fileBoxActions = null;
+
+	private Filebox filebox;
+
+	private UIFileboxApplication application;
 	
-	public MenuManager(Application application) {
+	@Inject
+	public void setApplication(UIFileboxApplication application) {
 		this.application = application;
 	}
 	
+	@Inject
+	public void setFilebox(Filebox filebox) {
+		this.filebox = filebox;
+	}
+	
 	protected Preferences getPreferences() {
-		return application.getFilebox().getPreferences();
+		return filebox.getPreferences();
 	}
 	
 	/** Generic selection listener for MenuItems that have Actions as data.  */

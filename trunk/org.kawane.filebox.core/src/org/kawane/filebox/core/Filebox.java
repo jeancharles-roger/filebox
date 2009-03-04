@@ -125,6 +125,7 @@ public class Filebox extends Observable implements IFilebox {
 		}
 		serviceDiscovery.addServiceListener(serviceListener);
 		connected = true;
+		setHost(serviceDiscovery.getHostname());
 	}
 	
 	/** disconnects this from fileboxes network */
@@ -133,6 +134,7 @@ public class Filebox extends Observable implements IFilebox {
 		IServiceDiscovery serviceDiscovery = Activator.getInstance().getServiceDiscovery();
 		serviceDiscovery.removeServiceListener(serviceListener);
 		clearFileboxes();
+		setHost("localhost");
 		connected = false;
 	}
 	
