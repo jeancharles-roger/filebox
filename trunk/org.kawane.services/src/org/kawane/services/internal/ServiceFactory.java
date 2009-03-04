@@ -8,12 +8,14 @@ public class ServiceFactory {
 	private static ServiceRegistry serviceRegistry;
 
 	synchronized public static ServiceRegistry createService() {
-			// TODO try to know if we are in osgi environnement
 			try {
+				// try to know if we are in osgi environnement
 				ServiceFactory.class.getClassLoader().loadClass("org.osgi.framework.Bundle");
 				PackageAdmin packageAdmin = Activator.getInstance().getPackageAdmin();
-				ServiceRegistry osgiserviceRegistry = new OSGIServiceRegistry(packageAdmin);
-				serviceRegistry = osgiserviceRegistry;
+				if(packageAdmin != null) {
+					ServiceRegistry osgiserviceRegistry = new OSGIServiceRegistry(packageAdmin);
+					serviceRegistry = osgiserviceRegistry;
+				}
 			} catch (Throwable e) {
 				// we are not in osgi
 				System.out.println("Not in osgi mode");

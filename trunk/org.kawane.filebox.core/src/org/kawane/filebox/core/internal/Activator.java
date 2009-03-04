@@ -6,17 +6,18 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.eclipse.osgi.service.datalocation.Location;
 import org.kawane.filebox.core.Filebox;
 import org.kawane.filebox.core.discovery.IServiceDiscovery;
 import org.kawane.services.ServiceRegistry;
 import org.kawane.services.advanced.ServiceInjector;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceReference;
 
 public class Activator implements BundleActivator {
 	private static Logger logger = Logger.getLogger(Activator.class.getName());
@@ -32,25 +33,22 @@ public class Activator implements BundleActivator {
 	 * @see org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext)
 	 */
 	public void start(BundleContext context) throws Exception {
-		ServiceReference[] serviceReferences = context.getServiceReferences(Location.class.getName(), Location.CONFIGURATION_FILTER);
-		if (serviceReferences != null) {
-			for (ServiceReference serviceReference : serviceReferences) {
-				Location configLocation = (Location) context.getService(serviceReference);
-				configurationFile = new File(configLocation.getURL().getFile(), CONFIG_FILENAME);
-			}
+		String configurationProperty = System.getProperty("osgi.configuration.area");
+		if(configurationProperty == null || configurationProperty.length() ==0) {
+			configurationProperty = System.getProperty("osgi.syspath");
+		}
+		if(configurationProperty != null & configurationProperty.length() !=0) {
+			configurationProperty = configurationProperty.replace("file:", "");
+			configurationFile = new File(configurationProperty, CONFIG_FILENAME);
 		}
 		// configuration file
 		if (configurationFile == null) {
-			configurationFile = context.getDataFile(CONFIG_FILENAME);
+			// create on folder where the process run
+			configurationFile = new File(CONFIG_FILENAME);
 		}
-
-		// configuration file
-		configurationFile = context.getDataFile(CONFIG_FILENAME);
 
 		// properties associated with the profile
 		HashMap<String, String> properties = new HashMap<String, String>();
-
-
 		
 		// initialize filebox application
 		Filebox filebox = new Filebox(configurationFile);

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="File box" default="build.macosx">
+<project name="File box" default="build.linux">
 	<property file="build.properties" />
 	<delete dir="${destination}" />
 	<mkdir dir="${destination}" />
@@ -19,7 +19,7 @@
 				<exclude name="**/.svn" />
 			</fileset>
 		</copy>
-		<chmod perm="+x" file="${destination}/filebox/filebox.sh"/>
+		<chmod perm="+x" file="${destination}/filebox.sh"/>
 		<eclipse.refreshLocal resource="dist" />
 	</target>
 
