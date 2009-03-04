@@ -1,5 +1,6 @@
 package org.kawane.services.advanced;
 
+import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 import java.util.Collection;
@@ -22,7 +23,7 @@ public class ServiceInjector  implements IServiceListener{
 	private Map<Method, Integer> methodsCount = new HashMap<Method, Integer>();
 	
 	private ServiceRegistry serviceRegistry;
-	private WeakReference<?> ref;
+	private Reference<?> ref;
 	
 	boolean async;
 
@@ -160,7 +161,7 @@ public class ServiceInjector  implements IServiceListener{
 
 	public void serviceAdded(Class serviceClass, Object service) {
 		Object object = ref.get();
-		if(object == null) {
+		if(object != null) {
 			inject(object);
 		} else {
 			clear();

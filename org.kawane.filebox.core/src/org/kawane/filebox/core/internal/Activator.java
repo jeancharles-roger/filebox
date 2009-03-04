@@ -11,7 +11,9 @@ import java.util.logging.Logger;
 
 import org.eclipse.osgi.service.datalocation.Location;
 import org.kawane.filebox.core.Filebox;
+import org.kawane.filebox.core.discovery.IServiceDiscovery;
 import org.kawane.services.ServiceRegistry;
+import org.kawane.services.advanced.ServiceInjector;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
@@ -20,8 +22,6 @@ public class Activator implements BundleActivator {
 	private static Logger logger = Logger.getLogger(Activator.class.getName());
 
 	protected static final String CONFIG_FILENAME = "filebox.properties";
-
-	static private Activator instance;
 
 	private ServiceDiscovery serviceDiscovery;
 
@@ -32,7 +32,6 @@ public class Activator implements BundleActivator {
 	 * @see org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext)
 	 */
 	public void start(BundleContext context) throws Exception {
-		instance = this;
 		ServiceReference[] serviceReferences = context.getServiceReferences(Location.class.getName(), Location.CONFIGURATION_FILTER);
 		if (serviceReferences != null) {
 			for (ServiceReference serviceReference : serviceReferences) {
@@ -51,11 +50,13 @@ public class Activator implements BundleActivator {
 		// properties associated with the profile
 		HashMap<String, String> properties = new HashMap<String, String>();
 
+
+		
 		// initialize filebox application
 		Filebox filebox = new Filebox(configurationFile);
 		//		context.registerService(Filebox.class.getName(), filebox, null);
 		ServiceRegistry.instance.register(Filebox.class, filebox);
-
+		new ServiceInjector(filebox);
 		// publish object on rmi 
 		try {
 			Registry registry = LocateRegistry.createRegistry(filebox.getPort());
@@ -64,11 +65,12 @@ public class Activator implements BundleActivator {
 		} catch (RemoteException e) {
 			logger.log(Level.SEVERE, "Can't connect Filebox", e);
 		}
-
-		//		properties.put(filebox.getStatus().getClass().getSimpleName(), filebox.getStatus().toString());
+//		properties.put(filebox.getStatus().getClass().getSimpleName(), filebox.getStatus().toString());
 		serviceDiscovery = new ServiceDiscovery(filebox.getName(), filebox.getPort(), properties);
 		// automatically connect to the network for now
 		serviceDiscovery.start();
+		ServiceRegistry.instance.register(IServiceDiscovery.class, serviceDiscovery);
+		
 	}
 
 	/*
@@ -76,16 +78,7 @@ public class Activator implements BundleActivator {
 	 * @see org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
 	 */
 	public void stop(BundleContext context) throws Exception {
-		instance = null;
 		serviceDiscovery.stop();
-	}
-
-	static public Activator getInstance() {
-		return instance;
-	}
-
-	public ServiceDiscovery getServiceDiscovery() {
-		return serviceDiscovery;
 	}
 
 }

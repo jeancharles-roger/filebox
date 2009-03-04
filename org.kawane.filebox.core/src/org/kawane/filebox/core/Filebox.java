@@ -11,6 +11,8 @@ import java.util.Map;
 import org.kawane.filebox.core.discovery.IFileboxServiceListener;
 import org.kawane.filebox.core.discovery.IServiceDiscovery;
 import org.kawane.filebox.core.internal.Activator;
+import org.kawane.filebox.core.internal.ServiceDiscovery;
+import org.kawane.services.advanced.Inject;
 
 public class Filebox extends Observable implements IFilebox {
 
@@ -35,6 +37,8 @@ public class Filebox extends Observable implements IFilebox {
 	protected int port;
 	protected final Map<String, String> properties = new HashMap<String, String>();
 	protected boolean connected = false;
+
+	private IServiceDiscovery serviceDiscovery;
 	
 	public Filebox(File configurationFile) {
 		preferences = new Preferences(configurationFile);
@@ -43,6 +47,11 @@ public class Filebox extends Observable implements IFilebox {
 		
 		this.port = preferences.getPort();
 		this.host = "localhost";
+	}
+	
+	@Inject
+	public void setServiceDiscovery(IServiceDiscovery serviceDiscovery) {
+		this.serviceDiscovery = serviceDiscovery;
 	}
 	
 	public int getFileboxesCount() {
@@ -119,7 +128,6 @@ public class Filebox extends Observable implements IFilebox {
 	/** connects this to fileboxes network */
 	public void connect() {
 		if ( connected ) return;
-		IServiceDiscovery serviceDiscovery = Activator.getInstance().getServiceDiscovery();
 		for ( IFilebox oneFilebox : serviceDiscovery.getServices() ) {
 			addFilebox(oneFilebox);
 		}
@@ -131,7 +139,6 @@ public class Filebox extends Observable implements IFilebox {
 	/** disconnects this from fileboxes network */
 	public void disconnect() {
 		if ( !connected ) return;
-		IServiceDiscovery serviceDiscovery = Activator.getInstance().getServiceDiscovery();
 		serviceDiscovery.removeServiceListener(serviceListener);
 		clearFileboxes();
 		setHost("localhost");
