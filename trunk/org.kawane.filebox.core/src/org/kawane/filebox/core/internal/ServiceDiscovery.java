@@ -76,8 +76,17 @@ public class ServiceDiscovery implements ServiceListener, IServiceDiscovery {
 		}
 	}
 	
-	public void disconnect() {
-		dns.unregisterService(serviceInfo);
+	public void disconnect(final IConnectionListener listener) {
+		synchronized (waitInitialization) {
+			Thread thread = new Thread() {
+				@Override
+				public void run() {
+					dns.unregisterService(serviceInfo);
+					listener.disconnected(ServiceDiscovery.this);
+				}
+			};
+			thread.start();
+		}
 	}
 
 	public void start() {

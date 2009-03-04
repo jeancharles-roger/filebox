@@ -18,8 +18,8 @@ public interface IServiceDiscovery {
 	
 	String getHostname();
 
-	void connect(String name, int port, Map<String, String> properties, IConnectionListener notifier);
+	void connect(String name, int port, Map<String, String> properties, IConnectionListener listener);
 	
-	void disconnect();
+	void disconnect(IConnectionListener listener);
 
 }

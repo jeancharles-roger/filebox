@@ -134,16 +134,21 @@ public class Filebox extends Observable implements IFilebox {
 				connected = true;
 				setHost(serviceDiscovery.getHostname());
 			}
+			public void disconnected(IServiceDiscovery serviceDiscovery) {}
 		});
 	}
 	
 	/** disconnects this from fileboxes network */
 	public void disconnect() {
 		if ( !connected ) return;
-		serviceDiscovery.disconnect();
-		clearFileboxes();
-		setHost("localhost");
-		connected = false;
+		serviceDiscovery.disconnect( new IConnectionListener () {
+			public void connected(IServiceDiscovery serviceDiscovery) {}
+			public void disconnected(IServiceDiscovery serviceDiscovery) {
+				setHost("localhost");
+				connected = false;
+			}
+		});
+		
 	}
 	
 	/** @return true if the filebox is connected. */
