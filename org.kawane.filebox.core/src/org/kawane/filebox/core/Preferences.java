@@ -10,9 +10,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Date;
 import java.util.Properties;
-
-import org.kawane.filebox.core.internal.Activator;
-import org.osgi.service.log.LogService;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * @author Jean-Charles Roger
@@ -24,9 +23,8 @@ public class Preferences extends Observable {
 	public static final String PORT = "filebox.port";
 	
 	protected static final int DEFAULT_PORT = 9999;
-	
-	
-	protected final LogService logger = Activator.getInstance().getLogger();
+
+	private static Logger logger = Logger.getLogger(Preferences.class.getName());
 	
 	protected Date configurationLastLoadDate = null;
 	protected File configurationFile = null;
@@ -62,7 +60,7 @@ public class Preferences extends Observable {
 					configuration.clear();
 					configuration.load(new FileInputStream(getConfigurationFile()));
 				} catch (IOException e) {
-					logger.log(LogService.LOG_ERROR, "Can't load preferences (I/O error: " + e.getMessage() +").");
+					logger.log(Level.SEVERE, "Can't load preferences (I/O error: " + e.getMessage() +").");
 				}
 			}
 			configurationLastLoadDate = new Date();
@@ -78,7 +76,7 @@ public class Preferences extends Observable {
 		try {
 			configuration.store(new FileOutputStream(getConfigurationFile()), "Saved by CobEditor");
 		} catch (IOException e) {
-			logger.log(LogService.LOG_ERROR, "Can't save preferences (I/O error: " + e.getMessage() +").");
+			logger.log(Level.SEVERE,"Can't save preferences (I/O error: " + e.getMessage() +").");
 		}
 	}
 

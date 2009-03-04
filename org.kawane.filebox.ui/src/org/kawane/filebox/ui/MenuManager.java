@@ -6,6 +6,8 @@ package org.kawane.filebox.ui;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MenuAdapter;
@@ -23,13 +25,10 @@ import org.eclipse.swt.widgets.Tray;
 import org.eclipse.swt.widgets.TrayItem;
 import org.kawane.filebox.core.Filebox;
 import org.kawane.filebox.core.Preferences;
-import org.kawane.filebox.ui.internal.Activator;
-import org.kawane.filebox.ui.internal.Application;
 import org.kawane.filebox.ui.internal.Resources;
 import org.kawane.filebox.ui.internal.UIFileboxApplication;
 import org.kawane.filebox.ui.toolkit.ToolKit;
 import org.kawane.services.advanced.Inject;
-import org.osgi.service.log.LogService;
 
 /**
  * 
@@ -39,7 +38,7 @@ import org.osgi.service.log.LogService;
  */
 public class MenuManager {
 
-	protected static LogService logger = Activator.getInstance().getLogger();
+	private static Logger logger = Logger.getLogger(MenuManager.class.getName());
 
 	/** Shared resources instances. */
 	protected Resources resources = Resources.getInstance();
@@ -102,7 +101,7 @@ public class MenuManager {
 	public void createSystemTray(final Shell shell) {
 		final Tray tray = application.getDisplay().getSystemTray();
 		if (tray == null) {
-			logger.log(LogService.LOG_WARNING, "The system tray is not available");
+			logger.log(Level.WARNING, "The system tray is not available");
 		} else {
 			final TrayItem item = new TrayItem(tray, SWT.NONE);
 			final Menu menu = createPopupMenu(shell, getSystemTrayActions(shell));

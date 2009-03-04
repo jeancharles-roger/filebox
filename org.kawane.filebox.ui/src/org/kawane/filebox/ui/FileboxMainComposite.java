@@ -7,6 +7,8 @@ package org.kawane.filebox.ui;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.rmi.RemoteException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -21,13 +23,11 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
-import org.kawane.filebox.core.IFilebox;
 import org.kawane.filebox.core.Filebox;
+import org.kawane.filebox.core.IFilebox;
 import org.kawane.filebox.core.Preferences;
-import org.kawane.filebox.ui.internal.Activator;
 import org.kawane.filebox.ui.internal.Resources;
 import org.kawane.services.advanced.Inject;
-import org.osgi.service.log.LogService;
 
 /**
  * @author Jean-Charles Roger
@@ -35,7 +35,7 @@ import org.osgi.service.log.LogService;
  */
 public class FileboxMainComposite extends Composite {
 	
-	private static LogService logger = Activator.getInstance().getLogger();
+	private static Logger logger = Logger.getLogger(FileboxMainComposite.class.getName());
 
 	/** Shared resources instances. */
 	protected Resources resources = Resources.getInstance();
@@ -71,7 +71,7 @@ public class FileboxMainComposite extends Composite {
 					item.setText(1, distantFilebox.getName());
 					item.setText(2, distantFilebox.getHost());
 				} catch (RemoteException e1) {
-					logger.log(LogService.LOG_ERROR, "An Error Occured", e1);
+					logger.log(Level.SEVERE, "An Error Occured", e1);
 				}
 				return;
 			}
@@ -184,7 +184,7 @@ public class FileboxMainComposite extends Composite {
 					meLabel.setText(filebox.getName());
 					statusCombo.select(filebox.isConnected() ? 0 : 1);
 				} catch (RemoteException e) {
-					logger.log(LogService.LOG_ERROR, "An Error Occured", e);
+					logger.log(Level.SEVERE, "An Error Occured", e);
 				}
 			} else {
 				meLabel.setText("Me");

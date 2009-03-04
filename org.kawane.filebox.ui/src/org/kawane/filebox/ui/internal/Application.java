@@ -1,5 +1,8 @@
 package org.kawane.filebox.ui.internal;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import org.eclipse.equinox.app.IApplication;
 import org.eclipse.equinox.app.IApplicationContext;
 import org.eclipse.swt.SWT;
@@ -13,15 +16,13 @@ import org.kawane.filebox.ui.FileboxMainComposite;
 import org.kawane.filebox.ui.MenuManager;
 import org.kawane.services.ServiceRegistry;
 import org.kawane.services.advanced.ServiceInjector;
-import org.osgi.framework.BundleContext;
-import org.osgi.service.log.LogService;
 
 public class Application implements IApplication, UIFileboxApplication {
 
+	private static Logger logger = Logger.getLogger(Application.class.getName());
+	
 	/** Shared resources instances. */
 	protected Resources resources;
-
-	private static LogService logger = Activator.getInstance().getLogger();
 
 	protected Filebox filebox;
 
@@ -49,7 +50,7 @@ public class Application implements IApplication, UIFileboxApplication {
 		ServiceRegistry.instance.register(UIFileboxApplication.class, this);
 		
 		display = Display.getDefault();
-		logger.log(LogService.LOG_INFO, "Start file box ui");
+		logger.log(Level.FINE, "Start file box ui");
 		resources = Resources.getInstance();
 
 		// our first window
@@ -84,7 +85,7 @@ public class Application implements IApplication, UIFileboxApplication {
 					display.sleep();
 				}
 			} catch (Throwable e) {
-				logger.log(LogService.LOG_ERROR, "Internal Error", e);
+				logger.log(Level.SEVERE, "Internal Error", e);
 			}
 		}
 		if (!display.isDisposed()) {
@@ -92,7 +93,7 @@ public class Application implements IApplication, UIFileboxApplication {
 		}
 
 		resources.dispose();
-		logger.log(LogService.LOG_INFO, "Stop file box ui");
+		logger.log(Level.FINE, "Stop file box ui");
 		return null;
 	}
 

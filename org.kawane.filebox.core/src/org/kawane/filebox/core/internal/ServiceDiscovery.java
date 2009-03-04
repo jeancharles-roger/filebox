@@ -13,6 +13,8 @@ import java.util.Hashtable;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.jmdns.JmDNS;
 import javax.jmdns.ServiceEvent;
@@ -22,12 +24,11 @@ import javax.jmdns.ServiceListener;
 import org.kawane.filebox.core.IFilebox;
 import org.kawane.filebox.core.discovery.IFileboxServiceListener;
 import org.kawane.filebox.core.discovery.IServiceDiscovery;
-import org.osgi.service.log.LogService;
 
 public class ServiceDiscovery implements ServiceListener, IServiceDiscovery {
 
-	private static LogService logger = Activator.getInstance().getLogger();
-
+	private static Logger logger = Logger.getLogger(ServiceDiscovery.class.getName());
+	
 	private JmDNS dns;
 	private ServiceInfo serviceInfo;
 	private String name;
@@ -73,7 +74,7 @@ public class ServiceDiscovery implements ServiceListener, IServiceDiscovery {
 							dns.unregisterService(serviceInfo);
 							dns.registerService(serviceInfo);
 						} catch (IOException e) {
-							logger.log(LogService.LOG_ERROR, "An Error Occured", e);
+							logger.log(Level.SEVERE, "An Error Occured", e);
 						}
 					}
 				};
@@ -97,7 +98,7 @@ public class ServiceDiscovery implements ServiceListener, IServiceDiscovery {
 //						getServices();
 					}
 				} catch (Throwable e) {
-					logger.log(LogService.LOG_ERROR, "An Error Occured", e);
+					logger.log(Level.SEVERE, "An Error Occured", e);
 				}
 			}
 		};
@@ -160,10 +161,10 @@ public class ServiceDiscovery implements ServiceListener, IServiceDiscovery {
 			
 			return fileboxService;
 		} catch (RemoteException e) {
-			logger.log(LogService.LOG_ERROR, "Can't connect Filebox", e);
+			logger.log(Level.SEVERE, "Can't connect Filebox", e);
 			return null;
 		} catch (NotBoundException e) {
-			logger.log(LogService.LOG_ERROR, "Can't connect Filebox", e);
+			logger.log(Level.SEVERE, "Can't connect Filebox", e);
 			return null;
 		}
 	}
