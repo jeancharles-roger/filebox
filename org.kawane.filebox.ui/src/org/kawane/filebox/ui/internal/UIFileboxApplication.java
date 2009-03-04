@@ -5,10 +5,12 @@ import org.eclipse.swt.widgets.Shell;
 
 public interface UIFileboxApplication {
 
-	public abstract Display getDisplay();
+	Display getDisplay();
 
-	public abstract Shell getActiveShell();
+	Shell getActiveShell();
 
-	public abstract void stop();
+	void start();
+	
+	void stop();
 
 }

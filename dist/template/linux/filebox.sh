@@ -1,6 +1,6 @@
 #!/bin/sh
 JAVA=java
-OSGI_FRAMEWORK=plugins/org.eclipse.equinox.launcher_1.0.100.v20080509-1800.jar
-VMOPTIONS="-Declipse.ignoreApp=false -Dosgi.noShutdown=false"
-OPTIONS="-console -application org.kawane.filebox.ui.filebox"
+OSGI_FRAMEWORK=plugins/org.eclipse.osgi_3.4.0.v20080605-1900.jar
+VMOPTIONS="-Declipse.ignoreApp=true -Dosgi.noShutdown=true -Dosgi.install.area=."
+OPTIONS="-console"
 $JAVA $VMOPTIONS -jar $OSGI_FRAMEWORK $OPTIONS

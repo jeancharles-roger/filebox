@@ -3,8 +3,6 @@ package org.kawane.filebox.ui.internal;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.eclipse.equinox.app.IApplication;
-import org.eclipse.equinox.app.IApplicationContext;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Display;
@@ -17,7 +15,7 @@ import org.kawane.filebox.ui.MenuManager;
 import org.kawane.services.ServiceRegistry;
 import org.kawane.services.advanced.ServiceInjector;
 
-public class Application implements IApplication, UIFileboxApplication {
+public class Application implements UIFileboxApplication {
 
 	private static Logger logger = Logger.getLogger(Application.class.getName());
 	
@@ -42,11 +40,8 @@ public class Application implements IApplication, UIFileboxApplication {
 	public Shell getActiveShell() {
 		return display.getActiveShell();
 	}
-
-	public Object start(IApplicationContext context) throws Exception {
-		// this the way to retrieve command line option
-		//Object args = context.getArguments().get(IApplicationContext.APPLICATION_ARGS);
-		
+	
+	public void start() {
 		ServiceRegistry.instance.register(UIFileboxApplication.class, this);
 		
 		display = Display.getDefault();
@@ -78,7 +73,6 @@ public class Application implements IApplication, UIFileboxApplication {
 		new ServiceInjector(composite);
 
 		shell.open();
-		context.applicationRunning();
 		while (!shell.isDisposed()) {
 			try {
 				if (!display.readAndDispatch()) {
@@ -94,7 +88,6 @@ public class Application implements IApplication, UIFileboxApplication {
 
 		resources.dispose();
 		logger.log(Level.FINE, "Stop file box ui");
-		return null;
 	}
 
 	/* (non-Javadoc)
@@ -104,6 +97,8 @@ public class Application implements IApplication, UIFileboxApplication {
 		if (display != null && !display.isDisposed()) {
 			display.dispose();
 		}
+		// exit the platform
+		System.exit(0);
 	}
 
 }
