@@ -1,6 +1,8 @@
 package org.kawane.filebox.core.internal;
 
 import java.io.IOException;
+import java.io.PrintStream;
+import java.io.StringWriter;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -170,20 +172,32 @@ public class ServiceDiscovery implements ServiceListener, IServiceDiscovery {
 	}
 
 	public void serviceAdded(ServiceEvent event) {
-		System.out.println("*********************************************************");
-		// the service is added but not resolved, not interesting for our application
-		System.out.println("a service have been added" + event);
-
-		if (event.getInfo() != null) {
-			System.out.println("A service has been added: " + event.getInfo().getName() + " on " + event.getInfo().getHostAddress());
-		} else {
+		if(logger.isLoggable(Level.FINEST)) {
+			StringBuffer out = new StringBuffer();
+			out.append("*********************************************************\n");
+			// the service is added but not resolved, not interesting for our application
+			out.append("a service have been added" + event);
+			out.append('\n');
+			if (event.getInfo() != null) {
+				out.append("A service has been added: " + event.getInfo().getName() + " on " + event.getInfo().getHostAddress());
+				out.append('\n');
+			}
+			logger.finest(out.toString());
+		}
+		if (event.getInfo() == null){
 			event.getDNS().requestServiceInfo(event.getType(), event.getName());
 		}
 	}
 
 	public void serviceRemoved(ServiceEvent event) {
-		System.out.println("*********************************************************");
-		System.out.println("A service has been Removed: " + event);
+		if(logger.isLoggable(Level.FINEST)) {
+			StringBuffer out = new StringBuffer();
+			out.append("*********************************************************");
+			out.append('\n');
+			out.append("A service has been Removed: " + event);
+			out.append('\n');
+			logger.finest(out.toString());
+		}
 		HashSet<IFileboxServiceListener> listenersCopy = new HashSet<IFileboxServiceListener>(listeners);
 		for (IFileboxServiceListener listener : listenersCopy) {
 			listener.serviceRemoved(createFileboxService(event.getInfo()));
@@ -191,8 +205,14 @@ public class ServiceDiscovery implements ServiceListener, IServiceDiscovery {
 	}
 
 	public void serviceResolved(ServiceEvent event) {
-		System.out.println("*********************************************************");
-		System.out.println("A service has been resolved: " + event);
+		if(logger.isLoggable(Level.FINEST)) {
+			StringBuffer out = new StringBuffer();
+			out.append("*********************************************************");
+			out.append('\n');
+			out.append("A service has been resolved: " + event);
+			out.append('\n');
+			logger.finest(out.toString());
+		}
 		HashSet<IFileboxServiceListener> listenersCopy = new HashSet<IFileboxServiceListener>(listeners);
 		for (IFileboxServiceListener listener : listenersCopy) {
 			listener.serviceAdded(createFileboxService(event.getInfo()));
