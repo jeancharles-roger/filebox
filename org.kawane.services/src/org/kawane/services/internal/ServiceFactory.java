@@ -1,10 +1,14 @@
 package org.kawane.services.internal;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import org.kawane.services.ServiceRegistry;
 import org.osgi.service.packageadmin.PackageAdmin;
 
 public class ServiceFactory {
-
+	private static Logger logger = Logger.getLogger(ServiceFactory.class.getName());
+	
 	private static ServiceRegistry serviceRegistry;
 
 	synchronized public static ServiceRegistry createService() {
@@ -18,7 +22,7 @@ public class ServiceFactory {
 				}
 			} catch (Throwable e) {
 				// we are not in osgi
-				System.out.println("Not in osgi mode");
+				logger.fine("Not in osgi mode");
 			}
 		if(serviceRegistry == null) {
 			serviceRegistry = new JavaServiceRegistry();

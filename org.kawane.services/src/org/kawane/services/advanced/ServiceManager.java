@@ -5,6 +5,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.kawane.services.IServiceListener;
 import org.kawane.services.Service;
@@ -13,6 +15,8 @@ import org.kawane.services.ServiceRegistry;
 
 @SuppressWarnings("unchecked")
 public class ServiceManager implements IServiceListener {
+	
+	private static Logger logger = Logger.getLogger(ServiceManager.class.getName());
 	
 	Map<Method, Class<?>> methodToClass = new HashMap<Method, Class<?>>();
 	
@@ -85,7 +89,7 @@ public class ServiceManager implements IServiceListener {
 				}
 			}
 		} catch (Throwable e) {
-			e.printStackTrace();
+			logger.log(Level.SEVERE, "An Error Occured", e);
 		}
 		// remove all listener
 		for(Entry<Method, Class<?>> entry: methodToClass.entrySet()) {

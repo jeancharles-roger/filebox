@@ -10,6 +10,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.Map.Entry;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.kawane.services.IServiceListener;
 import org.kawane.services.ServiceRegistry;
@@ -17,6 +19,7 @@ import org.kawane.services.ServiceRegistry;
 
 @SuppressWarnings("unchecked")
 public class ServiceInjector  implements IServiceListener{
+	private static Logger logger = Logger.getLogger(ServiceInjector.class.getName());
 	
 	Map<Method, Class<?>> methodToClass = new HashMap<Method, Class<?>>();
 	WeakHashMap<Object, Object> alreadyBound = new WeakHashMap<Object,Object>();
@@ -94,7 +97,7 @@ public class ServiceInjector  implements IServiceListener{
 						executeMethodInThread(object, method, service, async);
 					}
 				} catch (Throwable e) {
-					e.printStackTrace();
+					logger.log(Level.SEVERE, "An Error Occured", e);
 				}
 			}
 		}
@@ -129,7 +132,7 @@ public class ServiceInjector  implements IServiceListener{
 				try {
 					method.invoke(object, service);
 				} catch (Throwable e) {
-					e.printStackTrace();
+					logger.log(Level.SEVERE, "An Error Occured", e);
 				}
 			}
 			
