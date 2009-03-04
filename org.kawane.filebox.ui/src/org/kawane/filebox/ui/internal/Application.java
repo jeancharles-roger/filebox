@@ -11,15 +11,12 @@ import org.eclipse.swt.widgets.Shell;
 import org.kawane.filebox.core.Filebox;
 import org.kawane.filebox.ui.FileboxMainComposite;
 import org.kawane.filebox.ui.MenuManager;
+import org.kawane.services.ServiceRegistry;
+import org.kawane.services.advanced.ServiceInjector;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.Constants;
-import org.osgi.framework.InvalidSyntaxException;
-import org.osgi.framework.ServiceEvent;
-import org.osgi.framework.ServiceListener;
-import org.osgi.framework.ServiceReference;
 import org.osgi.service.log.LogService;
 
-public class Application implements IApplication {
+public class Application implements IApplication, UIFileboxApplication {
 
 	/** Shared resources instances. */
 	protected Resources resources;
@@ -31,29 +28,26 @@ public class Application implements IApplication {
 	private Display display;
 	private FileboxMainComposite composite;
 
+	/* (non-Javadoc)
+	 * @see org.kawane.filebox.ui.internal.UIFileboxApplication#getDisplay()
+	 */
 	public Display getDisplay() {
 		return display;
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.kawane.filebox.ui.internal.UIFileboxApplication#getActiveShell()
+	 */
 	public Shell getActiveShell() {
 		return display.getActiveShell();
-	}
-
-	public Filebox getFilebox() {
-		return filebox;
-	}
-
-	protected void setFileBox(Filebox filebox) {
-		this.filebox = filebox;
-		composite.setFilebox(filebox);
 	}
 
 	public Object start(IApplicationContext context) throws Exception {
 		// this the way to retrieve command line option
 		//Object args = context.getArguments().get(IApplicationContext.APPLICATION_ARGS);
-		// TODO I don't know how to do this without global var if you a better idea
-		BundleContext bundleContext = Activator.getInstance().getContext();
-
+		
+		ServiceRegistry.instance.register(UIFileboxApplication.class, this);
+		
 		display = Display.getDefault();
 		logger.log(LogService.LOG_INFO, "Start file box ui");
 		resources = Resources.getInstance();
@@ -73,15 +67,14 @@ public class Application implements IApplication {
 				event.doit = false;
 			}
 		});
-
-
 		
-		MenuManager menuManager = new MenuManager(this);
+		MenuManager menuManager = new MenuManager();
+		new ServiceInjector(menuManager);
 		menuManager.createMenuBar(shell);
 		menuManager.createSystemTray(shell);
-
+		
 		composite = new FileboxMainComposite(shell, SWT.NONE);
-		retrieveFilebox(bundleContext, this);
+		new ServiceInjector(composite);
 
 		shell.open();
 		context.applicationRunning();
@@ -103,29 +96,9 @@ public class Application implements IApplication {
 		return null;
 	}
 
-	private void retrieveFilebox(final BundleContext bundleContext, final Application application) throws InvalidSyntaxException {
-		// retrieve filebox from osgi service registry
-		ServiceListener serviceListener = new ServiceListener() {
-			public void serviceChanged(ServiceEvent event) {
-				if (event.getType() == ServiceEvent.REGISTERED) {
-					Filebox filebox = (Filebox) bundleContext.getService(event.getServiceReference());
-					application.setFileBox(filebox);
-				} else if (event.getType() == ServiceEvent.UNREGISTERING) {
-					application.setFileBox(null);
-				}
-			}
-		};
-
-		String filter = "(" + Constants.OBJECTCLASS + "=" + Filebox.class.getName() + ")";
-		ServiceReference[] serviceReferences = bundleContext.getServiceReferences(null, filter);
-		if (serviceReferences != null) {
-			for (ServiceReference serviceReference : serviceReferences) {
-				serviceListener.serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, serviceReference));
-			}
-		}
-		bundleContext.addServiceListener(serviceListener, filter);
-	}
-
+	/* (non-Javadoc)
+	 * @see org.kawane.filebox.ui.internal.UIFileboxApplication#stop()
+	 */
 	public void stop() {
 		if (display != null && !display.isDisposed()) {
 			display.dispose();

@@ -13,3 +13,4 @@ Import-Package: org.eclipse.osgi.service.datalocation;version="1.1.0",
 Bundle-ActivationPolicy: lazy
 Export-Package: org.kawane.filebox.core
 Bundle-ClassPath: .
+Require-Bundle: org.kawane.services;bundle-version="1.0.0";visibility:=reexport

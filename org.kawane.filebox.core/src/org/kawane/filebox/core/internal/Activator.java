@@ -9,7 +9,9 @@ import java.util.HashMap;
 
 import org.eclipse.osgi.service.datalocation.Location;
 import org.kawane.filebox.core.Filebox;
+import org.kawane.filebox.core.IFilebox;
 import org.kawane.filebox.core.discovery.IServiceDiscovery;
+import org.kawane.services.ServiceRegistry;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
@@ -54,7 +56,8 @@ public class Activator implements BundleActivator {
 		
 		// initialize filebox application
 		Filebox filebox = new Filebox(configurationFile);
-		context.registerService(Filebox.class.getName(), filebox, null);
+//		context.registerService(Filebox.class.getName(), filebox, null);
+		ServiceRegistry.instance.register(Filebox.class, filebox);
 	
 		// publish object on rmi 
 		try { 
@@ -69,8 +72,6 @@ public class Activator implements BundleActivator {
 		serviceDiscovery = new ServiceDiscovery(filebox.getName(), filebox.getPort(), properties);
 		// automatically connect to the network for now
 		serviceDiscovery.start();
-		context.registerService(IServiceDiscovery.class.getName(), serviceDiscovery, null);
-		
 	}
 
 	/*
