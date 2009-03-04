@@ -1,8 +1,6 @@
 package org.kawane.filebox.core.internal;
 
 import java.io.IOException;
-import java.io.PrintStream;
-import java.io.StringWriter;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -10,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Timer;
@@ -24,26 +21,22 @@ import javax.jmdns.ServiceInfo;
 import javax.jmdns.ServiceListener;
 
 import org.kawane.filebox.core.IFilebox;
-import org.kawane.filebox.core.discovery.IFileboxServiceListener;
+import org.kawane.filebox.core.discovery.IConnectionListener;
 import org.kawane.filebox.core.discovery.IServiceDiscovery;
+import org.kawane.services.ServiceRegistry;
 
 public class ServiceDiscovery implements ServiceListener, IServiceDiscovery {
 
 	private static Logger logger = Logger.getLogger(ServiceDiscovery.class.getName());
 	
+	HashMap<ServiceInfo, IFilebox> fileBoxes = new HashMap<ServiceInfo, IFilebox>();
+	
 	private JmDNS dns;
 	private ServiceInfo serviceInfo;
 	private String name;
-	private Collection<IFileboxServiceListener> listeners = new HashSet<IFileboxServiceListener>();
 	private Map<String, String> properties;
 	private int port;
 	private Object waitInitialization = new Object();
-
-	public ServiceDiscovery(String name, int port, Map<String, String> properties) {
-		this.name = name;
-		this.port = port;
-		this.properties = properties;
-	}
 
 	public String getName() {
 		return name;
@@ -61,28 +54,30 @@ public class ServiceDiscovery implements ServiceListener, IServiceDiscovery {
 		return dns.getHostName();
 	}
 
-	public void apply(String name, int port, Map<String, String> properties) {
-		this.name = name;
-		this.port = port;
-		this.properties = properties;
-		if(dns ==null) {
-			start();
-		} else {
-			synchronized (waitInitialization) {
-				Thread thread = new Thread() {
-					@Override
-					public void run() {
-						try {
-							dns.unregisterService(serviceInfo);
-							dns.registerService(serviceInfo);
-						} catch (IOException e) {
-							logger.log(Level.SEVERE, "An Error Occured", e);
-						}
+	public void connect(String lname, int lport, Map<String, String> lproperties, final IConnectionListener listener) {
+		this.name = lname;
+		this.port = lport;
+		this.properties = lproperties;
+		synchronized (waitInitialization) {
+			Thread thread = new Thread() {
+				@Override
+				public void run() {
+					try {
+						serviceInfo = ServiceInfo.create(FILEBOX_TYPE, name, port, FILEBOX_WEIGHT, FILEBOX_PRIORITY, new Hashtable<String, String>(
+								properties));
+						dns.registerService(serviceInfo);
+						listener.connected(ServiceDiscovery.this);
+					} catch (IOException e) {
+						logger.log(Level.SEVERE, "An Error Occured", e);
 					}
-				};
-				thread.start();
-			}
+				}
+			};
+			thread.start();
 		}
+	}
+	
+	public void disconnect() {
+		dns.unregisterService(serviceInfo);
 	}
 
 	public void start() {
@@ -92,12 +87,7 @@ public class ServiceDiscovery implements ServiceListener, IServiceDiscovery {
 				try {
 					synchronized (waitInitialization) {
 						dns = JmDNS.create();
-						serviceInfo = ServiceInfo.create(FILEBOX_TYPE, name, port, FILEBOX_WEIGHT, FILEBOX_PRIORITY, new Hashtable<String, String>(
-								properties));
 						dns.addServiceListener(FILEBOX_TYPE, ServiceDiscovery.this);
-						dns.registerService(serviceInfo);
-//						// first call of it is always slow
-//						getServices();
 					}
 				} catch (Throwable e) {
 					logger.log(Level.SEVERE, "An Error Occured", e);
@@ -129,20 +119,6 @@ public class ServiceDiscovery implements ServiceListener, IServiceDiscovery {
 			}
 		}
 		return services;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.kawane.filebox.core.IServiceDiscovery#addServiceListener(org.kawane.filebox.core.discovery.IFileboxServiceListener)
-	 */
-	public void addServiceListener(IFileboxServiceListener listener) {
-		listeners.add(listener);
-	}
-
-	/* (non-Javadoc)
-	 * @see org.kawane.filebox.core.IServiceDiscovery#removeServiceListener(org.kawane.filebox.core.discovery.IFileboxServiceListener)
-	 */
-	public void removeServiceListener(IFileboxServiceListener listener) {
-		listeners.remove(listener);
 	}
 
 	private IFilebox createFileboxService(ServiceInfo serviceInfo) {
@@ -185,7 +161,10 @@ public class ServiceDiscovery implements ServiceListener, IServiceDiscovery {
 			logger.finest(out.toString());
 		}
 		if (event.getInfo() == null){
-			event.getDNS().requestServiceInfo(event.getType(), event.getName());
+				event.getDNS().requestServiceInfo(event.getType(), event.getName());
+		}else{
+			// register !!
+			logger.finest("registered");
 		}
 	}
 
@@ -198,10 +177,7 @@ public class ServiceDiscovery implements ServiceListener, IServiceDiscovery {
 			out.append('\n');
 			logger.finest(out.toString());
 		}
-		HashSet<IFileboxServiceListener> listenersCopy = new HashSet<IFileboxServiceListener>(listeners);
-		for (IFileboxServiceListener listener : listenersCopy) {
-			listener.serviceRemoved(createFileboxService(event.getInfo()));
-		}
+		ServiceRegistry.instance.unregister(fileBoxes.get(event.getInfo()));
 	}
 
 	public void serviceResolved(ServiceEvent event) {
@@ -213,10 +189,9 @@ public class ServiceDiscovery implements ServiceListener, IServiceDiscovery {
 			out.append('\n');
 			logger.finest(out.toString());
 		}
-		HashSet<IFileboxServiceListener> listenersCopy = new HashSet<IFileboxServiceListener>(listeners);
-		for (IFileboxServiceListener listener : listenersCopy) {
-			listener.serviceAdded(createFileboxService(event.getInfo()));
-		}
+		IFilebox filebox = createFileboxService(event.getInfo());
+		fileBoxes.put(event.getInfo(), filebox);
+		ServiceRegistry.instance.register(IFilebox.class,filebox);
 	}
 
 }

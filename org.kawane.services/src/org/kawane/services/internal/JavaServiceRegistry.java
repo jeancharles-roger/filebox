@@ -72,6 +72,7 @@ public class JavaServiceRegistry implements ServiceRegistry {
 	}
 
 	public void unregister(Object service) {
+		if(service == null) return;
 		Service serviceAnnotation = service.getClass().getAnnotation(Service.class);
 		for (Class<?> serviceClass: serviceAnnotation.classes()) {
 			unregister(serviceClass, service);
