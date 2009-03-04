@@ -2,7 +2,7 @@
  * Filebox developed by Kawane.
  * LGPL License.
  */
-package org.kawane.filebox.ui;
+package org.kawane.filebox.ui.internal;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,8 +25,8 @@ import org.eclipse.swt.widgets.Tray;
 import org.eclipse.swt.widgets.TrayItem;
 import org.kawane.filebox.core.Filebox;
 import org.kawane.filebox.core.Preferences;
-import org.kawane.filebox.ui.internal.Resources;
-import org.kawane.filebox.ui.internal.UIFileboxApplication;
+import org.kawane.filebox.ui.IAction;
+import org.kawane.filebox.ui.IAction.Stub;
 import org.kawane.filebox.ui.toolkit.ToolKit;
 import org.kawane.services.advanced.Inject;
 

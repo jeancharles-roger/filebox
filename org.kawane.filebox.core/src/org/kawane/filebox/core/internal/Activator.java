@@ -17,7 +17,7 @@ import org.osgi.framework.BundleContext;
 
 public class Activator implements BundleActivator {
 	private static Logger logger = Logger.getLogger(Activator.class.getName());
-
+	
 	protected static final String CONFIG_FILENAME = "filebox.properties";
 
 	private ServiceDiscovery serviceDiscovery;

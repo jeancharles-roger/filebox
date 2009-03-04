@@ -11,7 +11,6 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.kawane.filebox.core.Filebox;
 import org.kawane.filebox.ui.FileboxMainComposite;
-import org.kawane.filebox.ui.MenuManager;
 import org.kawane.services.ServiceRegistry;
 import org.kawane.services.advanced.ServiceInjector;
 
