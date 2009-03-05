@@ -1,6 +1,5 @@
 package org.kawane.filebox.core.discovery;
 
-import java.util.Map;
 
 
 public interface IServiceDiscovery {
@@ -14,12 +13,14 @@ public interface IServiceDiscovery {
 	
 	int getPort();
 	
-	Map<String, String> getProperties();
-	
 	String getHostname();
 
-	void connect(String name, int port, Map<String, String> properties, IConnectionListener listener);
+	void connect(String name, int port, IConnectionListener listener);
 	
 	void disconnect(IConnectionListener listener);
+	
+	void start();
+	
+	void stop();
 
 }

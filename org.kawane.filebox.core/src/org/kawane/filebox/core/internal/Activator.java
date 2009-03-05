@@ -20,7 +20,7 @@ public class Activator implements BundleActivator {
 	
 	protected static final String CONFIG_FILENAME = "filebox.properties";
 
-	private ServiceDiscovery serviceDiscovery;
+	private IServiceDiscovery serviceDiscovery;
 
 	protected File configurationFile;
 
@@ -55,12 +55,12 @@ public class Activator implements BundleActivator {
 		try {
 			Registry registry = LocateRegistry.createRegistry(filebox.getPort());
 			UnicastRemoteObject.exportObject(filebox, filebox.getPort());
-			registry.rebind(filebox.getName(), filebox);
+			registry.rebind("filebox", filebox);
 		} catch (RemoteException e) {
 			logger.log(Level.SEVERE, "Can't connect Filebox", e);
 		}
 //		properties.put(filebox.getStatus().getClass().getSimpleName(), filebox.getStatus().toString());
-		serviceDiscovery = new ServiceDiscovery();
+		serviceDiscovery = new JmDNSServiceDiscovery();
 		// automatically connect to the network for now
 		serviceDiscovery.start();
 		ServiceRegistry.instance.register(IServiceDiscovery.class, serviceDiscovery);

@@ -4,9 +4,7 @@ import java.io.File;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.kawane.filebox.core.discovery.IConnectionListener;
 import org.kawane.filebox.core.discovery.IServiceDiscovery;
@@ -35,7 +33,6 @@ public class Filebox extends Observable implements IFilebox {
 	protected String name;
 	protected String host;
 	protected int port;
-	protected final Map<String, String> properties = new HashMap<String, String>();
 	protected boolean connected = false;
 
 	private IServiceDiscovery serviceDiscovery;
@@ -129,7 +126,7 @@ public class Filebox extends Observable implements IFilebox {
 	/** connects this to fileboxes network */
 	public void connect() {
 		if ( connected ) return;
-		serviceDiscovery.connect(name, port, properties, new IConnectionListener () {
+		serviceDiscovery.connect(name, port, new IConnectionListener () {
 			public void connected(IServiceDiscovery serviceDiscovery) {
 				connected = true;
 				setHost(serviceDiscovery.getHostname());
