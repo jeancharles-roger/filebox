@@ -88,11 +88,12 @@ public class JavaServiceRegistry implements ServiceRegistry {
 			synchronized (list) {
 				list.remove(service);
 				if (list.isEmpty()) {
+					Collection<IServiceListener<?>> serviceListeners;
 					synchronized (listeners) {
-						Collection<IServiceListener<?>> serviceListeners = listeners.remove(serviceClass);
-						if(serviceListeners != null) {
-							fireNotifyRemoveService(serviceClass, service);
-						}
+						serviceListeners = new HashSet<IServiceListener<?>>(listeners.get(serviceClass));
+					}
+					if(serviceListeners != null) {
+						fireNotifyRemoveService(serviceClass, service);
 					}
 				}
 			}
@@ -122,7 +123,7 @@ public class JavaServiceRegistry implements ServiceRegistry {
 	}
 	
 	private void fireNotifyRemoveService(final Class<?> serviceClass, final Object service) {
-		Thread thread = new Thread("Notify new Service") {
+		Thread thread = new Thread("Notify remove Service") {
 			@SuppressWarnings("unchecked")
 			@Override
 			public void run() {
