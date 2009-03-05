@@ -17,6 +17,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
@@ -177,20 +178,22 @@ public class FileboxMainComposite extends Composite {
 			filebox.getPreferences().addPropertyChangeListener(propertiesListener);
 		}
 		this.filebox = filebox;
-		getShell().getDisplay().asyncExec(new Runnable() {
+		Display.getCurrent().asyncExec(new Runnable() {
 			public void run() {
-				if ( filebox != null ) {
-				try {
-					meLabel.setText(filebox.getName());
-					statusCombo.select(filebox.isConnected() ? 0 : 1);
-				} catch (RemoteException e) {
-					logger.log(Level.SEVERE, "An Error Occured", e);
+				if (filebox != null) {
+					try {
+						meLabel.setText(filebox.getName());
+						meLabel.getParent().layout();
+						statusCombo.select(filebox.isConnected() ? 0 : 1);
+					} catch (RemoteException e) {
+						logger.log(Level.SEVERE, "An Error Occured", e);
+					}
+				} else {
+					meLabel.setText("Me");
+					meLabel.getParent().layout();
+					statusCombo.select(1);
 				}
-			} else {
-				meLabel.setText("Me");
-				statusCombo.select(1);
 			}
-		}
 		});
 	}
 
