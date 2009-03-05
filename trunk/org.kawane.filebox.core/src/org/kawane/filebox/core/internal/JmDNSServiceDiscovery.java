@@ -6,10 +6,8 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
-import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
@@ -19,13 +17,14 @@ import javax.jmdns.JmDNS;
 import javax.jmdns.ServiceEvent;
 import javax.jmdns.ServiceInfo;
 import javax.jmdns.ServiceListener;
+import javax.jmdns.ServiceTypeListener;
 
 import org.kawane.filebox.core.IFilebox;
 import org.kawane.filebox.core.discovery.IConnectionListener;
 import org.kawane.filebox.core.discovery.IServiceDiscovery;
 import org.kawane.services.ServiceRegistry;
 
-public class JmDNSServiceDiscovery implements ServiceListener, IServiceDiscovery {
+public class JmDNSServiceDiscovery implements ServiceListener, IServiceDiscovery, ServiceTypeListener {
 
 	private static Logger logger = Logger.getLogger(JmDNSServiceDiscovery.class.getName());
 
@@ -92,7 +91,7 @@ public class JmDNSServiceDiscovery implements ServiceListener, IServiceDiscovery
 				try {
 					synchronized (waitInitialization) {
 						dns = JmDNS.create();
-						dns.addServiceListener(FILEBOX_TYPE, JmDNSServiceDiscovery.this);
+						dns.addServiceTypeListener(JmDNSServiceDiscovery.this);
 					}
 				} catch (Throwable e) {
 					logger.log(Level.SEVERE, "An Error Occured", e);
@@ -127,20 +126,8 @@ public class JmDNSServiceDiscovery implements ServiceListener, IServiceDiscovery
 	}
 
 	private IFilebox createFileboxService(ServiceInfo serviceInfo) {
-		Map<String, String> properties = new HashMap<String, String>();
-		@SuppressWarnings("unchecked")
-		Enumeration<String> propertyNames = serviceInfo.getPropertyNames();
-		while (propertyNames.hasMoreElements()) {
-			String propertyName = propertyNames.nextElement();
-			properties.put(propertyName, serviceInfo.getPropertyString(propertyName));
-		}
 		try {
-
-			//			IFilebox fileboxService = new DistantFilebox(serviceInfo.getName(), serviceInfo.getHostAddress(), serviceInfo.getPort());
-			//			String url = "rmi://localhost" + ":" + serviceInfo.getPort() + "/" + serviceInfo.getName();
-			//String url = serviceInfo.getName();
 			IFilebox fileboxService = (IFilebox) LocateRegistry.getRegistry(serviceInfo.getHostAddress(), serviceInfo.getPort()).lookup("filebox");
-
 			return fileboxService;
 		} catch (RemoteException e) {
 			logger.log(Level.SEVERE, "Can't connect Filebox", e);
@@ -148,6 +135,11 @@ public class JmDNSServiceDiscovery implements ServiceListener, IServiceDiscovery
 		} catch (NotBoundException e) {
 			logger.log(Level.SEVERE, "Can't connect Filebox", e);
 			return null;
+		}
+	}
+	public void serviceTypeAdded(ServiceEvent event) {
+		if(event.getType().equals(FILEBOX_TYPE)) {
+			dns.addServiceListener(FILEBOX_TYPE, JmDNSServiceDiscovery.this);
 		}
 	}
 
@@ -165,8 +157,11 @@ public class JmDNSServiceDiscovery implements ServiceListener, IServiceDiscovery
 			logger.fine(out.toString());
 		}
 		if (event.getInfo() == null) {
-			event.getDNS().getServiceInfo(event.getType(), event.getName());
-			event.getDNS().requestServiceInfo(event.getType(), event.getName());
+			ServiceInfo info = dns.getServiceInfo(event.getType(), event.getName());
+			if(info != null) {
+				updateFileboxRegistry(event);
+			}
+			dns.requestServiceInfo(event.getType(), event.getName());
 		} else {
 			// register !!
 			logger.fine("registered");
@@ -194,6 +189,10 @@ public class JmDNSServiceDiscovery implements ServiceListener, IServiceDiscovery
 			out.append('\n');
 			logger.fine(out.toString());
 		}
+		updateFileboxRegistry(event);
+	}
+
+	private void updateFileboxRegistry(ServiceEvent event) {
 		IFilebox filebox = createFileboxService(event.getInfo());
 		if (!fileBoxes.containsKey(event.getName())) {
 			fileBoxes.put(event.getName(), filebox);
