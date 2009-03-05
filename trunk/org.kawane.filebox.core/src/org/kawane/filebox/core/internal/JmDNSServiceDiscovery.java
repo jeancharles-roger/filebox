@@ -200,6 +200,10 @@ public class JmDNSServiceDiscovery implements ServiceListener, IServiceDiscovery
 			ServiceRegistry.instance.register(IFilebox.class, filebox);
 		} else {
 			// already contains this key
+			if(event.getInfo() != serviceInfo) {
+				// TODO may be we have to explain to remote host that the name is already used !!
+				
+			}
 		}
 	}
 
