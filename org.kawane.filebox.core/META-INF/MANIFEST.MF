@@ -9,5 +9,7 @@ Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Import-Package: org.osgi.framework
 Bundle-ActivationPolicy: lazy
 Export-Package: org.kawane.filebox.core
-Bundle-ClassPath: .
+Bundle-ClassPath: .,
+ lib/jslp-1.0.0.RC5-EPL.jar,
+ lib/org.apache.commons.logging_1.0.4.v20080605-1930.jar
 Require-Bundle: org.kawane.services;bundle-version="1.0.0";visibility:=reexport
