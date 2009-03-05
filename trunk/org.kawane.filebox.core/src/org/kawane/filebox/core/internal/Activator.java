@@ -43,12 +43,8 @@ public class Activator implements BundleActivator {
 			configurationFile = new File(CONFIG_FILENAME);
 		}
 
-		// properties associated with the profile
-//		HashMap<String, String> properties = new HashMap<String, String>();
-		
 		// initialize filebox application
 		Filebox filebox = new Filebox(configurationFile);
-		//		context.registerService(Filebox.class.getName(), filebox, null);
 		ServiceRegistry.instance.register(Filebox.class, filebox);
 		new ServiceInjector(filebox);
 		// publish object on rmi 
@@ -59,9 +55,10 @@ public class Activator implements BundleActivator {
 		} catch (RemoteException e) {
 			logger.log(Level.SEVERE, "Can't connect Filebox", e);
 		}
-//		properties.put(filebox.getStatus().getClass().getSimpleName(), filebox.getStatus().toString());
 		serviceDiscovery = new JmDNSServiceDiscovery();
-		// automatically connect to the network for now
+//		JSLP discovery implementation
+//		serviceDiscovery = new JSLPServiceDiscovery();
+		// Start to listening services
 		serviceDiscovery.start();
 		ServiceRegistry.instance.register(IServiceDiscovery.class, serviceDiscovery);
 		
