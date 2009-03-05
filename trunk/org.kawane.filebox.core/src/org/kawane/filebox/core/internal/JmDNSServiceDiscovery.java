@@ -25,16 +25,15 @@ import org.kawane.filebox.core.discovery.IConnectionListener;
 import org.kawane.filebox.core.discovery.IServiceDiscovery;
 import org.kawane.services.ServiceRegistry;
 
-public class ServiceDiscovery implements ServiceListener, IServiceDiscovery {
+public class JmDNSServiceDiscovery implements ServiceListener, IServiceDiscovery {
 
-	private static Logger logger = Logger.getLogger(ServiceDiscovery.class.getName());
-	
-	HashMap<ServiceInfo, IFilebox> fileBoxes = new HashMap<ServiceInfo, IFilebox>();
-	
+	private static Logger logger = Logger.getLogger(JmDNSServiceDiscovery.class.getName());
+
+	HashMap<String, IFilebox> fileBoxes = new HashMap<String, IFilebox>();
+
 	private JmDNS dns;
 	private ServiceInfo serviceInfo;
 	private String name;
-	private Map<String, String> properties;
 	private int port;
 	private Object waitInitialization = new Object();
 
@@ -46,27 +45,24 @@ public class ServiceDiscovery implements ServiceListener, IServiceDiscovery {
 		return port;
 	}
 
-	public Map<String, String> getProperties() {
-		return properties;
-	}
-
 	public String getHostname() {
 		return dns.getHostName();
 	}
 
-	public void connect(String lname, int lport, Map<String, String> lproperties, final IConnectionListener listener) {
+	public void connect(String lname, int lport, final IConnectionListener listener) {
 		this.name = lname;
 		this.port = lport;
-		this.properties = lproperties;
 		synchronized (waitInitialization) {
 			Thread thread = new Thread() {
 				@Override
 				public void run() {
 					try {
-						serviceInfo = ServiceInfo.create(FILEBOX_TYPE, name, port, FILEBOX_WEIGHT, FILEBOX_PRIORITY, new Hashtable<String, String>(
-								properties));
+						serviceInfo = ServiceInfo.create(FILEBOX_TYPE, name, port, FILEBOX_WEIGHT, FILEBOX_PRIORITY, new Hashtable<String, Object>());
 						dns.registerService(serviceInfo);
-						listener.connected(ServiceDiscovery.this);
+						listener.connected(JmDNSServiceDiscovery.this);
+						IFilebox filebox = createFileboxService(serviceInfo);
+						fileBoxes.put(name, filebox);
+						ServiceRegistry.instance.register(IFilebox.class, filebox);
 					} catch (IOException e) {
 						logger.log(Level.SEVERE, "An Error Occured", e);
 					}
@@ -75,14 +71,14 @@ public class ServiceDiscovery implements ServiceListener, IServiceDiscovery {
 			thread.start();
 		}
 	}
-	
+
 	public void disconnect(final IConnectionListener listener) {
 		synchronized (waitInitialization) {
 			Thread thread = new Thread() {
 				@Override
 				public void run() {
 					dns.unregisterService(serviceInfo);
-					listener.disconnected(ServiceDiscovery.this);
+					listener.disconnected(JmDNSServiceDiscovery.this);
 				}
 			};
 			thread.start();
@@ -96,7 +92,7 @@ public class ServiceDiscovery implements ServiceListener, IServiceDiscovery {
 				try {
 					synchronized (waitInitialization) {
 						dns = JmDNS.create();
-						dns.addServiceListener(FILEBOX_TYPE, ServiceDiscovery.this);
+						dns.addServiceListener(FILEBOX_TYPE, JmDNSServiceDiscovery.this);
 					}
 				} catch (Throwable e) {
 					logger.log(Level.SEVERE, "An Error Occured", e);
@@ -138,14 +134,13 @@ public class ServiceDiscovery implements ServiceListener, IServiceDiscovery {
 			String propertyName = propertyNames.nextElement();
 			properties.put(propertyName, serviceInfo.getPropertyString(propertyName));
 		}
-		try  {
-			
-			
-//			IFilebox fileboxService = new DistantFilebox(serviceInfo.getName(), serviceInfo.getHostAddress(), serviceInfo.getPort());
-//			String url = "rmi://localhost" + ":" + serviceInfo.getPort() + "/" + serviceInfo.getName();
+		try {
+
+			//			IFilebox fileboxService = new DistantFilebox(serviceInfo.getName(), serviceInfo.getHostAddress(), serviceInfo.getPort());
+			//			String url = "rmi://localhost" + ":" + serviceInfo.getPort() + "/" + serviceInfo.getName();
 			//String url = serviceInfo.getName();
-			IFilebox fileboxService = (IFilebox) LocateRegistry.getRegistry(serviceInfo.getHostAddress(), serviceInfo.getPort()).lookup(serviceInfo.getName());
-			
+			IFilebox fileboxService = (IFilebox) LocateRegistry.getRegistry(serviceInfo.getHostAddress(), serviceInfo.getPort()).lookup("filebox");
+
 			return fileboxService;
 		} catch (RemoteException e) {
 			logger.log(Level.SEVERE, "Can't connect Filebox", e);
@@ -157,7 +152,7 @@ public class ServiceDiscovery implements ServiceListener, IServiceDiscovery {
 	}
 
 	public void serviceAdded(ServiceEvent event) {
-		if(logger.isLoggable(Level.FINEST)) {
+		if (logger.isLoggable(Level.FINE)) {
 			StringBuffer out = new StringBuffer();
 			out.append("*********************************************************\n");
 			// the service is added but not resolved, not interesting for our application
@@ -167,40 +162,45 @@ public class ServiceDiscovery implements ServiceListener, IServiceDiscovery {
 				out.append("A service has been added: " + event.getInfo().getName() + " on " + event.getInfo().getHostAddress());
 				out.append('\n');
 			}
-			logger.finest(out.toString());
+			logger.fine(out.toString());
 		}
-		if (event.getInfo() == null){
-				event.getDNS().requestServiceInfo(event.getType(), event.getName());
-		}else{
+		if (event.getInfo() == null) {
+			event.getDNS().getServiceInfo(event.getType(), event.getName());
+			event.getDNS().requestServiceInfo(event.getType(), event.getName());
+		} else {
 			// register !!
-			logger.finest("registered");
+			logger.fine("registered");
 		}
 	}
 
 	public void serviceRemoved(ServiceEvent event) {
-		if(logger.isLoggable(Level.FINEST)) {
+		if (logger.isLoggable(Level.FINE)) {
 			StringBuffer out = new StringBuffer();
 			out.append("*********************************************************");
 			out.append('\n');
 			out.append("A service has been Removed: " + event);
 			out.append('\n');
-			logger.finest(out.toString());
+			logger.fine(out.toString());
 		}
-		ServiceRegistry.instance.unregister(fileBoxes.get(event.getInfo()));
+		ServiceRegistry.instance.unregister(IFilebox.class, fileBoxes.get(event.getName()));
 	}
 
 	public void serviceResolved(ServiceEvent event) {
-		if(logger.isLoggable(Level.FINEST)) {
+		if (logger.isLoggable(Level.FINE)) {
 			StringBuffer out = new StringBuffer();
 			out.append("*********************************************************");
 			out.append('\n');
 			out.append("A service has been resolved: " + event);
 			out.append('\n');
-			logger.finest(out.toString());
+			logger.fine(out.toString());
 		}
 		IFilebox filebox = createFileboxService(event.getInfo());
-		fileBoxes.put(event.getInfo(), filebox);
-		ServiceRegistry.instance.register(IFilebox.class,filebox);
+		if (!fileBoxes.containsKey(event.getName())) {
+			fileBoxes.put(event.getName(), filebox);
+			ServiceRegistry.instance.register(IFilebox.class, filebox);
+		} else {
+			// already contains this key
+		}
 	}
 
 }
