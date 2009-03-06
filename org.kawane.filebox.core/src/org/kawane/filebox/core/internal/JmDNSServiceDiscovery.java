@@ -57,7 +57,7 @@ public class JmDNSServiceDiscovery implements ServiceListener,
 				@Override
 				public void run() {
 					try {
-						serviceInfo = ServiceInfo.create(FILEBOX_TYPE, name,port, FILEBOX_WEIGHT, FILEBOX_PRIORITY,	new Hashtable<String, Object>());
+						serviceInfo = ServiceInfo.create(FILEBOX_TYPE, name,port, "");
 						dns.registerService(serviceInfo);
 						listener.connected(JmDNSServiceDiscovery.this);
 					} catch (IOException e) {
