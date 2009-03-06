@@ -1,19 +1,28 @@
 package org.kawane.filebox.core;
 
 import java.io.File;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.kawane.filebox.core.discovery.IConnectionListener;
 import org.kawane.filebox.core.discovery.IServiceDiscovery;
+import org.kawane.filebox.core.internal.Activator;
 import org.kawane.services.IServiceListener;
 import org.kawane.services.ServiceRegistry;
 import org.kawane.services.advanced.Inject;
 
 public class Filebox extends Observable implements IFilebox {
 
+	private static Logger logger = Logger.getLogger(Activator.class.getName());
+	
 	public static final String FILEBOXES = "fileboxes";
 	
 	final private List<IFilebox> fileboxes = new ArrayList<IFilebox>();
@@ -33,8 +42,10 @@ public class Filebox extends Observable implements IFilebox {
 	protected String name;
 	protected String host;
 	protected int port;
+	
 	protected boolean connected = false;
-
+	protected Registry registry = null;
+	
 	private IServiceDiscovery serviceDiscovery;
 	
 	public Filebox(File configurationFile) {
@@ -124,8 +135,19 @@ public class Filebox extends Observable implements IFilebox {
 	}
 	
 	/** connects this to fileboxes network */
+	// TODO throws Exception
 	public void connect() {
 		if ( connected ) return;
+		
+		// publish object on rmi 
+		try {
+			registry = LocateRegistry.createRegistry(getPort());
+			UnicastRemoteObject.exportObject(this, getPort());
+			registry.rebind("filebox", this);
+		} catch (RemoteException e) {
+			logger.log(Level.SEVERE, "Can't connect Filebox", e);
+		}
+
 		serviceDiscovery.connect(name, port, new IConnectionListener () {
 			public void connected(IServiceDiscovery serviceDiscovery) {
 				connected = true;
@@ -138,6 +160,20 @@ public class Filebox extends Observable implements IFilebox {
 	/** disconnects this from fileboxes network */
 	public void disconnect() {
 		if ( !connected ) return;
+		
+		// remove object from rmi 
+		try {
+			UnicastRemoteObject.unexportObject(this, true);
+			UnicastRemoteObject.unexportObject(registry, true);
+			registry.unbind("filebox");
+			registry = null;
+		} catch (RemoteException e) {
+			logger.log(Level.SEVERE, "Can't disconnect Filebox", e);
+		} catch (NotBoundException e) {
+			logger.log(Level.SEVERE, "Can't disconnect Filebox", e);
+		}
+
+		
 		serviceDiscovery.disconnect( new IConnectionListener () {
 			public void connected(IServiceDiscovery serviceDiscovery) {}
 			public void disconnected(IServiceDiscovery serviceDiscovery) {
