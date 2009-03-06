@@ -1,12 +1,6 @@
 package org.kawane.filebox.core.internal;
 
 import java.io.File;
-import java.rmi.RemoteException;
-import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
-import java.rmi.server.UnicastRemoteObject;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.kawane.filebox.core.Filebox;
 import org.kawane.filebox.core.discovery.IServiceDiscovery;
@@ -16,8 +10,6 @@ import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 
 public class Activator implements BundleActivator {
-	private static Logger logger = Logger.getLogger(Activator.class.getName());
-	
 	protected static final String CONFIG_FILENAME = "filebox.properties";
 
 	private IServiceDiscovery serviceDiscovery;
@@ -47,14 +39,7 @@ public class Activator implements BundleActivator {
 		Filebox filebox = new Filebox(configurationFile);
 		ServiceRegistry.instance.register(Filebox.class, filebox);
 		new ServiceInjector(filebox);
-		// publish object on rmi 
-		try {
-			Registry registry = LocateRegistry.createRegistry(filebox.getPort());
-			UnicastRemoteObject.exportObject(filebox, filebox.getPort());
-			registry.rebind("filebox", filebox);
-		} catch (RemoteException e) {
-			logger.log(Level.SEVERE, "Can't connect Filebox", e);
-		}
+
 		serviceDiscovery = new JmDNSServiceDiscovery();
 //		JSLP discovery implementation
 //		serviceDiscovery = new JSLPServiceDiscovery();
