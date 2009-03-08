@@ -25,7 +25,7 @@ public class Activator implements BundleActivator {
 		if(configurationProperty == null || configurationProperty.length() ==0) {
 			configurationProperty = System.getProperty("osgi.syspath");
 		}
-		if(configurationProperty != null & configurationProperty.length() !=0) {
+		if(configurationProperty != null && configurationProperty.length() !=0) {
 			configurationProperty = configurationProperty.replace("file:", "");
 			configurationFile = new File(configurationProperty, CONFIG_FILENAME);
 		}
