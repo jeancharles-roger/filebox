@@ -3,6 +3,7 @@ package org.kawane.filebox.core.internal;
 import java.io.File;
 
 import org.kawane.filebox.core.Filebox;
+import org.kawane.filebox.core.discovery.IConnectionListener;
 import org.kawane.filebox.core.discovery.IServiceDiscovery;
 import org.kawane.services.ServiceRegistry;
 import org.kawane.services.advanced.ServiceInjector;
@@ -54,6 +55,14 @@ public class Activator implements BundleActivator {
 	 * @see org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
 	 */
 	public void stop(BundleContext context) throws Exception {
+		serviceDiscovery.disconnect(new IConnectionListener() {
+			public void connected(IServiceDiscovery serviceDiscovery) {
+				
+			}
+			public void disconnected(IServiceDiscovery serviceDiscovery) {
+				
+			}
+		});
 		serviceDiscovery.stop();
 	}
 

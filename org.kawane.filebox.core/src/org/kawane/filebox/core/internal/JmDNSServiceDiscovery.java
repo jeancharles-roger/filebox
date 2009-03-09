@@ -7,7 +7,6 @@ import java.rmi.registry.LocateRegistry;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -57,7 +56,8 @@ public class JmDNSServiceDiscovery implements ServiceListener,
 				@Override
 				public void run() {
 					try {
-						serviceInfo = ServiceInfo.create(FILEBOX_TYPE, name,port, "");
+						serviceInfo = ServiceInfo.create(FILEBOX_TYPE, name,
+								port, "");
 						dns.registerService(serviceInfo);
 						listener.connected(JmDNSServiceDiscovery.this);
 					} catch (IOException e) {
@@ -74,7 +74,10 @@ public class JmDNSServiceDiscovery implements ServiceListener,
 			Thread thread = new Thread() {
 				@Override
 				public void run() {
-					dns.unregisterService(serviceInfo);
+					if (serviceInfo != null) {
+						dns.unregisterService(serviceInfo);
+						serviceInfo = null;
+					}
 					listener.disconnected(JmDNSServiceDiscovery.this);
 				}
 			};
@@ -159,12 +162,15 @@ public class JmDNSServiceDiscovery implements ServiceListener,
 		if (event.getInfo() == null) {
 			Thread thread = new Thread(new Runnable() {
 				public void run() {
-					ServiceInfo info = dns.getServiceInfo(event.getType(), event.getName());
+					ServiceInfo info = dns.getServiceInfo(event.getType(),
+							event.getName());
 					if (info != null) {
 						updateFileboxRegistry(info);
 					} else {
-						dns.requestServiceInfo(event.getType(), event.getName());
-					}		
+						dns
+								.requestServiceInfo(event.getType(), event
+										.getName());
+					}
 				}
 			});
 			thread.start();
