@@ -96,8 +96,6 @@ public class Application implements UIFileboxApplication {
 		if (display != null && !display.isDisposed()) {
 			display.dispose();
 		}
-		// exit the platform
-		System.exit(0);
 	}
 
 }
