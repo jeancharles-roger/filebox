@@ -4,6 +4,7 @@
  */
 package org.kawane.filebox.core;
 
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -17,7 +18,7 @@ import java.util.logging.Logger;
  * @author Jean-Charles Roger
  *
  */
-public class Preferences extends Observable {
+public class Preferences implements IObservable {
 	
 	public static final String NAME = "filebox.name";
 	public static final String PORT = "filebox.port";
@@ -28,6 +29,8 @@ public class Preferences extends Observable {
 	
 	protected Date configurationLastLoadDate = null;
 	protected File configurationFile = null;
+	
+	final protected IObservable.Stub obs = new IObservable.Stub();
 
 	public Preferences(File configurationFile) {
 		this.configurationFile = configurationFile;
@@ -110,7 +113,7 @@ public class Preferences extends Observable {
 	public void setProperty(String name, String value) {
 		String oldValue = getProperty(name);
 		configuration.setProperty(name, value);
-		getObservable().firePropertyChange(name, oldValue, value);
+		obs.firePropertyChange(this, name, oldValue, value);
 	}
 
 	
@@ -140,4 +143,12 @@ public class Preferences extends Observable {
 		setProperty(PORT, Integer.toString(value));
 	}
 
+	public void addPropertyChangeListener(PropertyChangeListener listener) {
+		obs.addPropertyChangeListener(listener);
+	}
+
+	public void removePropertyChangeListener(PropertyChangeListener listener) {
+		obs.removePropertyChangeListener(listener);
+	}
+	
 }

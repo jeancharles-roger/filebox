@@ -1,41 +1,23 @@
 package org.kawane.filebox.core;
 
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.kawane.filebox.core.discovery.IConnectionListener;
 import org.kawane.filebox.core.discovery.IServiceDiscovery;
 import org.kawane.filebox.core.internal.Activator;
-import org.kawane.services.IServiceListener;
-import org.kawane.services.ServiceRegistry;
 import org.kawane.services.advanced.Inject;
 
-public class Filebox extends Observable implements IFilebox {
+public class Filebox implements IFilebox, IObservable {
 
 	private static Logger logger = Logger.getLogger(Activator.class.getName());
-	
-	public static final String FILEBOXES = "fileboxes";
-	
-	final private List<IFilebox> fileboxes = new ArrayList<IFilebox>();
-	final private IServiceListener<IFilebox> serviceListener = new IServiceListener<IFilebox>(){
-		
-		public void serviceAdded(Class<IFilebox> clazz, IFilebox service) {
-			addFilebox(service);
-		}
-	
-		public void serviceRemoved(Class<IFilebox> clazz, IFilebox service) {
-			removeFilebox(service);
-		}
-	};
 	
 	final protected Preferences preferences;
 	
@@ -43,10 +25,14 @@ public class Filebox extends Observable implements IFilebox {
 	protected String host;
 	protected int port;
 	
-	protected boolean connected = false;
-	protected Registry registry = null;
+	final protected FileboxNetwork network = new FileboxNetwork();
 	
 	private IServiceDiscovery serviceDiscovery;
+
+	protected boolean connected = false;
+	protected Registry registry = null;
+
+	final protected IObservable.Stub obs = new IObservable.Stub();
 	
 	public Filebox(File configurationFile) {
 		preferences = new Preferences(configurationFile);
@@ -60,43 +46,6 @@ public class Filebox extends Observable implements IFilebox {
 	@Inject
 	public void setServiceDiscovery(IServiceDiscovery serviceDiscovery) {
 		this.serviceDiscovery = serviceDiscovery;
-		ServiceRegistry.instance.addListener(IFilebox.class, serviceListener, true);
-	}
-	
-	public int getFileboxesCount() {
-		return fileboxes.size();
-	}
-	
-	public List<IFilebox> getFileboxes() {
-		return Collections.unmodifiableList(fileboxes);
-	}
-	
-	public IFilebox getFilebox(int index) {
-		return fileboxes.get(index);
-	}
-	
-	public void addFilebox(IFilebox newFilebox) {
-		addFilebox(0, newFilebox);
-	}
-
-	public void addFilebox(int index, IFilebox newFilebox) {
-		fileboxes.add(index, newFilebox);
-		getObservable().fireIndexedPropertyChange(FILEBOXES, index, null, newFilebox);
-	}
-	
-	public IFilebox removeFilebox(IFilebox filebox) {
-		int index = fileboxes.indexOf(filebox);
-		return removeFilebox(index);
-	}
-	
-	public IFilebox removeFilebox(int index) {
-		IFilebox oldFilebox = fileboxes.remove(index);
-		getObservable().fireIndexedPropertyChange(FILEBOXES, index, oldFilebox, null);
-		return oldFilebox;
-	}
-	
-	public void clearFileboxes() {
-		while ( !fileboxes.isEmpty() ) removeFilebox(0);
 	}
 	
 	public Preferences getPreferences() {
@@ -111,7 +60,7 @@ public class Filebox extends Observable implements IFilebox {
 	public void setHost(String host) {
 		String oldValue = this.host;
 		this.host = host;
-		getObservable().firePropertyChange(HOST, oldValue, host);
+		obs.firePropertyChange(this, HOST, oldValue, host);
 	}
 	
 	public int getPort() throws RemoteException{
@@ -121,7 +70,7 @@ public class Filebox extends Observable implements IFilebox {
 	public void setPort(int port) {
 		int oldValue = this.port;
 		this.port = port;
-		getObservable().firePropertyChange(PORT, oldValue, port);
+		obs.firePropertyChange(this, PORT, oldValue, port);
 	}
 	
 	public String getName() throws RemoteException{
@@ -131,7 +80,11 @@ public class Filebox extends Observable implements IFilebox {
 	public void setName(String name) {
 		String oldValue = this.name;
 		this.name = name;
-		getObservable().firePropertyChange(NAME, oldValue, name);
+		obs.firePropertyChange(this, NAME, oldValue, name);
+	}
+	
+	public FileboxNetwork getNetwork() {
+		return network;
 	}
 	
 	/** connects this to fileboxes network */
@@ -188,4 +141,14 @@ public class Filebox extends Observable implements IFilebox {
 	public boolean isConnected() throws RemoteException {
 		return connected;
 	}
+
+	public void addPropertyChangeListener(PropertyChangeListener listener) {
+		obs.addPropertyChangeListener(listener);
+	}
+
+	public void removePropertyChangeListener(PropertyChangeListener listener) {
+		obs.removePropertyChangeListener(listener);
+	}
+	
+	
 }
