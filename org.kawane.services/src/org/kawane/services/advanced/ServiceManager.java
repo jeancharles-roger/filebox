@@ -70,8 +70,8 @@ public class ServiceManager implements IServiceListener {
 		for(Entry<Method, Class<?>> entry: methodToClass.entrySet()) {
 			Method method = entry.getKey();
 			Inject inject = method.getAnnotation(Inject.class);
-			Collection<?> services = serviceRegistry.getServices(entry.getValue());
-			if(inject != null && services.size() < inject.min()) {
+			int servicesCount = serviceRegistry.getServicesCount(entry.getValue());
+			if(inject != null && servicesCount < inject.min()) {
 				return false;
 			}
 		}
