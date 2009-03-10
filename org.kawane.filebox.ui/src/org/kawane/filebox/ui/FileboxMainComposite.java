@@ -178,7 +178,7 @@ public class FileboxMainComposite extends Composite {
 			filebox.getPreferences().addPropertyChangeListener(propertiesListener);
 		}
 		this.filebox = filebox;
-		Display.getCurrent().asyncExec(new Runnable() {
+		Display.getDefault().asyncExec(new Runnable() {
 			public void run() {
 				if (filebox != null) {
 					try {
