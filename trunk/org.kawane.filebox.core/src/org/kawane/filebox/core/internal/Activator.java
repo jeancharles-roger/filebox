@@ -3,6 +3,7 @@ package org.kawane.filebox.core.internal;
 import java.io.File;
 
 import org.kawane.filebox.core.Filebox;
+import org.kawane.filebox.core.IFileboxRegistry;
 import org.kawane.filebox.core.discovery.IConnectionListener;
 import org.kawane.filebox.core.discovery.IServiceDiscovery;
 import org.kawane.services.ServiceRegistry;
@@ -35,6 +36,9 @@ public class Activator implements BundleActivator {
 			// create on folder where the process run
 			configurationFile = new File(CONFIG_FILENAME);
 		}
+		
+		IFileboxRegistry fileboxRegistry = new FileboxRegistry();
+		ServiceRegistry.instance.register(IFileboxRegistry.class, fileboxRegistry);
 
 		// initialize filebox application
 		Filebox filebox = new Filebox(configurationFile);
@@ -42,6 +46,8 @@ public class Activator implements BundleActivator {
 		new ServiceInjector(filebox);
 
 		serviceDiscovery = new JmDNSServiceDiscovery();
+		new ServiceInjector(serviceDiscovery);
+		
 //		JSLP discovery implementation
 //		serviceDiscovery = new JSLPServiceDiscovery();
 		// Start to listening services
