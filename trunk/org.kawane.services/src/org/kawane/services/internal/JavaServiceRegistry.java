@@ -10,7 +10,7 @@ import org.kawane.services.IServiceListener;
 import org.kawane.services.Service;
 import org.kawane.services.ServiceRegistry;
 
-public class JavaServiceRegistry implements ServiceRegistry {
+class JavaServiceRegistry implements ServiceRegistry {
 	private Map<Class<?>, Collection<IServiceListener<?>>> listeners = new HashMap<Class<?>, Collection<IServiceListener<?>>>();
 
 	private Map<Class<?>, Collection<Object>> services = new HashMap<Class<?>, Collection<Object>>();
@@ -30,6 +30,10 @@ public class JavaServiceRegistry implements ServiceRegistry {
 			}
 		}
 		return null;
+	}
+	
+	public  int getServicesCount(Class<?> serviceClass) {
+		return getServices(serviceClass).size();
 	}
 
 	@SuppressWarnings("unchecked")
