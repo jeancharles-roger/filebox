@@ -25,7 +25,6 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.kawane.filebox.core.Filebox;
-import org.kawane.filebox.core.FileboxNetwork;
 import org.kawane.filebox.core.IFilebox;
 import org.kawane.filebox.core.Preferences;
 import org.kawane.filebox.ui.internal.Resources;
@@ -67,7 +66,7 @@ public class FileboxMainComposite extends Composite {
 				try {
 					TableItem item = (TableItem)e.item;
 					int index = contactsTable.indexOf(item);
-					IFilebox distantFilebox = filebox.getNetwork().getFilebox(index);
+					IFilebox distantFilebox = filebox.getFilebox(index);
 					item.setData(distantFilebox);
 					item.setImage(0, resources.getImage(distantFilebox.isConnected() ? "connected.png" : "disconnected.png"));
 					item.setText(1, distantFilebox.getName());
@@ -94,21 +93,8 @@ public class FileboxMainComposite extends Composite {
 				public void run() {
 					// application changed
 					if ( evt.getSource() == getLocalFilebox() ) {
-						if ( Filebox.NAME.equals(evt.getPropertyName()) ) {
-							try {
-								meLabel.setText(filebox.getName());
-								meLabel.getParent().layout();
-							} catch (RemoteException e) {
-								// can't happen
-							}
-						}
-						return;
-					}
-					
-					// network changed
-					if ( evt.getSource() == getLocalFilebox().getNetwork() ) {
-						if ( FileboxNetwork.FILEBOXES.equals(evt.getPropertyName()) ) {
-							contactsTable.setItemCount(getLocalFilebox().getNetwork().getFileboxesCount());
+						if ( Filebox.FILEBOXES.equals(evt.getPropertyName()) ) {
+							contactsTable.setItemCount(getLocalFilebox().getFileboxesCount());
 						}
 						return;
 					}
@@ -185,12 +171,10 @@ public class FileboxMainComposite extends Composite {
 	public void setFilebox(final Filebox filebox) {
 		if ( this.filebox != null ) {
 			this.filebox.removePropertyChangeListener(propertiesListener);
-			this.filebox.getNetwork().removePropertyChangeListener(propertiesListener);
 			this.filebox.getPreferences().removePropertyChangeListener(propertiesListener);
 		}
 		if ( filebox != null ) {
 			filebox.addPropertyChangeListener(propertiesListener);
-			filebox.getNetwork().addPropertyChangeListener(propertiesListener);
 			filebox.getPreferences().addPropertyChangeListener(propertiesListener);
 		}
 		this.filebox = filebox;

@@ -1,10 +1,6 @@
 package org.kawane.filebox.core.internal;
 
 import java.io.IOException;
-import java.rmi.NotBoundException;
-import java.rmi.RemoteException;
-import java.rmi.registry.LocateRegistry;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.logging.Level;
@@ -17,9 +13,10 @@ import javax.jmdns.ServiceListener;
 import javax.jmdns.ServiceTypeListener;
 
 import org.kawane.filebox.core.IFilebox;
+import org.kawane.filebox.core.IFileboxRegistry;
 import org.kawane.filebox.core.discovery.IConnectionListener;
 import org.kawane.filebox.core.discovery.IServiceDiscovery;
-import org.kawane.services.ServiceRegistry;
+import org.kawane.services.advanced.Inject;
 
 public class JmDNSServiceDiscovery implements ServiceListener,
 		IServiceDiscovery, ServiceTypeListener {
@@ -34,7 +31,8 @@ public class JmDNSServiceDiscovery implements ServiceListener,
 	private String name;
 	private int port;
 	private Object waitInitialization = new Object();
-
+	private IFileboxRegistry fileboxRegistry;
+	
 	public String getName() {
 		return name;
 	}
@@ -47,6 +45,11 @@ public class JmDNSServiceDiscovery implements ServiceListener,
 		return dns.getHostName();
 	}
 
+	@Inject
+	public void setFileboxRegistry(IFileboxRegistry registry) {
+		this.fileboxRegistry = registry;
+	}
+	
 	public void connect(String lname, int lport,
 			final IConnectionListener listener) {
 		this.name = lname;
@@ -110,30 +113,7 @@ public class JmDNSServiceDiscovery implements ServiceListener,
 	 * @see org.kawane.filebox.core.IServiceDiscovery#getServices()
 	 */
 	public Collection<IFilebox> getServices() {
-		Collection<IFilebox> services = new ArrayList<IFilebox>();
-		if (dns != null) {
-			ServiceInfo[] servicesInfo = dns.list(FILEBOX_TYPE);
-			for (ServiceInfo serviceInfo : servicesInfo) {
-				IFilebox fileboxService = createFileboxService(serviceInfo);
-				services.add(fileboxService);
-			}
-		}
-		return services;
-	}
-
-	private IFilebox createFileboxService(ServiceInfo serviceInfo) {
-		try {
-			IFilebox fileboxService = (IFilebox) LocateRegistry.getRegistry(
-					serviceInfo.getHostAddress(), serviceInfo.getPort())
-					.lookup("filebox");
-			return fileboxService;
-		} catch (RemoteException e) {
-			logger.log(Level.SEVERE, "Can't connect Filebox", e);
-			return null;
-		} catch (NotBoundException e) {
-			logger.log(Level.SEVERE, "Can't connect Filebox", e);
-			return null;
-		}
+		return fileboxRegistry.getFileboxes();
 	}
 
 	public void serviceTypeAdded(ServiceEvent event) {
@@ -143,83 +123,31 @@ public class JmDNSServiceDiscovery implements ServiceListener,
 	}
 
 	public void serviceAdded(final ServiceEvent event) {
-		if (logger.isLoggable(Level.FINE)) {
-			StringBuffer out = new StringBuffer();
-			out
-					.append("*********************************************************\n");
-			// the service is added but not resolved, not interesting for our
-			// application
-			out.append("a service have been added" + event);
-			out.append('\n');
-			if (event.getInfo() != null) {
-				out.append("A service has been added: "
-						+ event.getInfo().getName() + " on "
-						+ event.getInfo().getHostAddress());
-				out.append('\n');
-			}
-			logger.fine(out.toString());
-		}
 		if (event.getInfo() == null) {
 			Thread thread = new Thread(new Runnable() {
 				public void run() {
-					ServiceInfo info = dns.getServiceInfo(event.getType(),
-							event.getName());
-					if (info != null) {
-						updateFileboxRegistry(info);
-					} else {
-						dns
-								.requestServiceInfo(event.getType(), event
-										.getName());
-					}
+					ServiceInfo info = dns.getServiceInfo(event.getType(), event.getName());
+					while (info == null) {
+						dns.requestServiceInfo(event.getType(), event.getName());
+						info = dns.getServiceInfo(event.getType(), event.getName());
+					} 
+					fileboxRegistry.registerFilebox(event.getName(), info.getHostAddress(), info.getPort());
 				}
 			});
+			// this thread forces to resolve the service.
 			thread.start();
 		} else {
-			// register !!
-			logger.fine("registered");
+			// register the service now
+			fileboxRegistry.registerFilebox(event.getName(), event.getInfo().getHostAddress(), event.getInfo().getPort());
 		}
 	}
 
 	public void serviceRemoved(ServiceEvent event) {
-		if (logger.isLoggable(Level.FINE)) {
-			StringBuffer out = new StringBuffer();
-			out
-					.append("*********************************************************");
-			out.append('\n');
-			out.append("A service has been Removed: " + event);
-			out.append('\n');
-			logger.fine(out.toString());
-		}
-		ServiceRegistry.instance.unregister(IFilebox.class, fileBoxes.get(event
-				.getName()));
+		ServiceInfo info = event.getDNS().getServiceInfo(FILEBOX_TYPE, event.getName());
+		fileboxRegistry.unregisterFilebox(event.getName(), info.getHostAddress(), info.getPort());
 	}
 
 	public void serviceResolved(ServiceEvent event) {
-		if (logger.isLoggable(Level.FINE)) {
-			StringBuffer out = new StringBuffer();
-			out
-					.append("*********************************************************");
-			out.append('\n');
-			out.append("A service has been resolved: " + event);
-			out.append('\n');
-			logger.fine(out.toString());
-		}
-		updateFileboxRegistry(event.getInfo());
+		// do nothing
 	}
-
-	private void updateFileboxRegistry(ServiceInfo info) {
-		IFilebox filebox = createFileboxService(info);
-		if (!fileBoxes.containsKey(info.getName())) {
-			fileBoxes.put(info.getName(), filebox);
-			ServiceRegistry.instance.register(IFilebox.class, filebox);
-		} else {
-			// already contains this key
-			if (info != serviceInfo) {
-				// TODO may be we have to explain to remote host that the name
-				// is already used !!
-
-			}
-		}
-	}
-
 }
