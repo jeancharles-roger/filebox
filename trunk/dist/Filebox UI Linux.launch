@@ -5,7 +5,7 @@
 <booleanAttribute key="automaticValidate" value="false"/>
 <stringAttribute key="bootstrap" value=""/>
 <booleanAttribute key="clearConfig" value="false"/>
-<stringAttribute key="configLocation" value="${workspace_loc}/.metadata/.plugins/org.eclipse.pde.core/Filebox UI"/>
+<stringAttribute key="configLocation" value="${workspace_loc}/.metadata/.plugins/org.eclipse.pde.core/Filebox UI Linux"/>
 <booleanAttribute key="default_auto_start" value="true"/>
 <intAttribute key="default_start_level" value="4"/>
 <booleanAttribute key="includeOptional" value="true"/>
@@ -18,8 +18,8 @@
 <stringAttribute key="org.eclipse.jdt.launching.WORKING_DIRECTORY" value="${workspace_loc:filebox-platform/configuration}"/>
 <stringAttribute key="pde.version" value="3.3"/>
 <booleanAttribute key="show_selected_only" value="false"/>
-<stringAttribute key="target_bundles" value="org.eclipse.osgi.source@default:default,org.eclipse.osgi@:,org.eclipse.swt.gtk.linux.x86@default:false,org.eclipse.swt.gtk.linux.x86.source@default:default,org.eclipse.swt@default:default"/>
+<stringAttribute key="target_bundles" value="org.eclipse.swt.gtk.linux.x86.source@default:default,org.eclipse.swt.gtk.linux.x86@default:false,org.eclipse.osgi.source@default:default,org.eclipse.osgi@:,org.eclipse.swt@default:default"/>
 <booleanAttribute key="tracing" value="false"/>
 <booleanAttribute key="useDefaultConfigArea" value="true"/>
-<stringAttribute key="workspace_bundles" value="org.kawane.filebox.core@2:default,org.kawane.filebox.ui@2:default,org.kawane.services@1:default"/>
+<stringAttribute key="workspace_bundles" value="org.kawane.filebox.ui@2:default,org.kawane.services@1:default,org.kawane.filebox.core@2:default"/>
 </launchConfiguration>
