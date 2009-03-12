@@ -8,7 +8,7 @@ Bundle-Vendor: Kawane
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Import-Package: org.osgi.framework
 Bundle-ActivationPolicy: lazy
-Export-Package: org.kawane.filebox.core
+Export-Package: org.kawane.filebox.core,
+ org.kawane.filebox.core.discovery
 Bundle-ClassPath: .
-Require-Bundle: org.kawane.services;bundle-version="1.0.0";visibility:=reexport,
- javax.jmdns;bundle-version="1.0.0"
+Require-Bundle: org.kawane.services;bundle-version="1.0.0";visibility:=reexport

@@ -63,9 +63,9 @@ public class TypeResolver extends TimerTask
                     logger.finer("run() JmDNS querying type");
                     DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_QUERY);
                     out.addQuestion(new DNSQuestion("_services._mdns._udp.local.", DNSConstants.TYPE_PTR, DNSConstants.CLASS_IN));
-                    for (Iterator iterator = this.jmDNSImpl.getServiceTypes().values().iterator(); iterator.hasNext();)
+                    for (Iterator<String> iterator = this.jmDNSImpl.getServiceTypes().values().iterator(); iterator.hasNext();)
                     {
-                        out.addAnswer(new DNSRecord.Pointer("_services._mdns._udp.local.", DNSConstants.TYPE_PTR, DNSConstants.CLASS_IN, DNSConstants.DNS_TTL, (String) iterator.next()), 0);
+                        out.addAnswer(new DNSRecord.Pointer("_services._mdns._udp.local.", DNSConstants.TYPE_PTR, DNSConstants.CLASS_IN, DNSConstants.DNS_TTL, iterator.next()), 0);
                     }
                     this.jmDNSImpl.send(out);
                 }

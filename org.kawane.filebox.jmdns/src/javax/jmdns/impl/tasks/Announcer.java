@@ -12,6 +12,7 @@ import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.jmdns.ServiceInfo;
 import javax.jmdns.impl.DNSConstants;
 import javax.jmdns.impl.DNSOutgoing;
 import javax.jmdns.impl.DNSState;
@@ -49,9 +50,9 @@ public class Announcer extends TimerTask
         // Associate services to this, if they need announcing
         synchronized (this.jmDNSImpl)
         {
-            for (Iterator s = this.jmDNSImpl.getServices().values().iterator(); s.hasNext();)
+            for (Iterator<ServiceInfoImpl> s = this.jmDNSImpl.getServices().values().iterator(); s.hasNext();)
             {
-                ServiceInfoImpl info = (ServiceInfoImpl) s.next();
+                ServiceInfoImpl info = s.next();
                 if (info.getState() == DNSState.ANNOUNCING_1)
                 {
                     info.setTask(this);
@@ -76,9 +77,9 @@ public class Announcer extends TimerTask
         // Remove associations from services to this
         synchronized (this.jmDNSImpl)
         {
-            for (Iterator i = this.jmDNSImpl.getServices().values().iterator(); i.hasNext();)
+            for (Iterator<ServiceInfoImpl> i = this.jmDNSImpl.getServices().values().iterator(); i.hasNext();)
             {
-                ServiceInfoImpl info = (ServiceInfoImpl) i.next();
+                ServiceInfoImpl info = i.next();
                 if (info.getTask() == this)
                 {
                     info.setTask(null);
@@ -108,12 +109,12 @@ public class Announcer extends TimerTask
             // Defensively copy the services into a local list,
             // to prevent race conditions with methods registerService
             // and unregisterService.
-            List list;
+            List<ServiceInfo> list;
             synchronized (this.jmDNSImpl)
             {
-                list = new ArrayList(this.jmDNSImpl.getServices().values());
+                list = new ArrayList<ServiceInfo>(this.jmDNSImpl.getServices().values());
             }
-            for (Iterator i = list.iterator(); i.hasNext();)
+            for (Iterator<ServiceInfo> i = list.iterator(); i.hasNext();)
             {
                 ServiceInfoImpl info = (ServiceInfoImpl) i.next();
                 synchronized (info)

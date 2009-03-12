@@ -50,8 +50,8 @@ public final class DNSIncoming
     private int numAdditionals;
     private long receivedTime;
 
-    private List questions;
-    List answers;
+    private List<DNSQuestion> questions;
+    List<DNSRecord> answers;
 
     /**
      * Parse a message from a datagram packet.
@@ -63,8 +63,8 @@ public final class DNSIncoming
         this.data = packet.getData();
         this.len = packet.getLength();
         this.off = packet.getOffset();
-        this.questions = Collections.EMPTY_LIST;
-        this.answers = Collections.EMPTY_LIST;
+        this.questions = Collections.emptyList();
+        this.answers = Collections.emptyList();
         this.receivedTime = System.currentTimeMillis();
 
         try
@@ -79,7 +79,7 @@ public final class DNSIncoming
             // parse questions
             if (numQuestions > 0)
             {
-                questions = Collections.synchronizedList(new ArrayList(numQuestions));
+                questions = Collections.synchronizedList(new ArrayList<DNSQuestion>(numQuestions));
                 for (int i = 0; i < numQuestions; i++)
                 {
                     DNSQuestion question = new DNSQuestion(readName(), readUnsignedShort(), readUnsignedShort());
@@ -91,7 +91,7 @@ public final class DNSIncoming
             int n = numAnswers + numAuthorities + numAdditionals;
             if (n > 0)
             {
-                answers = Collections.synchronizedList(new ArrayList(n));
+                answers = Collections.synchronizedList(new ArrayList<DNSRecord>(n));
                 for (int i = 0; i < n; i++)
                 {
                     String domain = readName();
@@ -341,12 +341,12 @@ public final class DNSIncoming
     {
         StringBuffer buf = new StringBuffer();
         buf.append(toString() + "\n");
-        for (Iterator iterator = questions.iterator(); iterator.hasNext();)
+        for (Iterator<DNSQuestion> iterator = questions.iterator(); iterator.hasNext();)
         {
             buf.append("    ques:" + iterator.next() + "\n");
         }
         int count = 0;
-        for (Iterator iterator = answers.iterator(); iterator.hasNext(); count++)
+        for (Iterator<DNSRecord> iterator = answers.iterator(); iterator.hasNext(); count++)
         {
             if (count < numAnswers)
             {
@@ -480,7 +480,7 @@ public final class DNSIncoming
         {
             if (that.numQuestions > 0) {
                 if (Collections.EMPTY_LIST.equals(this.questions))
-                    this.questions = Collections.synchronizedList(new ArrayList(that.numQuestions));
+                    this.questions = Collections.synchronizedList(new ArrayList<DNSQuestion>(that.numQuestions));
 
                 this.questions.addAll(that.questions);
                 this.numQuestions += that.numQuestions;
@@ -488,7 +488,7 @@ public final class DNSIncoming
             
             if (Collections.EMPTY_LIST.equals(answers))
             {
-                answers = Collections.synchronizedList(new ArrayList());
+                answers = Collections.synchronizedList(new ArrayList<DNSRecord>());
             }
 
             if (that.numAnswers > 0)
@@ -518,12 +518,12 @@ public final class DNSIncoming
         return (int) (System.currentTimeMillis() - receivedTime);
     }
 
-    public List getQuestions()
+    public List<DNSQuestion> getQuestions()
     {
         return questions;
     }
 
-    public List getAnswers()
+    public List<DNSRecord> getAnswers()
     {
         return answers;
     }

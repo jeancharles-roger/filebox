@@ -45,9 +45,9 @@ public class Renewer extends TimerTask
         // Associate services to this, if they need renewal
         synchronized (this.jmDNSImpl)
         {
-            for (Iterator s = this.jmDNSImpl.getServices().values().iterator(); s.hasNext();)
+            for (Iterator<ServiceInfoImpl> s = this.jmDNSImpl.getServices().values().iterator(); s.hasNext();)
             {
-                ServiceInfoImpl info = (ServiceInfoImpl) s.next();
+                ServiceInfoImpl info =  s.next();
                 if (info.getState() == DNSState.ANNOUNCED)
                 {
                     info.setTask(this);
@@ -72,9 +72,9 @@ public class Renewer extends TimerTask
         // Remove associations from services to this
         synchronized (this.jmDNSImpl)
         {
-            for (Iterator i = this.jmDNSImpl.getServices().values().iterator(); i.hasNext();)
+            for (Iterator<ServiceInfoImpl> i = this.jmDNSImpl.getServices().values().iterator(); i.hasNext();)
             {
-                ServiceInfoImpl info = (ServiceInfoImpl) i.next();
+                ServiceInfoImpl info = i.next();
                 if (info.getTask() == this)
                 {
                     info.setTask(null);
@@ -104,14 +104,14 @@ public class Renewer extends TimerTask
             // Defensively copy the services into a local list,
             // to prevent race conditions with methods registerService
             // and unregisterService.
-            List list;
+            List<ServiceInfoImpl> list;
             synchronized (this.jmDNSImpl)
             {
-                list = new ArrayList(this.jmDNSImpl.getServices().values());
+                list = new ArrayList<ServiceInfoImpl>(this.jmDNSImpl.getServices().values());
             }
-            for (Iterator i = list.iterator(); i.hasNext();)
+            for (Iterator<ServiceInfoImpl> i = list.iterator(); i.hasNext();)
             {
-                ServiceInfoImpl info = (ServiceInfoImpl) i.next();
+                ServiceInfoImpl info = i.next();
                 synchronized (info)
                 {
                     if (info.getState() == taskState && info.getTask() == this)

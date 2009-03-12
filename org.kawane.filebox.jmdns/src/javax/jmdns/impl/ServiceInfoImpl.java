@@ -52,7 +52,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener
     int weight;
     int priority;
     private byte text[];
-    Hashtable props;
+    Hashtable<String, Object> props;
     InetAddress addr;
 
     /**
@@ -87,7 +87,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener
     /**
      * @see javax.jmdns.ServiceInfo#create(String, String, int, int, int, Hashtable)
      */
-    public ServiceInfoImpl(String type, String name, int port, int weight, int priority, Hashtable props)
+    public ServiceInfoImpl(String type, String name, int port, int weight, int priority, Hashtable<String, Object> props)
     {
         this(type, name, port, weight, priority, new byte[0]);
         if (props != null)
@@ -95,9 +95,9 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener
             try
             {
                 ByteArrayOutputStream out = new ByteArrayOutputStream(256);
-                for (Enumeration e = props.keys(); e.hasMoreElements();)
+                for (Enumeration<String> e = props.keys(); e.hasMoreElements();)
                 {
-                    String key = (String) e.nextElement();
+                    String key = e.nextElement();
                     Object val = props.get(key);
                     ByteArrayOutputStream out2 = new ByteArrayOutputStream(100);
                     writeUTF(out2, key);
@@ -342,10 +342,10 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener
     /**
      * @see javax.jmdns.ServiceInfo#getPropertyNames()
      */
-    public Enumeration getPropertyNames()
+    public Enumeration<String> getPropertyNames()
     {
-        Hashtable props = getProperties();
-        return (props != null) ? props.keys() : new Vector().elements();
+        Hashtable<String, Object> props = getProperties();
+        return (props != null) ? props.keys() : new Vector<String>().elements();
     }
 
     /**
@@ -429,11 +429,11 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener
         return buf.toString();
     }
 
-    synchronized Hashtable getProperties()
+    synchronized Hashtable<String, Object> getProperties()
     {
         if ((props == null) && (getText() != null))
         {
-            Hashtable props = new Hashtable();
+            Hashtable<String, Object> props = new Hashtable<String, Object>();
             int off = 0;
             while (off < getText().length)
             {

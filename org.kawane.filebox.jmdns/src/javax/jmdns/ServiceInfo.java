@@ -52,7 +52,7 @@ public abstract class ServiceInfo
      * @param priority priority of the service
      * @param props    properties describing the service
      */
-    public static ServiceInfo create(String type, String name, int port, int weight, int priority, Hashtable props)
+    public static ServiceInfo create(String type, String name, int port, int weight, int priority, Hashtable<String, Object> props)
     {
         return new ServiceInfoImpl(type, name, port, weight, priority, props);
     }
@@ -161,7 +161,7 @@ public abstract class ServiceInfo
     /**
      * Enumeration of the property names.
      */
-    public abstract Enumeration getPropertyNames();
+    public abstract Enumeration<String> getPropertyNames();
 
     public abstract String getNiceTextString();
 

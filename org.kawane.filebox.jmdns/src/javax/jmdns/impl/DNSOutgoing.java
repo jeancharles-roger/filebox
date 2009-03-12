@@ -33,7 +33,7 @@ public final class DNSOutgoing
     private int numAnswers;
     private int numAuthorities;
     private int numAdditionals;
-    private Hashtable names;
+    private Hashtable<String, Integer> names;
 
     byte data[];
     int off;
@@ -54,7 +54,7 @@ public final class DNSOutgoing
     {
         this.flags = flags;
         this.multicast = multicast;
-        names = new Hashtable();
+        names = new Hashtable<String, Integer>();
         data = new byte[DNSConstants.MAX_MSG_TYPICAL];
         off = 12;
     }
@@ -118,7 +118,7 @@ public final class DNSOutgoing
         }
     }
 
-    private LinkedList authorativeAnswers = new LinkedList();
+    private LinkedList<DNSRecord> authorativeAnswers = new LinkedList<DNSRecord>();
 
     /**
      * Add an authorative answer to the message.
@@ -252,7 +252,7 @@ public final class DNSOutgoing
                 return;
             }
             if(useCompression && USE_DOMAIN_NAME_COMPRESSION){
-                Integer offset = (Integer) names.get(name);
+                Integer offset = names.get(name);
                 if (offset != null)
                 {
                     int val = offset.intValue();
