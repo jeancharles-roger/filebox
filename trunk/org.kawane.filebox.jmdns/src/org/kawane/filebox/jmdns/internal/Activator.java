@@ -14,8 +14,6 @@ public class Activator implements BundleActivator {
 		serviceDiscovery = new JmDNSServiceDiscovery();
 		new ServiceInjector(serviceDiscovery);
 		
-//		JSLP discovery implementation
-//		serviceDiscovery = new JSLPServiceDiscovery();
 		// Start to listening services
 		serviceDiscovery.start();
 		ServiceRegistry.instance.register(IServiceDiscovery.class, serviceDiscovery);
