@@ -16,6 +16,7 @@ import javax.jmdns.impl.DNSConstants;
 import javax.jmdns.impl.DNSRecord;
 import javax.jmdns.impl.DNSState;
 import javax.jmdns.impl.JmDNSImpl;
+import javax.jmdns.impl.DNSCache.CacheNode;
 
 /**
  * Periodicaly removes expired entries from the cache.
@@ -56,22 +57,22 @@ public class RecordReaper extends TimerTask
             // -------------------------------------
             // To prevent race conditions, we defensively copy all cache
             // entries into a list.
-            List list = new ArrayList();
+            List<DNSRecord> list = new ArrayList<DNSRecord>();
             synchronized (this.jmDNSImpl.getCache())
             {
-                for (Iterator i = this.jmDNSImpl.getCache().iterator(); i.hasNext();)
+                for (Iterator<CacheNode> i = this.jmDNSImpl.getCache().iterator(); i.hasNext();)
                 {
-                    for (DNSCache.CacheNode n = (DNSCache.CacheNode) i.next(); n != null; n = n.next())
+                    for (DNSCache.CacheNode n = i.next(); n != null; n = n.next())
                     {
-                        list.add(n.getValue());
+                        list.add((DNSRecord)n.getValue());
                     }
                 }
             }
             // Now, we remove them.
             long now = System.currentTimeMillis();
-            for (Iterator i = list.iterator(); i.hasNext();)
+            for (Iterator<DNSRecord> i = list.iterator(); i.hasNext();)
             {
-                DNSRecord c = (DNSRecord) i.next();
+                DNSRecord c = i.next();
                 if (c.isExpired(now))
                 {
                     this.jmDNSImpl.updateRecord(now, c);

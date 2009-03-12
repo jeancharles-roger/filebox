@@ -28,6 +28,7 @@ import javax.jmdns.ServiceEvent;
 import javax.jmdns.ServiceInfo;
 import javax.jmdns.ServiceListener;
 import javax.jmdns.ServiceTypeListener;
+import javax.jmdns.impl.DNSCache.CacheNode;
 import javax.jmdns.impl.tasks.Announcer;
 import javax.jmdns.impl.tasks.Canceler;
 import javax.jmdns.impl.tasks.Prober;
@@ -71,16 +72,16 @@ public class JmDNSImpl extends JmDNS
      * Holds instances of JmDNS.DNSListener. Must by a synchronized collection,
      * because it is updated from concurrent threads.
      */
-    private List listeners;
+    private List<DNSListener> listeners;
     /**
      * Holds instances of ServiceListener's. Keys are Strings holding a fully
      * qualified service type. Values are LinkedList's of ServiceListener's.
      */
-    private Map serviceListeners;
+    private Map<String, List<ServiceListener>> serviceListeners;
     /**
      * Holds instances of ServiceTypeListener's.
      */
-    private List typeListeners;
+    private List<ServiceTypeListener> typeListeners;
 
     /**
      * Cache for DNSEntry's.
@@ -92,7 +93,7 @@ public class JmDNSImpl extends JmDNS
      * instances of String which hold an all lower-case version of the fully
      * qualified service name. Values are instances of ServiceInfo.
      */
-    Map services;
+    Map<String, ServiceInfoImpl> services;
 
     /**
      * This hashtable holds the service types that have been registered or that
@@ -100,7 +101,7 @@ public class JmDNSImpl extends JmDNS
      * which hold an all lower-case version of the fully qualified service type.
      * Values hold the fully qualified service type.
      */
-    Map serviceTypes;
+    Map<String, String> serviceTypes;
     /**
      * This is the shutdown hook, we registered with the java runtime.
      */
@@ -171,7 +172,7 @@ public class JmDNSImpl extends JmDNS
      * 
      * @see #list
      */
-    private final HashMap serviceCollectors = new HashMap();
+    private final HashMap<String, ServiceCollector> serviceCollectors = new HashMap<String, ServiceCollector>();
 
     /**
      * Create an instance of JmDNS.
@@ -242,12 +243,12 @@ public class JmDNSImpl extends JmDNS
 
         cache = new DNSCache(100);
 
-        listeners = Collections.synchronizedList(new ArrayList());
-        serviceListeners = new HashMap();
-        typeListeners = new ArrayList();
+        listeners = Collections.synchronizedList(new ArrayList<DNSListener>());
+        serviceListeners = new HashMap<String,List<ServiceListener>>();
+        typeListeners = new ArrayList<ServiceTypeListener>();
 
-        services = new Hashtable(20);
-        serviceTypes = new Hashtable(20);
+        services = new Hashtable<String, ServiceInfoImpl>(20);
+        serviceTypes = new Hashtable<String,String>(20);
 
         // REMIND: If I could pass in a name for the Timer thread,
         // I would pass' JmDNS.Timer'.
@@ -263,16 +264,16 @@ public class JmDNSImpl extends JmDNS
         start(getServices().values());
     }
 
-    private void start(Collection serviceInfos)
+    private void start(Collection<ServiceInfoImpl> serviceInfos)
     {
         setState(DNSState.PROBING_1);
         incomingListener.start();
         new Prober(this).start(timer);
-        for (final Iterator iterator = serviceInfos.iterator(); iterator.hasNext();)
+        for (final Iterator<ServiceInfoImpl> iterator = serviceInfos.iterator(); iterator.hasNext();)
         {
             try
             {
-                registerService(new ServiceInfoImpl((ServiceInfoImpl) iterator.next()));
+                registerService(new ServiceInfoImpl(iterator.next()));
             }
             catch (final Exception exception)
             {
@@ -465,23 +466,23 @@ public class JmDNSImpl extends JmDNS
 
     void handleServiceResolved(ServiceInfoImpl info)
     {
-        List list = null;
-        ArrayList listCopy = null;
+    	List<ServiceListener> list = null;
+        ArrayList<ServiceListener> listCopy = null;
         synchronized (serviceListeners)
         {
-            list = (List) serviceListeners.get(info.type.toLowerCase());
+            list = serviceListeners.get(info.type.toLowerCase());
 
             if (list != null)
             {
-                listCopy = new ArrayList(list);
+                listCopy = new ArrayList<ServiceListener>(list);
             }
         }
         if (listCopy != null)
         {
             final ServiceEvent event = new ServiceEventImpl(this, info.type, info.getName(), info);
-            for (final Iterator iterator = listCopy.iterator(); iterator.hasNext();)
+            for (final Iterator<ServiceListener> iterator = listCopy.iterator(); iterator.hasNext();)
             {
-                ((ServiceListener) iterator.next()).serviceResolved(event);
+                (iterator.next()).serviceResolved(event);
             }
         }
     }
@@ -500,9 +501,9 @@ public class JmDNSImpl extends JmDNS
         }
 
         // report cached service types
-        for (final Iterator iterator = serviceTypes.values().iterator(); iterator.hasNext();)
+        for (final Iterator<String> iterator = serviceTypes.values().iterator(); iterator.hasNext();)
         {
-            listener.serviceTypeAdded(new ServiceEventImpl(this, (String) iterator.next(), null,
+            listener.serviceTypeAdded(new ServiceEventImpl(this, iterator.next(), null,
                     null));
         }
 
@@ -529,26 +530,26 @@ public class JmDNSImpl extends JmDNS
     {
         final String lotype = type.toLowerCase();
         removeServiceListener(lotype, listener);
-        List list = null;
+        List<ServiceListener> list = null;
 
         synchronized (serviceListeners)
         {
-            list = (List) serviceListeners.get(lotype);
+            list = serviceListeners.get(lotype);
             if (list == null)
             {
-                list = Collections.synchronizedList(new LinkedList());
+                list = Collections.synchronizedList(new LinkedList<ServiceListener>());
                 serviceListeners.put(lotype, list);
             }
             list.add(listener);
         }
 
         // report cached service types
-        final List serviceEvents = new ArrayList();
+        final List<ServiceEvent> serviceEvents = new ArrayList<ServiceEvent>();
         synchronized (cache)
         {
-            for (final Iterator i = cache.iterator(); i.hasNext();)
+            for (final Iterator<CacheNode> i = cache.iterator(); i.hasNext();)
             {
-                for (DNSCache.CacheNode n = (DNSCache.CacheNode) i.next(); n != null; n = n.next())
+                for (DNSCache.CacheNode n = i.next(); n != null; n = n.next())
                 {
                     final DNSRecord rec = (DNSRecord) n.getValue();
                     if (rec.type == DNSConstants.TYPE_SRV)
@@ -563,9 +564,9 @@ public class JmDNSImpl extends JmDNS
             }
         }
         // Actually call listener with all service events added above
-        for (final Iterator i = serviceEvents.iterator(); i.hasNext();)
+        for (final Iterator<ServiceEvent> i = serviceEvents.iterator(); i.hasNext();)
         {
-            listener.serviceAdded((ServiceEventImpl) i.next());
+            listener.serviceAdded(i.next());
         }
         // Create/start ServiceResolver
         new ServiceResolver(this, type).start(timer);
@@ -578,10 +579,10 @@ public class JmDNSImpl extends JmDNS
     public void removeServiceListener(String type, ServiceListener listener)
     {
         type = type.toLowerCase();
-        List list = null;
+        List<ServiceListener> list = null;
         synchronized (serviceListeners)
         {
-            list = (List) serviceListeners.get(type);
+            list = serviceListeners.get(type);
             if (list != null)
             {
                 list.remove(listener);
@@ -677,15 +678,15 @@ public class JmDNSImpl extends JmDNS
             return;
         }
 
-        Collection list;
+        Collection<ServiceInfoImpl> list;
         synchronized (this)
         {
-            list = new LinkedList(services.values());
+            list = new LinkedList<ServiceInfoImpl>(services.values());
             services.clear();
         }
-        for (final Iterator iterator = list.iterator(); iterator.hasNext();)
+        for (final Iterator<ServiceInfoImpl> iterator = list.iterator(); iterator.hasNext();)
         {
-            ((ServiceInfoImpl) iterator.next()).cancel();
+            iterator.next().cancel();
         }
 
         final Object lock = new Object();
@@ -718,15 +719,15 @@ public class JmDNSImpl extends JmDNS
         {
             if ((type.indexOf("._mdns._udp.") < 0) && !type.endsWith(".in-addr.arpa."))
             {
-                Collection list;
+                Collection<ServiceTypeListener> list;
                 synchronized (this)
                 {
                     serviceTypes.put(name, type);
-                    list = new LinkedList(typeListeners);
+                    list = new LinkedList<ServiceTypeListener>(typeListeners);
                 }
-                for (final Iterator iterator = list.iterator(); iterator.hasNext();)
+                for (final Iterator<ServiceTypeListener> iterator = list.iterator(); iterator.hasNext();)
                 {
-                    ((ServiceTypeListener) iterator.next()).serviceTypeAdded(new ServiceEventImpl(
+                    iterator.next().serviceTypeAdded(new ServiceEventImpl(
                             this, type, null, null));
                 }
             }
@@ -859,26 +860,26 @@ public class JmDNSImpl extends JmDNS
     {
         // We do not want to block the entire DNS while we are updating the
         // record for each listener (service info)
-        List listenerList = null;
+        List<DNSListener> listenerList = null;
         synchronized (this)
         {
-            listenerList = new ArrayList(listeners);
+            listenerList = new ArrayList<DNSListener>(listeners);
         }
-        for (final Iterator iterator = listenerList.iterator(); iterator.hasNext();)
+        for (final Iterator<DNSListener> iterator = listenerList.iterator(); iterator.hasNext();)
         {
-            final DNSListener listener = (DNSListener) iterator.next();
+            final DNSListener listener = iterator.next();
             listener.updateRecord(this, now, rec);
         }
         if (rec.type == DNSConstants.TYPE_PTR || rec.type == DNSConstants.TYPE_SRV)
         {
-            List serviceListenerList = null;
+        	List<ServiceListener> serviceListenerList = null;
             synchronized (serviceListeners)
             {
-                serviceListenerList = (List) serviceListeners.get(rec.name.toLowerCase());
+                serviceListenerList = serviceListeners.get(rec.name.toLowerCase());
                 // Iterate on a copy in case listeners will modify it
                 if (serviceListenerList != null)
                 {
-                    serviceListenerList = new ArrayList(serviceListenerList);
+                    serviceListenerList = new ArrayList<ServiceListener>(serviceListenerList);
                 }
             }
             if (serviceListenerList != null)
@@ -892,10 +893,10 @@ public class JmDNSImpl extends JmDNS
                     // new record
                     final ServiceEvent event = new ServiceEventImpl(this, type, toUnqualifiedName(
                             type, name), null);
-                    for (final Iterator iterator = serviceListenerList.iterator(); iterator
+                    for (final Iterator<ServiceListener> iterator = serviceListenerList.iterator(); iterator
                             .hasNext();)
                     {
-                        ((ServiceListener) iterator.next()).serviceAdded(event);
+                        (iterator.next()).serviceAdded(event);
                     }
                 }
                 else
@@ -903,10 +904,10 @@ public class JmDNSImpl extends JmDNS
                     // expire record
                     final ServiceEvent event = new ServiceEventImpl(this, type, toUnqualifiedName(
                             type, name), null);
-                    for (final Iterator iterator = serviceListenerList.iterator(); iterator
+                    for (final Iterator<ServiceListener> iterator = serviceListenerList.iterator(); iterator
                             .hasNext();)
                     {
-                        ((ServiceListener) iterator.next()).serviceRemoved(event);
+                        (iterator.next()).serviceRemoved(event);
                     }
                 }
             }
@@ -924,10 +925,10 @@ public class JmDNSImpl extends JmDNS
         boolean hostConflictDetected = false;
         boolean serviceConflictDetected = false;
 
-        for (final Iterator i = msg.answers.iterator(); i.hasNext();)
+        for (final Iterator<DNSRecord> i = msg.answers.iterator(); i.hasNext();)
         {
             boolean isInformative = false;
-            DNSRecord rec = (DNSRecord) i.next();
+            DNSRecord rec = i.next();
             final boolean expired = rec.isExpired(now);
 
             // update the cache
@@ -1002,9 +1003,9 @@ public class JmDNSImpl extends JmDNS
         boolean hostConflictDetected = false;
         boolean serviceConflictDetected = false;
         final long expirationTime = System.currentTimeMillis() + DNSConstants.KNOWN_ANSWER_TTL;
-        for (final Iterator i = in.answers.iterator(); i.hasNext();)
+        for (final Iterator<DNSRecord> i = in.answers.iterator(); i.hasNext();)
         {
-            final DNSRecord answer = (DNSRecord) i.next();
+            final DNSRecord answer = i.next();
             if ((answer.getType() == DNSConstants.TYPE_A)
                     || (answer.getType() == DNSConstants.TYPE_AAAA))
             {
@@ -1140,7 +1141,7 @@ public class JmDNSImpl extends JmDNS
                 // calls
 
                 // We need to keep a copy for reregistration
-                final Collection oldServiceInfos = new ArrayList(getServices().values());
+                final Collection<ServiceInfoImpl> oldServiceInfos = new ArrayList<ServiceInfoImpl>(getServices().values());
 
                 // Cancel all services
                 unregisterAllServices();
@@ -1225,7 +1226,7 @@ public class JmDNSImpl extends JmDNS
         aLog.append("\t---- Services -----");
         if (services != null)
         {
-            for (final Iterator k = services.keySet().iterator(); k.hasNext();)
+            for (final Iterator<String> k = services.keySet().iterator(); k.hasNext();)
             {
                 final Object key = k.next();
                 aLog.append("\n\t\tService: " + key + ": " + services.get(key));
@@ -1235,7 +1236,7 @@ public class JmDNSImpl extends JmDNS
         aLog.append("\t---- Types ----");
         if (serviceTypes != null)
         {
-            for (final Iterator k = serviceTypes.keySet().iterator(); k.hasNext();)
+            for (final Iterator<String> k = serviceTypes.keySet().iterator(); k.hasNext();)
             {
                 final Object key = k.next();
                 aLog.append("\n\t\tType: " + key + ": " + serviceTypes.get(key));
@@ -1249,7 +1250,7 @@ public class JmDNSImpl extends JmDNS
         {
             synchronized (serviceCollectors)
             {
-                for (final Iterator k = serviceCollectors.keySet().iterator(); k.hasNext();)
+                for (final Iterator<String> k = serviceCollectors.keySet().iterator(); k.hasNext();)
                 {
                     final Object key = k.next();
                     aLog.append("\n\t\tService Collector: " + key + ": "
@@ -1280,7 +1281,7 @@ public class JmDNSImpl extends JmDNS
         boolean newCollectorCreated;
         synchronized (serviceCollectors)
         {
-            collector = (ServiceCollector) serviceCollectors.get(type);
+            collector = serviceCollectors.get(type);
             if (collector == null)
             {
                 collector = new ServiceCollector(type);
@@ -1322,9 +1323,9 @@ public class JmDNSImpl extends JmDNS
         logger.finer("disposeServiceCollectors()");
         synchronized (serviceCollectors)
         {
-            for (final Iterator i = serviceCollectors.values().iterator(); i.hasNext();)
+            for (final Iterator<ServiceCollector> i = serviceCollectors.values().iterator(); i.hasNext();)
             {
-                final ServiceCollector collector = (ServiceCollector) i.next();
+                final ServiceCollector collector = i.next();
                 removeServiceListener(collector.type, collector);
             }
             serviceCollectors.clear();
@@ -1342,7 +1343,7 @@ public class JmDNSImpl extends JmDNS
         /**
          * A set of collected service instance names.
          */
-        private final Map infos = Collections.synchronizedMap(new HashMap());
+        private final Map<String,ServiceInfo> infos = Collections.synchronizedMap(new HashMap<String,ServiceInfo>());
 
         public String type;
 
@@ -1393,7 +1394,7 @@ public class JmDNSImpl extends JmDNS
         {
             synchronized (infos)
             {
-                return (ServiceInfoImpl[]) infos.values()
+                return infos.values()
                         .toArray(new ServiceInfoImpl[infos.size()]);
             }
         }
@@ -1403,7 +1404,7 @@ public class JmDNSImpl extends JmDNS
             final StringBuffer aLog = new StringBuffer();
             synchronized (infos)
             {
-                for (final Iterator k = infos.keySet().iterator(); k.hasNext();)
+                for (final Iterator<String> k = infos.keySet().iterator(); k.hasNext();)
                 {
                     final Object key = k.next();
                     aLog.append("\n\t\tService: " + key + ": " + infos.get(key));
@@ -1440,7 +1441,7 @@ public class JmDNSImpl extends JmDNS
         return task;
     }
 
-    public Map getServices()
+    public Map<String, ServiceInfoImpl> getServices()
     {
         return services;
     }
@@ -1495,7 +1496,7 @@ public class JmDNSImpl extends JmDNS
         this.localHost = localHost;
     }
 
-    public Map getServiceTypes()
+    public Map<String,String> getServiceTypes()
     {
         return serviceTypes;
     }

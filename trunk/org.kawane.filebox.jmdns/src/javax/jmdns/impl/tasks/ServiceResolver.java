@@ -64,9 +64,9 @@ public class ServiceResolver extends TimerTask
                     long now = System.currentTimeMillis();
                     DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_QUERY);
                     out.addQuestion(new DNSQuestion(type, DNSConstants.TYPE_PTR, DNSConstants.CLASS_IN));
-                    for (Iterator s = this.jmDNSImpl.getServices().values().iterator(); s.hasNext();)
+                    for (Iterator<ServiceInfoImpl> s = this.jmDNSImpl.getServices().values().iterator(); s.hasNext();)
                     {
-                        final ServiceInfoImpl info = (ServiceInfoImpl) s.next();
+                        final ServiceInfoImpl info = s.next();
                         try
                         {
                             out.addAnswer(new DNSRecord.Pointer(info.getType(), DNSConstants.TYPE_PTR, DNSConstants.CLASS_IN, DNSConstants.DNS_TTL, info.getQualifiedName()), now);

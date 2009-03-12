@@ -4,8 +4,6 @@ import java.io.File;
 
 import org.kawane.filebox.core.Filebox;
 import org.kawane.filebox.core.IFileboxRegistry;
-import org.kawane.filebox.core.discovery.IConnectionListener;
-import org.kawane.filebox.core.discovery.IServiceDiscovery;
 import org.kawane.services.ServiceRegistry;
 import org.kawane.services.advanced.ServiceInjector;
 import org.osgi.framework.BundleActivator;
@@ -13,8 +11,6 @@ import org.osgi.framework.BundleContext;
 
 public class Activator implements BundleActivator {
 	protected static final String CONFIG_FILENAME = "filebox.properties";
-
-	private IServiceDiscovery serviceDiscovery;
 
 	protected File configurationFile;
 
@@ -45,15 +41,6 @@ public class Activator implements BundleActivator {
 		ServiceRegistry.instance.register(Filebox.class, filebox);
 		new ServiceInjector(filebox);
 
-		serviceDiscovery = new JmDNSServiceDiscovery();
-		new ServiceInjector(serviceDiscovery);
-		
-//		JSLP discovery implementation
-//		serviceDiscovery = new JSLPServiceDiscovery();
-		// Start to listening services
-		serviceDiscovery.start();
-		ServiceRegistry.instance.register(IServiceDiscovery.class, serviceDiscovery);
-		
 	}
 
 	/*
@@ -61,15 +48,6 @@ public class Activator implements BundleActivator {
 	 * @see org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
 	 */
 	public void stop(BundleContext context) throws Exception {
-		serviceDiscovery.disconnect(new IConnectionListener() {
-			public void connected(IServiceDiscovery serviceDiscovery) {
-				
-			}
-			public void disconnected(IServiceDiscovery serviceDiscovery) {
-				
-			}
-		});
-		serviceDiscovery.stop();
 	}
 
 }

@@ -55,9 +55,9 @@ public class Prober extends TimerTask
         // Associate services to this, if they need probing
         synchronized (this.jmDNSImpl)
         {
-            for (Iterator iterator = this.jmDNSImpl.getServices().values().iterator(); iterator.hasNext();)
+            for (Iterator<ServiceInfoImpl> iterator = this.jmDNSImpl.getServices().values().iterator(); iterator.hasNext();)
             {
-                ServiceInfoImpl info = (ServiceInfoImpl) iterator.next();
+                ServiceInfoImpl info = iterator.next();
                 if (info.getState() == DNSState.PROBING_1)
                 {
                     info.setTask(this);
@@ -101,9 +101,9 @@ public class Prober extends TimerTask
         // Remove associations from services to this
         synchronized (this.jmDNSImpl)
         {
-            for (Iterator i = this.jmDNSImpl.getServices().values().iterator(); i.hasNext();)
+            for (Iterator<ServiceInfoImpl> i = this.jmDNSImpl.getServices().values().iterator(); i.hasNext();)
             {
-                ServiceInfoImpl info = (ServiceInfoImpl) i.next();
+                ServiceInfoImpl info = i.next();
                 if (info.getTask() == this)
                 {
                     info.setTask(null);
@@ -137,14 +137,14 @@ public class Prober extends TimerTask
                 // Defensively copy the services into a local list,
                 // to prevent race conditions with methods registerService
                 // and unregisterService.
-                List list;
+                List<ServiceInfoImpl> list;
                 synchronized (this.jmDNSImpl)
                 {
-                    list = new LinkedList(this.jmDNSImpl.getServices().values());
+                    list = new LinkedList<ServiceInfoImpl>(this.jmDNSImpl.getServices().values());
                 }
-                for (Iterator i = list.iterator(); i.hasNext();)
+                for (Iterator<ServiceInfoImpl> i = list.iterator(); i.hasNext();)
                 {
-                    ServiceInfoImpl info = (ServiceInfoImpl) i.next();
+                    ServiceInfoImpl info = i.next();
 
                     synchronized (info)
                     {

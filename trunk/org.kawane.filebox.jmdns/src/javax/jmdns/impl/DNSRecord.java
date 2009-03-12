@@ -56,7 +56,7 @@ public abstract class DNSRecord extends DNSEntry
      */
     boolean sameAs(DNSRecord other)
     {
-        return super.equals(other) && sameValue((DNSRecord) other);
+        return super.equals(other) && sameValue(other);
     }
 
     /**
@@ -102,7 +102,7 @@ public abstract class DNSRecord extends DNSEntry
         {
             for (int i = msg.numAnswers; i-- > 0;)
             {
-                if (suppressedBy((DNSRecord) msg.answers.get(i)))
+                if (suppressedBy(msg.answers.get(i)))
                 {
                     return true;
                 }
@@ -344,9 +344,9 @@ public abstract class DNSRecord extends DNSEntry
                         // We lost the tie-break. We have to choose a different name.
                         dns.getLocalHost().incrementHostName();
                         dns.getCache().clear();
-                        for (Iterator i = dns.getServices().values().iterator(); i.hasNext();)
+                        for (Iterator<ServiceInfoImpl> i = dns.getServices().values().iterator(); i.hasNext();)
                         {
-                            ServiceInfoImpl info = (ServiceInfoImpl) i.next();
+                            ServiceInfoImpl info = i.next();
                             info.revertState();
                         }
                     }
@@ -373,9 +373,9 @@ public abstract class DNSRecord extends DNSEntry
                     {
                         dns.getLocalHost().incrementHostName();
                         dns.getCache().clear();
-                        for (Iterator i = dns.getServices().values().iterator(); i.hasNext();)
+                        for (Iterator<ServiceInfoImpl> i = dns.getServices().values().iterator(); i.hasNext();)
                         {
-                            ServiceInfoImpl info = (ServiceInfoImpl) i.next();
+                            ServiceInfoImpl info = i.next();
                             info.revertState();
                         }
                     }
@@ -604,7 +604,7 @@ public abstract class DNSRecord extends DNSEntry
 
         boolean handleQuery(JmDNSImpl dns, long expirationTime)
         {
-            ServiceInfoImpl info = (ServiceInfoImpl) dns.getServices().get(name.toLowerCase());
+            ServiceInfoImpl info = dns.getServices().get(name.toLowerCase());
             if (info != null
                 && (port != info.port || !server.equalsIgnoreCase(dns.getLocalHost().getName())))
             {
@@ -668,7 +668,7 @@ public abstract class DNSRecord extends DNSEntry
 
         boolean handleResponse(JmDNSImpl dns)
         {
-            ServiceInfoImpl info = (ServiceInfoImpl) dns.getServices().get(name.toLowerCase());
+            ServiceInfoImpl info = dns.getServices().get(name.toLowerCase());
             if (info != null
                 && (port != info.port || !server.equalsIgnoreCase(dns.getLocalHost().getName())))
             {
@@ -691,7 +691,7 @@ public abstract class DNSRecord extends DNSEntry
 
         DNSOutgoing addAnswer(JmDNSImpl dns, DNSIncoming in, InetAddress addr, int port, DNSOutgoing out) throws IOException
         {
-            ServiceInfoImpl info = (ServiceInfoImpl) dns.getServices().get(name.toLowerCase());
+            ServiceInfoImpl info = dns.getServices().get(name.toLowerCase());
             if (info != null)
             {
                 if (this.port == info.port != server.equals(dns.getLocalHost().getName()))

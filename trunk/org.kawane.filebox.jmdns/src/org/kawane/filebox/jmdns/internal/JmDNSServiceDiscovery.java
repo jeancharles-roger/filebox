@@ -1,8 +1,9 @@
-package org.kawane.filebox.core.internal;
+package org.kawane.filebox.jmdns.internal;
 
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -24,7 +25,7 @@ public class JmDNSServiceDiscovery implements ServiceListener,
 	private static Logger logger = Logger.getLogger(JmDNSServiceDiscovery.class
 			.getName());
 
-	HashMap<String, IFilebox> fileBoxes = new HashMap<String, IFilebox>();
+	Map<String, IFilebox> fileBoxes = new HashMap<String, IFilebox>();
 
 	private JmDNS dns;
 	private ServiceInfo serviceInfo;
@@ -81,7 +82,9 @@ public class JmDNSServiceDiscovery implements ServiceListener,
 						dns.unregisterService(serviceInfo);
 						serviceInfo = null;
 					}
-					listener.disconnected(JmDNSServiceDiscovery.this);
+					if(listener != null) {
+						listener.disconnected(JmDNSServiceDiscovery.this);
+					}
 				}
 			};
 			thread.start();

@@ -12,7 +12,7 @@ import java.util.ArrayList;
  * @author Werner Randelshofer, Rick Blair
  * @version 1.0  May 23, 2004  Created.
  */
-public class DNSState implements Comparable
+public class DNSState implements Comparable<DNSState>
 {
 
     private final String name;
@@ -30,7 +30,7 @@ public class DNSState implements Comparable
      * The sequence is consistent with the ordinal of a state.
      * This is used for advancing through states.
      */
-    private final static ArrayList sequence = new ArrayList();
+    private final static ArrayList<DNSState> sequence = new ArrayList<DNSState>();
 
     private DNSState(String name)
     {
@@ -102,8 +102,8 @@ public class DNSState implements Comparable
      * PROBING_1 &lt; PROBING_2 &lt; PROBING_3 &lt; ANNOUNCING_1 &lt;
      * ANNOUNCING_2 &lt; RESPONDING &lt; ANNOUNCED &lt; CANCELED.
      */
-    public int compareTo(Object o)
+    public int compareTo(DNSState o)
     {
-        return ordinal - ((DNSState) o).ordinal;
+        return ordinal - o.ordinal;
     }
 }

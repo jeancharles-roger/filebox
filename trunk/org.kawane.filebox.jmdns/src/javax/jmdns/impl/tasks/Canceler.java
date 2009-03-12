@@ -66,10 +66,10 @@ public class Canceler extends TimerTask
         this.lock = lock;
     }
 
-    public Canceler(JmDNSImpl jmDNSImpl, Collection infos, Object lock)
+    public Canceler(JmDNSImpl jmDNSImpl, Collection<ServiceInfoImpl> infos, Object lock)
     {
         this.jmDNSImpl = jmDNSImpl;
-        this.infos = (ServiceInfoImpl[]) infos.toArray(new ServiceInfoImpl[infos.size()]);
+        this.infos = infos.toArray(new ServiceInfoImpl[infos.size()]);
         this.lock = lock;
     }
 
