@@ -6,17 +6,17 @@ import org.kawane.services.internal.ServiceFactory;
 
 /**
  * Service Registry can be used to use a simple way to exchange services in a Java Virtual Machine.
- * 
- * These packages include an OSGI implementation that include OSGI service. 
+ *
+ * These packages include an OSGI implementation that include OSGI service.
  * This Service registry can also be used in a non OSGI environnment.
- * 
- * You can define the java system property "org.kawane.services.core" to true, if you want to force to use the 
+ *
+ * You can define the java system property "org.kawane.services.core" to true, if you want to force to use the
  * core java service registry instead of using OSGI service registry even if you are using an OSGI framework.
- * 
+ *
  * @author <a href="maito:legoff.laurent@gmail.com">Laurent Le Goff </a>
  */
 public interface ServiceRegistry {
-	
+
 	ServiceRegistry instance = ServiceFactory.createService();
 	/**
 	 * register a service
@@ -50,13 +50,21 @@ public interface ServiceRegistry {
 	 * Return the first service corresponding to this class.
 	 * @param <T>
 	 * @param serviceClass
-	 * @param context
 	 * @return
 	 */
 	<T> T getService(Class<T> serviceClass);
 	/**
+	 * Return the first service corresponding to this class.
+	 * Use a context object to determine ClassLoader in particular execution environment like OSGI.
+	 * @param <T>
+	 * @param serviceClass
+	 * @param context
+	 * @return
+	 */
+	<T> T getService(Class<T> serviceClass, Object context);
+	/**
 	 * Return the number of services that implement or extend this class
-	 * 
+	 *
 	 * @param serviceClass
 	 * @param context
 	 * @return
@@ -66,10 +74,18 @@ public interface ServiceRegistry {
 	 * Return a list of service
 	 * @param <T>
 	 * @param serviceClass
-	 * @param context
 	 * @return
 	 */
 	<T> Collection<T> getServices(Class<T> serviceClass);
+	/**
+	 * Return a list of service
+	 * Use a context object to determine ClassLoader in particular execution environment like OSGI.
+	 * @param <T>
+	 * @param serviceClass
+	 * @param context
+	 * @return
+	 */
+	<T> Collection<T> getServices(Class<T> serviceClass, Object context);
 	/**
 	 * Add a service listener
 	 * @param <T>

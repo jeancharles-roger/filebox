@@ -95,8 +95,21 @@ class OSGIServiceRegistry implements ServiceRegistry {
 		return (T) serviceContext.getService(serviceReference);
 	}
 
+	@SuppressWarnings("unchecked")
+	public <T> T getService(Class<T> serviceClass, Object context) {
+		BundleContext bundleContext = packageAdmin.getBundle(serviceClass).getBundleContext();
+		ServiceReference serviceReference = bundleContext.getServiceReference(serviceClass.getName());
+		if(serviceReference == null) return null;
+		return (T) bundleContext.getService(serviceReference);
+	}
+
 	public <T> Collection<T> getServices(Class<T> serviceClass) {
 		return getServices(serviceClass, serviceContext);
+	}
+
+	public <T> Collection<T> getServices(Class<T> serviceClass, Object context) {
+		BundleContext bundleContext = packageAdmin.getBundle(serviceClass).getBundleContext();
+		return getServices(serviceClass, bundleContext);
 	}
 
 	@SuppressWarnings("unchecked")
