@@ -97,7 +97,11 @@ class OSGIServiceRegistry implements ServiceRegistry {
 
 	@SuppressWarnings("unchecked")
 	public <T> T getService(Class<T> serviceClass, Object context) {
-		BundleContext bundleContext = packageAdmin.getBundle(serviceClass).getBundleContext();
+		Class<?> contextClass = context.getClass();
+		if(context instanceof Class) {
+			contextClass = (Class<?>)context;
+		}
+		BundleContext bundleContext = packageAdmin.getBundle(contextClass).getBundleContext();
 		ServiceReference serviceReference = bundleContext.getServiceReference(serviceClass.getName());
 		if(serviceReference == null) return null;
 		return (T) bundleContext.getService(serviceReference);
@@ -108,7 +112,11 @@ class OSGIServiceRegistry implements ServiceRegistry {
 	}
 
 	public <T> Collection<T> getServices(Class<T> serviceClass, Object context) {
-		BundleContext bundleContext = packageAdmin.getBundle(serviceClass).getBundleContext();
+		Class<?> contextClass = context.getClass();
+		if(context instanceof Class) {
+			contextClass = (Class<?>)context;
+		}
+		BundleContext bundleContext = packageAdmin.getBundle(contextClass).getBundleContext();
 		return getServices(serviceClass, bundleContext);
 	}
 
