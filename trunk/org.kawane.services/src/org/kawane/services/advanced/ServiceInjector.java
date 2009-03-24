@@ -16,37 +16,37 @@ import java.util.logging.Logger;
 import org.kawane.services.IServiceListener;
 import org.kawane.services.ServiceRegistry;
 
-
 @SuppressWarnings("unchecked")
-public class ServiceInjector  implements IServiceListener{
+public class ServiceInjector implements IServiceListener {
 	private static Logger logger = Logger.getLogger(ServiceInjector.class.getName());
-	
+
 	Map<Method, Class<?>> methodToClass = new HashMap<Method, Class<?>>();
-	WeakHashMap<Object, Object> alreadyBound = new WeakHashMap<Object,Object>();
+	WeakHashMap<Object, Object> alreadyBound = new WeakHashMap<Object, Object>();
 	private Map<Method, Integer> methodsCount = new HashMap<Method, Integer>();
-	
+
 	private ServiceRegistry serviceRegistry;
 	private Reference<?> ref;
-	
+
 	boolean async;
 
 	public ServiceInjector(Object object) {
 		this(object, false);
 	}
+
 	public ServiceInjector(Object object, boolean async) {
 		serviceRegistry = ServiceRegistry.instance;
 		this.async = async;
 		this.ref = new WeakReference<Object>(object);
 		methodToClass = analyse(object);
 		inject(object);
-		if(methodToClass != null) {
+		if (methodToClass != null) {
 			for (Entry<Method, Class<?>> entry : methodToClass.entrySet()) {
 				Class<?> serviceClass = entry.getValue();
 				serviceRegistry.addListener(serviceClass, this);
 			}
 		}
 	}
-	
+
 	public ServiceInjector(Object object, Map<Method, Class<?>> methodToClass, boolean async) {
 		serviceRegistry = ServiceRegistry.instance;
 		this.async = async;
@@ -54,7 +54,7 @@ public class ServiceInjector  implements IServiceListener{
 		this.methodToClass = methodToClass;
 		inject(object);
 		// register listener
-		if(methodToClass != null) {
+		if (methodToClass != null) {
 			for (Entry<Method, Class<?>> entry : methodToClass.entrySet()) {
 				Class<?> serviceClass = entry.getValue();
 				serviceRegistry.addListener(serviceClass, this);
@@ -62,53 +62,56 @@ public class ServiceInjector  implements IServiceListener{
 		}
 	}
 
-	synchronized private void inject(Object object) {
-		if(methodToClass == null) return;
-		// effectivly inject services	
-		Set<Entry<Method, Class<?>>> entries = methodToClass.entrySet();
-		for (Iterator<Entry<Method, Class<?>>> i = entries.iterator(); i.hasNext();) {
-			Entry<Method, Class<?>> entry = i.next();
-			Method method = entry.getKey();
-			Class<?> serviceClass = entry.getValue();
-			Inject inject = method.getAnnotation(Inject.class);
-			if (inject == null || inject.max() > 1 || inject.max() == -1) {
-				Integer methodCount = getMethodCound(method);
-				Collection<?> services = serviceRegistry.getServices(serviceClass);
-				for (Object service : services) {
-					if(!alreadyBound.containsKey(service)) {
-						if(inject == null || inject.max() != -1 && methodCount >= inject.max()) {
-							methodsCount.remove(method);
-							methodCount = -1;
-							i.remove();
-							break;
+	private void inject(Object object) {
+		synchronized (ref) {
+			if (methodToClass == null)
+				return;
+			// effectivly inject services
+			Set<Entry<Method, Class<?>>> entries = methodToClass.entrySet();
+			for (Iterator<Entry<Method, Class<?>>> i = entries.iterator(); i.hasNext();) {
+				Entry<Method, Class<?>> entry = i.next();
+				Method method = entry.getKey();
+				Class<?> serviceClass = entry.getValue();
+				Inject inject = method.getAnnotation(Inject.class);
+				if (inject == null || inject.max() > 1 || inject.max() == -1) {
+					Integer methodCount = getMethodCound(method);
+					Collection<?> services = serviceRegistry.getServices(serviceClass);
+					for (Object service : services) {
+						if (!alreadyBound.containsKey(service)) {
+							if (inject == null || inject.max() != -1 && methodCount >= inject.max()) {
+								methodsCount.remove(method);
+								methodCount = -1;
+								i.remove();
+								break;
+							}
+							methodCount++;
+							executeMethodInThread(object, method, service, async);
 						}
-						methodCount++;
-						executeMethodInThread(object, method, service, async);
 					}
-				}
-				if(inject != null  && inject.max() != -1 && methodCount != -1) {
-					methodsCount.put(method, methodCount);
-				}
-			} else {
-				Object service = serviceRegistry.getService(serviceClass);
-				try {
-					if (service != null) {
-						i.remove();
-						executeMethodInThread(object, method, service, async);
+					if (inject != null && inject.max() != -1 && methodCount != -1) {
+						methodsCount.put(method, methodCount);
 					}
-				} catch (Throwable e) {
-					logger.log(Level.SEVERE, "An Error Occured", e);
+				} else {
+					Object service = serviceRegistry.getService(serviceClass);
+					try {
+						if (service != null) {
+							i.remove();
+							executeMethodInThread(object, method, service, async);
+						}
+					} catch (Throwable e) {
+						logger.log(Level.SEVERE, "An Error Occured", e);
+					}
 				}
 			}
-		}
-		if(methodToClass.size() == 0) {
-			clear();
+			if (methodToClass.size() == 0) {
+				clear();
+			}
 		}
 	}
 
 	private void clear() {
 		// remove all listener
-		for(Entry<Method, Class<?>> entry: methodToClass.entrySet()) {
+		for (Entry<Method, Class<?>> entry : methodToClass.entrySet()) {
 			serviceRegistry.removeListener(entry.getValue(), this);
 		}
 		methodToClass = null;
@@ -120,7 +123,7 @@ public class ServiceInjector  implements IServiceListener{
 
 	private Integer getMethodCound(Method method) {
 		Integer count = methodsCount.get(method);
-		if(count == null) {
+		if (count == null) {
 			return 0;
 		}
 		return count;
@@ -135,9 +138,9 @@ public class ServiceInjector  implements IServiceListener{
 					logger.log(Level.SEVERE, "An Error Occured", e);
 				}
 			}
-			
+
 		};
-		if(async) {
+		if (async) {
 			Thread thread = new Thread(runnable, "Inject service");
 			thread.start();
 		} else {
@@ -157,14 +160,14 @@ public class ServiceInjector  implements IServiceListener{
 				} else {
 					throw new IllegalArgumentException("An inject method must have only one argument");
 				}
-			} 
+			}
 		}
 		return map;
 	}
 
 	public void serviceAdded(Class serviceClass, Object service) {
 		Object object = ref.get();
-		if(object != null) {
+		if (object != null) {
 			inject(object);
 		} else {
 			clear();
@@ -172,7 +175,7 @@ public class ServiceInjector  implements IServiceListener{
 	}
 
 	public void serviceRemoved(Class serviceClass, Object service) {
-		
+
 	}
 
 }

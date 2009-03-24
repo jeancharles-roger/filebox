@@ -31,7 +31,10 @@ class JavaServiceRegistry implements ServiceRegistry {
 		}
 		return null;
 	}
-	
+	public <T> T getService(Class<T> serviceClass, Object context) {
+		return getService(serviceClass);
+	}
+
 	public  int getServicesCount(Class<?> serviceClass) {
 		return getServices(serviceClass).size();
 	}
@@ -48,6 +51,10 @@ class JavaServiceRegistry implements ServiceRegistry {
 			}
 		}
 		return new ArrayList<T>();
+	}
+
+	public <T> Collection<T> getServices(Class<T> serviceClass, Object context) {
+		return getServices(serviceClass);
 	}
 
 	public void register(Object service) {
