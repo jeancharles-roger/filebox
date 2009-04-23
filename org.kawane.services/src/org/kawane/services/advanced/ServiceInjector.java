@@ -29,16 +29,16 @@ public class ServiceInjector implements IServiceListener {
 
 	boolean async;
 
-	public ServiceInjector(Object object) {
+	ServiceInjector(Object object) {
 		this(object, false);
 	}
 
-	public ServiceInjector(Object object, boolean async) {
+	ServiceInjector(Object object, boolean async) {
 		serviceRegistry = ServiceRegistry.instance;
 		this.async = async;
 		this.ref = new WeakReference<Object>(object);
 		methodToClass = analyse(object);
-		inject(object);
+		injectService(object);
 		if (methodToClass != null) {
 			for (Entry<Method, Class<?>> entry : methodToClass.entrySet()) {
 				Class<?> serviceClass = entry.getValue();
@@ -47,12 +47,12 @@ public class ServiceInjector implements IServiceListener {
 		}
 	}
 
-	public ServiceInjector(Object object, Map<Method, Class<?>> methodToClass, boolean async) {
+	ServiceInjector(Object object, Map<Method, Class<?>> methodToClass, boolean async) {
 		serviceRegistry = ServiceRegistry.instance;
 		this.async = async;
 		this.ref = new WeakReference<Object>(object);
 		this.methodToClass = methodToClass;
-		inject(object);
+		injectService(object);
 		// register listener
 		if (methodToClass != null) {
 			for (Entry<Method, Class<?>> entry : methodToClass.entrySet()) {
@@ -62,7 +62,7 @@ public class ServiceInjector implements IServiceListener {
 		}
 	}
 
-	private void inject(Object object) {
+	private void injectService(Object object) {
 		synchronized (ref) {
 			if (methodToClass == null)
 				return;
@@ -75,7 +75,7 @@ public class ServiceInjector implements IServiceListener {
 				Inject inject = method.getAnnotation(Inject.class);
 				if (inject == null || inject.max() > 1 || inject.max() == -1) {
 					Integer methodCount = getMethodCound(method);
-					Collection<?> services = serviceRegistry.getServices(serviceClass);
+					Collection<?> services = serviceRegistry.getServices(serviceClass, object);
 					for (Object service : services) {
 						if (!alreadyBound.containsKey(service)) {
 							if (inject == null || inject.max() != -1 && methodCount >= inject.max()) {
@@ -92,7 +92,7 @@ public class ServiceInjector implements IServiceListener {
 						methodsCount.put(method, methodCount);
 					}
 				} else {
-					Object service = serviceRegistry.getService(serviceClass);
+					Object service = serviceRegistry.getService(serviceClass, object);
 					try {
 						if (service != null) {
 							i.remove();
@@ -168,7 +168,7 @@ public class ServiceInjector implements IServiceListener {
 	public void serviceAdded(Class serviceClass, Object service) {
 		Object object = ref.get();
 		if (object != null) {
-			inject(object);
+			injectService(object);
 		} else {
 			clear();
 		}

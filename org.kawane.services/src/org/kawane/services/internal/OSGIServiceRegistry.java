@@ -8,7 +8,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.kawane.services.IServiceListener;
-import org.kawane.services.Service;
 import org.kawane.services.ServiceRegistry;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -53,9 +52,9 @@ class OSGIServiceRegistry implements ServiceRegistry {
 	}
 
 	public void register(Object service) {
-		Service serviceAnnotation = service.getClass().getAnnotation(Service.class);
-		for (Class<?> serviceClass : serviceAnnotation.classes()) {
-			register(serviceClass, serviceClass);
+		Collection<Class<?>> serviceClasses = Util.getServicesClasses(service.getClass());
+		for (Class<?> serviceClass : serviceClasses) {
+			register(serviceClass, service);
 		}
 	}
 
@@ -82,8 +81,7 @@ class OSGIServiceRegistry implements ServiceRegistry {
 	public void unregister(Object service) {
 		if (service == null)
 			return;
-		Service serviceAnnotation = service.getClass().getAnnotation(Service.class);
-		for (Class<?> serviceClass : serviceAnnotation.classes()) {
+		for (Class<?> serviceClass : Util.getServicesClasses(service.getClass())) {
 			unregister(serviceClass, service);
 		}
 	}

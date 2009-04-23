@@ -17,8 +17,10 @@ import org.kawane.filebox.core.IFilebox;
 import org.kawane.filebox.core.IFileboxRegistry;
 import org.kawane.filebox.core.discovery.IConnectionListener;
 import org.kawane.filebox.core.discovery.IServiceDiscovery;
+import org.kawane.services.Service;
 import org.kawane.services.advanced.Inject;
 
+@Service(classes={IServiceDiscovery.class})
 public class JmDNSServiceDiscovery implements ServiceListener,
 		IServiceDiscovery, ServiceTypeListener {
 
@@ -33,7 +35,7 @@ public class JmDNSServiceDiscovery implements ServiceListener,
 	private int port;
 	private Object waitInitialization = new Object();
 	private IFileboxRegistry fileboxRegistry;
-	
+
 	public String getName() {
 		return name;
 	}
@@ -50,7 +52,7 @@ public class JmDNSServiceDiscovery implements ServiceListener,
 	public void setFileboxRegistry(IFileboxRegistry registry) {
 		this.fileboxRegistry = registry;
 	}
-	
+
 	public void connect(String lname, int lport,
 			final IConnectionListener listener) {
 		this.name = lname;
@@ -112,7 +114,7 @@ public class JmDNSServiceDiscovery implements ServiceListener,
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.kawane.filebox.core.IServiceDiscovery#getServices()
 	 */
 	public Collection<IFilebox> getServices() {
@@ -133,7 +135,7 @@ public class JmDNSServiceDiscovery implements ServiceListener,
 					while (info == null) {
 						dns.requestServiceInfo(event.getType(), event.getName());
 						info = dns.getServiceInfo(event.getType(), event.getName());
-					} 
+					}
 					fileboxRegistry.registerFilebox(event.getName(), info.getHostAddress(), info.getPort());
 				}
 			});

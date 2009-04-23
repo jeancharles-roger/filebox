@@ -1,6 +1,8 @@
 package org.kawane.services.advanced;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -8,9 +10,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.kawane.services.IServiceListener;
-import org.kawane.services.Service;
 import org.kawane.services.ServiceRegistry;
-
+import org.kawane.services.internal.Util;
 
 @SuppressWarnings("unchecked")
 public class ServiceManager implements IServiceListener {
@@ -23,53 +24,47 @@ public class ServiceManager implements IServiceListener {
 
 	private Class<?> managedClass;
 
-	private Class<?> [] servicesClassToRegister;
+	private Collection<Class<?>> servicesClassToRegister;
 
-	private Object instance=null;
+	private Object instance = null;
 
-	public ServiceManager(Object instance) {
+	ServiceManager(Object instance) {
 		this.instance = instance;
 		managedClass = instance.getClass();
-		Service annotation = managedClass.getAnnotation(Service.class);
-		if(annotation != null) {
-			this.servicesClassToRegister = annotation.classes();
-		}
+		this.servicesClassToRegister = Util.getServicesClasses(instance.getClass());
 		init(analyse(managedClass));
 	}
 
-	public ServiceManager(Object instance, Class<?> ... serviceClassToRegister) {
+	ServiceManager(Object instance, Class<?>... serviceClassToRegister) {
 		this.instance = instance;
 		managedClass = instance.getClass();
-		this.servicesClassToRegister = serviceClassToRegister;
+		this.servicesClassToRegister = Arrays.asList(serviceClassToRegister);
 		init(analyse(managedClass));
 	}
 
-	public ServiceManager(Object instance, Class<?> managedClass, Map<Method, Class<?>> methodToClass, Class<?> ... serviceClassToRegister) {
+	ServiceManager(Object instance, Class<?> managedClass, Map<Method, Class<?>> methodToClass, Class<?>... serviceClassToRegister) {
 		this.managedClass = managedClass;
-		this.servicesClassToRegister = serviceClassToRegister;
+		this.servicesClassToRegister = Arrays.asList(serviceClassToRegister);
 		this.instance = instance;
 		init(methodToClass);
 	}
 
-	public ServiceManager(Class<?> managedClass) {
+	ServiceManager(Class<?> managedClass) {
 		this.managedClass = managedClass;
-		Service annotation = managedClass.getAnnotation(Service.class);
-		if(annotation != null) {
-			this.servicesClassToRegister = annotation.classes();
-		}
+		this.servicesClassToRegister = Util.getServicesClasses(managedClass);
 		init(analyse(managedClass));
 	}
 
-	public ServiceManager(Class<?> managedClass, Class<?> ... serviceClassToRegister) {
+	ServiceManager(Class<?> managedClass, Class<?>... serviceClassToRegister) {
 		this.managedClass = managedClass;
-		this.servicesClassToRegister = serviceClassToRegister;
+		this.servicesClassToRegister = Arrays.asList(serviceClassToRegister);
 		init(analyse(managedClass));
 	}
 
 	private void init(Map<Method, Class<?>> methodToClass) {
 		this.methodToClass = methodToClass;
 		serviceRegistry = ServiceRegistry.instance;
-		if(verifyCondition()) {
+		if (verifyCondition()) {
 			instanciateObject();
 		} else {
 			for (Entry<Method, Class<?>> entry : methodToClass.entrySet()) {
@@ -80,17 +75,17 @@ public class ServiceManager implements IServiceListener {
 	}
 
 	public void serviceAdded(Class serviceClass, Object service) {
-		if(verifyCondition()) {
+		if (verifyCondition()) {
 			instanciateObject();
 		}
 	}
 
 	private boolean verifyCondition() {
-		for(Entry<Method, Class<?>> entry: methodToClass.entrySet()) {
+		for (Entry<Method, Class<?>> entry : methodToClass.entrySet()) {
 			Method method = entry.getKey();
 			Inject inject = method.getAnnotation(Inject.class);
 			int servicesCount = serviceRegistry.getServicesCount(entry.getValue());
-			if(inject != null && servicesCount < inject.min()) {
+			if (inject != null && servicesCount < inject.min()) {
 				return false;
 			}
 		}
@@ -99,11 +94,11 @@ public class ServiceManager implements IServiceListener {
 
 	private void instanciateObject() {
 		try {
-			if(instance == null) {
+			if (instance == null) {
 				instance = managedClass.newInstance();
 			}
-			new ServiceInjector(instance, methodToClass, true);
-			if(servicesClassToRegister != null) {
+			inject(instance, methodToClass, true);
+			if (servicesClassToRegister != null) {
 				for (Class<?> serviceClass : servicesClassToRegister) {
 					serviceRegistry.register(serviceClass, instance);
 				}
@@ -112,7 +107,7 @@ public class ServiceManager implements IServiceListener {
 			logger.log(Level.SEVERE, "An Error Occured", e);
 		}
 		// remove all listener
-		for(Entry<Method, Class<?>> entry: methodToClass.entrySet()) {
+		for (Entry<Method, Class<?>> entry : methodToClass.entrySet()) {
 			serviceRegistry.removeListener(entry.getValue(), this);
 		}
 		// clear instance variable
@@ -140,6 +135,67 @@ public class ServiceManager implements IServiceListener {
 			}
 		}
 		return methodToClass;
+	}
+
+	static public void register(Object object) {
+		ServiceRegistry.instance.register(object);
+	}
+
+	static public void register(Class<?> serviceClass, Object service) {
+		ServiceRegistry.instance.register(serviceClass, service);
+	}
+
+	static public void inject(Object object) {
+		new ServiceInjector(object);
+	}
+
+	static public void inject(Object object, boolean async) {
+		new ServiceInjector(object, async);
+	}
+
+	static public void inject(Object object, Map<Method, Class<?>> methodToClass, boolean async) {
+		new ServiceInjector(object, methodToClass, async);
+	}
+
+	/**
+	 * register + inject
+	 * @param instance
+	 */
+	static public void manage(Object instance) {
+		new ServiceManager(instance);
+	}
+
+	/**
+	 * instanciate + register + inject
+	 * @param instance
+	 */
+	static public void manage(Class<?> managedClass) {
+		new ServiceManager(managedClass);
+	}
+
+	/**
+	 * register + inject
+	 * @param instance
+	 */
+	static public void manage(Object instance, Class<?>... serviceClassToRegister) {
+		new ServiceManager(instance, serviceClassToRegister);
+	}
+
+	/**
+	 * instanciate + register + inject
+	 * @param instance
+	 */
+	static public void manage(Class<?> managedClass, Class<?>... serviceClassToRegister) {
+		new ServiceManager(managedClass, serviceClassToRegister);
+	}
+
+	/**
+	 * instanciate + register + inject
+	 * instance may be null
+	 * @param instance
+	 */
+	static public void manage(Object instance, Class<?> managedClass, Map<Method, Class<?>> methodToClass, Class<?>... serviceClassToRegister) {
+		new ServiceManager(instance, managedClass, methodToClass, serviceClassToRegister);
 	}
 
 }
