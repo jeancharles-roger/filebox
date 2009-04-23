@@ -27,9 +27,9 @@ public class ServiceManager implements IServiceListener {
 
 	private Object instance=null;
 
-	public ServiceManager(Object instance, Class<?> managedClass) {
-		this.managedClass = managedClass;
+	public ServiceManager(Object instance) {
 		this.instance = instance;
+		managedClass = instance.getClass();
 		Service annotation = managedClass.getAnnotation(Service.class);
 		if(annotation != null) {
 			this.servicesClassToRegister = annotation.classes();
@@ -37,9 +37,9 @@ public class ServiceManager implements IServiceListener {
 		init(analyse(managedClass));
 	}
 
-	public ServiceManager(Object instance, Class<?> managedClass, Class<?> ... serviceClassToRegister) {
-		this.managedClass = managedClass;
+	public ServiceManager(Object instance, Class<?> ... serviceClassToRegister) {
 		this.instance = instance;
+		managedClass = instance.getClass();
 		this.servicesClassToRegister = serviceClassToRegister;
 		init(analyse(managedClass));
 	}
@@ -50,6 +50,7 @@ public class ServiceManager implements IServiceListener {
 		this.instance = instance;
 		init(methodToClass);
 	}
+
 	public ServiceManager(Class<?> managedClass) {
 		this.managedClass = managedClass;
 		Service annotation = managedClass.getAnnotation(Service.class);
@@ -63,12 +64,6 @@ public class ServiceManager implements IServiceListener {
 		this.managedClass = managedClass;
 		this.servicesClassToRegister = serviceClassToRegister;
 		init(analyse(managedClass));
-	}
-
-	public ServiceManager(Class<?> managedClass, Map<Method, Class<?>> methodToClass, Class<?> ... serviceClassToRegister) {
-		this.managedClass = managedClass;
-		this.servicesClassToRegister = serviceClassToRegister;
-		init(methodToClass);
 	}
 
 	private void init(Map<Method, Class<?>> methodToClass) {
