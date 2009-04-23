@@ -1,12 +1,10 @@
 package org.kawane.filebox.core.internal;
 
+import static org.kawane.services.advanced.ServiceManager.manage;
+
 import java.io.File;
 
 import org.kawane.filebox.core.Filebox;
-import org.kawane.filebox.core.IFileboxRegistry;
-import org.kawane.services.ServiceRegistry;
-import org.kawane.services.advanced.ServiceInjector;
-import org.kawane.services.advanced.ServiceManager;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 
@@ -34,12 +32,10 @@ public class Activator implements BundleActivator {
 			configurationFile = new File(CONFIG_FILENAME);
 		}
 
-		IFileboxRegistry fileboxRegistry = new FileboxRegistry();
-		ServiceRegistry.instance.register(IFileboxRegistry.class, fileboxRegistry);
+		manage(new FileboxRegistry());
 
 		// initialize filebox application
-		Filebox filebox = new Filebox(configurationFile);
-		new ServiceManager(filebox, Filebox.class);
+		manage(new Filebox(configurationFile));
 
 	}
 

@@ -11,13 +11,15 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.kawane.filebox.core.Filebox;
 import org.kawane.filebox.ui.FileboxMainComposite;
-import org.kawane.services.ServiceRegistry;
-import org.kawane.services.advanced.ServiceInjector;
+import org.kawane.services.Service;
 
+import static org.kawane.services.advanced.ServiceManager.*;
+
+@Service(classes={UIFileboxApplication.class})
 public class Application implements UIFileboxApplication {
 
 	private static Logger logger = Logger.getLogger(Application.class.getName());
-	
+
 	/** Shared resources instances. */
 	protected Resources resources;
 
@@ -32,17 +34,17 @@ public class Application implements UIFileboxApplication {
 	public Display getDisplay() {
 		return display;
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see org.kawane.filebox.ui.internal.UIFileboxApplication#getActiveShell()
 	 */
 	public Shell getActiveShell() {
 		return display.getActiveShell();
 	}
-	
+
 	public void start() {
-		ServiceRegistry.instance.register(UIFileboxApplication.class, this);
-		
+		register(this);
+
 		display = Display.getDefault();
 		logger.log(Level.FINE, "Start file box ui");
 		resources = Resources.getInstance();
@@ -57,19 +59,19 @@ public class Application implements UIFileboxApplication {
 			public void handleEvent(Event event) {
 				boolean visible = !shell.isVisible();
 				shell.setVisible(visible);
-				
+
 				// do not quit the application when closing the shell
 				event.doit = false;
 			}
 		});
-		
+
 		MenuManager menuManager = new MenuManager();
-		new ServiceInjector(menuManager);
+		inject(menuManager);
 		menuManager.createMenuBar(shell);
 		menuManager.createSystemTray(shell);
-		
+
 		composite = new FileboxMainComposite(shell, SWT.NONE);
-		new ServiceInjector(composite);
+		inject(composite);
 
 		shell.open();
 		while (!shell.isDisposed()) {
