@@ -3,12 +3,15 @@ package org.kawane.services.internal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.kawane.services.IServiceListener;
-import org.kawane.services.ServiceRegistry;
+import org.kawane.services.IServiceRegistry;
+import org.kawane.services.Service;
+import org.kawane.services.advanced.ManagedService;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
@@ -19,7 +22,7 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.packageadmin.PackageAdmin;
 
-class OSGIServiceRegistry implements ServiceRegistry {
+class OSGIServiceRegistry implements IServiceRegistry {
 
 	private static Logger logger = Logger.getLogger(OSGIServiceRegistry.class.getName());
 
@@ -51,23 +54,46 @@ class OSGIServiceRegistry implements ServiceRegistry {
 		}
 	}
 
-	public void register(Object service) {
-		Collection<Class<?>> serviceClasses = Util.getServicesClasses(service.getClass());
-		for (Class<?> serviceClass : serviceClasses) {
-			register(serviceClass, service);
+	public void manage(Object service) {
+		Collection<Service> serviceClasses = Util.getServicesClasses(service.getClass(), new HashSet<Service>(1));
+		if(serviceClasses.size()>0) {
+		for (Service serviceClass : serviceClasses) {
+			ManagedService.manage(serviceClass, service);
+		}
+		} else {
+			ManagedService.manage(null, service);
 		}
 	}
 
-	public void register(Class<?> serviceClass, Object service) {
-		Bundle bundle = packageAdmin.getBundle(service.getClass());
-		BundleContext context = bundle.getBundleContext();
-		ServiceRegistration serviceRegistration = context.registerService(serviceClass.getName(), service, null);
-		OSGIServiceReg reg = new OSGIServiceReg(serviceClass, service);
-		registrations.put(reg, serviceRegistration);
-		servicesRegistry.put(serviceRegistration.getReference(), reg);
+	public void unmanage(Object service) {
+		ManagedService.unmanage(service);
 	}
 
-	public void unregister(Class<?> serviceClass, Object service) {
+	public void register(Object service) {
+		if(service == null) return;
+		Collection<Service> serviceClasses = Util.getServicesClasses(service.getClass(), new HashSet<Service>(1));
+		for (Service serviceClass : serviceClasses) {
+			register(service, serviceClass.value());
+		}
+	}
+
+	public void register(Object service, Class<?> serviceClass) {
+		if(service == null) return;
+		Bundle bundle = packageAdmin.getBundle(service.getClass());
+		BundleContext context = bundle.getBundleContext();
+		register(service, serviceClass, context);
+	}
+
+	private void register(Object service, Class<?> serviceClass, BundleContext context) {
+		OSGIServiceReg reg = new OSGIServiceReg(serviceClass, service);
+		if(!registrations.containsKey(reg)) {
+			ServiceRegistration serviceRegistration = context.registerService(serviceClass.getName(), service, null);
+			registrations.put(reg, serviceRegistration);
+			servicesRegistry.put(serviceRegistration.getReference(), reg);
+		}
+	}
+
+	public void unregister(Object service, Class<?> serviceClass) {
 		if (service == null)
 			return;
 		OSGIServiceReg serviceReg = new OSGIServiceReg(serviceClass, service);
@@ -81,8 +107,8 @@ class OSGIServiceRegistry implements ServiceRegistry {
 	public void unregister(Object service) {
 		if (service == null)
 			return;
-		for (Class<?> serviceClass : Util.getServicesClasses(service.getClass())) {
-			unregister(serviceClass, service);
+		for (Service serviceClass : Util.getServicesClasses(service.getClass(), new HashSet<Service>(1))) {
+			unregister(service, serviceClass.value());
 		}
 	}
 
@@ -146,11 +172,11 @@ class OSGIServiceRegistry implements ServiceRegistry {
 		return 0;
 	}
 
-	public <T> void addListener(Class<T> serviceClass, IServiceListener<T> listener) {
-		addListener(serviceClass, listener, false);
+	public <T> void addServiceListener(Class<T> serviceClass, IServiceListener<T> listener) {
+		addServiceListener(serviceClass, listener, false);
 	}
 
-	public <T> void addListener(final Class<T> serviceClass, final IServiceListener<T> listener, boolean sendExistingServices) {
+	public <T> void addServiceListener(final Class<T> serviceClass, final IServiceListener<T> listener, boolean sendExistingServices) {
 		Bundle bundle = packageAdmin.getBundle(listener.getClass());
 		final BundleContext context = bundle.getBundleContext();
 
@@ -185,7 +211,7 @@ class OSGIServiceRegistry implements ServiceRegistry {
 		}
 	}
 
-	public <T> void removeListener(Class<T> serviceClass, IServiceListener<T> listener) {
+	public <T> void removeServiceListener(Class<T> serviceClass, IServiceListener<T> listener) {
 		Bundle bundle = packageAdmin.getBundle(listener.getClass());
 		BundleContext context = bundle.getBundleContext();
 		ServiceListener osgiServiceListener = listeners.remove(listener);

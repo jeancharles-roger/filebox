@@ -15,10 +15,10 @@ import org.kawane.filebox.core.IFilebox;
 import org.kawane.filebox.core.IFileboxRegistry;
 import org.kawane.filebox.core.IObservable;
 import org.kawane.services.Service;
-import org.kawane.services.ServiceRegistry;
+import org.kawane.services.IServiceRegistry;
 
 
-@Service(classes={IFileboxRegistry.class})
+@Service(IFileboxRegistry.class)
 public class FileboxRegistry implements IObservable, IFileboxRegistry {
 
 	public static final String FILEBOXES = "fileboxes";
@@ -110,7 +110,7 @@ public class FileboxRegistry implements IObservable, IFileboxRegistry {
 			try {
 				desc.filebox = (IFilebox) LocateRegistry.getRegistry(host, port).lookup("filebox");
 				addFilebox(desc);
-				ServiceRegistry.instance.register(IFilebox.class, desc.filebox);
+				IServiceRegistry.instance.register(desc.filebox, IFilebox.class);
 			} catch (AccessException e) {
 				logger.log(Level.WARNING, "Can't register filebox.", e);
 			} catch (RemoteException e) {
@@ -125,7 +125,7 @@ public class FileboxRegistry implements IObservable, IFileboxRegistry {
 		FileboxDescriptor desc = new FileboxDescriptor(name, host, port, null);
 		IFilebox removedFilebox = removeFilebox(desc);
 		if ( removedFilebox != null ) {
-			ServiceRegistry.instance.unregister(IFilebox.class, removedFilebox);
+			IServiceRegistry.instance.unregister(removedFilebox, IFilebox.class);
 		}
 	}
 }

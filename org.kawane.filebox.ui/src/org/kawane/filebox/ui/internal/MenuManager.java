@@ -27,10 +27,11 @@ import org.kawane.filebox.core.Filebox;
 import org.kawane.filebox.core.Preferences;
 import org.kawane.filebox.ui.IAction;
 import org.kawane.filebox.ui.toolkit.ToolKit;
+import org.kawane.services.IServiceRegistry;
 import org.kawane.services.advanced.Inject;
 
 /**
- * 
+ *
  * Handles the global application menu.
  * @author Jean-Charles Roger
  *
@@ -50,32 +51,34 @@ public class MenuManager {
 
 	protected IAction quitAction = null;
 	protected IAction showHideAction = null;
-	
-	
+
+
 	/** FileBox system tray menu action list */
 	protected List<IAction> systemTrayActions = null;
-	
+
 	/** FileBox menu action list */
 	protected List<IAction> fileBoxActions = null;
 
 	private Filebox filebox;
 
 	private UIFileboxApplication application;
-	
+
 	@Inject
-	public void setApplication(UIFileboxApplication application) {
+	public int setApplication(UIFileboxApplication application) {
 		this.application = application;
+		return IServiceRegistry.DEPENDENCY_RESOLVED;
 	}
-	
+
 	@Inject
-	public void setFilebox(Filebox filebox) {
+	public int setFilebox(Filebox filebox) {
 		this.filebox = filebox;
+		return IServiceRegistry.DEPENDENCY_RESOLVED;
 	}
-	
+
 	protected Preferences getPreferences() {
 		return filebox.getPreferences();
 	}
-	
+
 	/** Generic selection listener for MenuItems that have Actions as data.  */
 	protected SelectionAdapter selectionListener = new SelectionAdapter() {
 		@Override
@@ -88,7 +91,7 @@ public class MenuManager {
 			}
 		}
 	};
-	
+
 	/** Creates the shell menu bar */
 	public void createMenuBar(Shell shell) {
 		menuBar = new Menu(shell, SWT.BAR);
@@ -104,7 +107,7 @@ public class MenuManager {
 		} else {
 			final TrayItem item = new TrayItem(tray, SWT.NONE);
 			final Menu menu = createPopupMenu(shell, getSystemTrayActions(shell));
-			
+
 			item.setImage(resources.getImage("filebox-small.png"));
 			item.setToolTipText("Filebox");
 			item.addListener(SWT.MenuDetect, new Listener() {
@@ -115,7 +118,7 @@ public class MenuManager {
 		}
 	}
 
-	
+
 	/** Creates a cascaded {@link MenuItem} in a SWT.BAR menu from a list of actions. */
 	protected Menu createMenu(final Shell shell, final Menu bar, final String name, final List<IAction> actions) {
 		MenuItem menuItem = new MenuItem(bar, SWT.CASCADE);
@@ -134,7 +137,7 @@ public class MenuManager {
 
 		return menu;
 	}
-	
+
 	/** Creates a popup menu from a list of actions */
 	protected Menu createPopupMenu(final Shell shell, final List<IAction> actions) {
 		final Menu menu = new Menu(shell, SWT.POP_UP);
@@ -147,7 +150,7 @@ public class MenuManager {
 		});
 		return menu;
 	}
-	
+
 	/** Populates menu with the given actions.  */
 	protected void populateMenu(Menu menu, List<IAction> actions) {
 		for (IAction oneAction : actions) {
@@ -188,16 +191,16 @@ public class MenuManager {
 		}
 		return quitAction;
 	}
-	
+
 	public IAction getShowHideAction(final Shell shell) {
 		if ( showHideAction == null ) {
 			showHideAction = new IAction.Stub(IAction.STYLE_DEFAULTACTION) {
-				
+
 				@Override
 				public String getLabel() {
 					return shell.isVisible() ? "Hide" : "Show";
 				}
-				
+
 				@Override
 				public int run() {
 					// Show hide filebox
@@ -209,12 +212,12 @@ public class MenuManager {
 		}
 		return showHideAction;
 	}
-	
+
 	public List<IAction> getFileBoxActions(final Shell shell) {
 		if ( fileBoxActions == null ) {
 			fileBoxActions = new ArrayList<IAction>();
-			
-			
+
+
 			fileBoxActions.add(new IAction.Stub("About") {
 				@Override
 				public int run() {
@@ -229,7 +232,7 @@ public class MenuManager {
 					return STATUS_OK;
 				}
 			});
-			
+
 			fileBoxActions.add(new IAction.Stub("Preferences") {
 				@Override
 				public int run() {
@@ -254,11 +257,11 @@ public class MenuManager {
 			});
 			fileBoxActions.add(new IAction.Stub(IAction.STYLE_SEPARATOR));
 			fileBoxActions.add(getQuitAction(shell));
-			
+
 		}
 		return fileBoxActions;
 	}
-	
+
 	public List<IAction> getSystemTrayActions(final Shell shell) {
 		if ( systemTrayActions == null ) {
 			systemTrayActions = new ArrayList<IAction>();

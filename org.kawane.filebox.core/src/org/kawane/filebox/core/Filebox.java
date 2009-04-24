@@ -17,11 +17,11 @@ import org.kawane.filebox.core.discovery.IConnectionListener;
 import org.kawane.filebox.core.discovery.IServiceDiscovery;
 import org.kawane.filebox.core.internal.Activator;
 import org.kawane.services.IServiceListener;
+import org.kawane.services.IServiceRegistry;
 import org.kawane.services.Service;
-import org.kawane.services.ServiceRegistry;
 import org.kawane.services.advanced.Inject;
 
-@Service(classes={Filebox.class})
+@Service(value=Filebox.class, depends=IServiceDiscovery.class)
 public class Filebox implements IFilebox, IObservable {
 
 	private static Logger logger = Logger.getLogger(Activator.class.getName());
@@ -62,10 +62,13 @@ public class Filebox implements IFilebox, IObservable {
 		this.host = "localhost";
 	}
 
-	@Inject(min=1)
-	public void setServiceDiscovery(IServiceDiscovery serviceDiscovery) {
-		this.serviceDiscovery = serviceDiscovery;
-		ServiceRegistry.instance.addListener(IFilebox.class, serviceListener, true);
+	@Inject
+	public int setServiceDiscovery(IServiceDiscovery serviceDiscovery) {
+		if ( this.serviceDiscovery == null ) {
+			this.serviceDiscovery = serviceDiscovery;
+			IServiceRegistry.instance.addServiceListener(IFilebox.class, serviceListener, true);
+		}
+		return IServiceRegistry.DEPENDENCY_RESOLVED;
 	}
 
 	public int getFileboxesCount() {
