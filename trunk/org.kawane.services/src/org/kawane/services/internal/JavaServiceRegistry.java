@@ -5,17 +5,30 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.kawane.services.IServiceListener;
+import org.kawane.services.IServiceRegistry;
 import org.kawane.services.Service;
-import org.kawane.services.ServiceRegistry;
+import org.kawane.services.advanced.ManagedService;
 
-class JavaServiceRegistry implements ServiceRegistry {
+class JavaServiceRegistry implements IServiceRegistry {
 	private Map<Class<?>, Collection<IServiceListener<?>>> listeners = new HashMap<Class<?>, Collection<IServiceListener<?>>>();
 
-	private Map<Class<?>, Collection<Object>> services = new HashMap<Class<?>, Collection<Object>>();
+	private Map<Class<?>, Set<Object>> services = new HashMap<Class<?>, Set<Object>>();
 
 	public JavaServiceRegistry() {
+	}
+
+	public void manage(Object service) {
+		Collection<Service> serviceClasses = Util.getServicesClasses(service.getClass(), new HashSet<Service>(1));
+		for (Service serviceClass : serviceClasses) {
+			ManagedService.manage(serviceClass, service);
+		}
+	}
+
+	public void unmanage(Object service) {
+		ManagedService.unmanage(service);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -58,38 +71,41 @@ class JavaServiceRegistry implements ServiceRegistry {
 	}
 
 	public void register(Object service) {
-		for (Class<?> serviceClass : Util.getServicesClasses(service.getClass())) {
-			register(serviceClass, serviceClass);
+		for (Service serviceClass : Util.getServicesClasses(service.getClass(), new HashSet<Service>(1))) {
+			register(service, serviceClass.value());
 		}
 	}
 
-	public void register(Class<?> serviceClass, Object service) {
+	public void register(Object service, Class<?> serviceClass) {
 		if (!serviceClass.isInstance(service)) {
 			throw new ClassCastException("Service does not implement or extend service class: " + service);
 		}
-		Collection<Object> list;
+		Set<Object> list;
 		synchronized (services) {
 			list = services.get(serviceClass);
 			if (list == null) {
-				list = new ArrayList<Object>();
+				list = new HashSet<Object>();
 				services.put(serviceClass, list);
 			}
 		}
+		boolean notify;
 		synchronized (list) {
-			list.add(service);
+			notify = list.add(service);
 		}
-		fireNotifyAddService(serviceClass, service);
+		if(notify) {
+			fireNotifyAddService(serviceClass, service);
+		}
 	}
 
 	public void unregister(Object service) {
 		if (service == null)
 			return;
-		for (Class<?> serviceClass : Util.getServicesClasses(service.getClass())) {
-			unregister(serviceClass, service);
+		for (Service serviceClass : Util.getServicesClasses(service.getClass(), new HashSet<Service>(1))) {
+			unregister(service, serviceClass.value());
 		}
 	}
 
-	public void unregister(Class<?> serviceClass, Object service) {
+	public void unregister(Object service, Class<?> serviceClass) {
 		Collection<Object> list;
 		synchronized (services) {
 			list = services.get(serviceClass);
@@ -152,11 +168,11 @@ class JavaServiceRegistry implements ServiceRegistry {
 		thread.start();
 	}
 
-	public <T> void addListener(Class<T> serviceClass, IServiceListener<T> listener) {
-		addListener(serviceClass, listener, false);
+	public <T> void addServiceListener(Class<T> serviceClass, IServiceListener<T> listener) {
+		addServiceListener(serviceClass, listener, false);
 	}
 
-	public <T> void addListener(Class<T> serviceClass, IServiceListener<T> listener, boolean sendExistingServices) {
+	public <T> void addServiceListener(Class<T> serviceClass, IServiceListener<T> listener, boolean sendExistingServices) {
 		Collection<IServiceListener<?>> list;
 		synchronized (listeners) {
 			list = listeners.get(serviceClass);
@@ -175,7 +191,7 @@ class JavaServiceRegistry implements ServiceRegistry {
 		}
 	}
 
-	public <T> void removeListener(Class<T> serviceClass, IServiceListener<T> listener) {
+	public <T> void removeServiceListener(Class<T> serviceClass, IServiceListener<T> listener) {
 		Collection<IServiceListener<?>> list;
 		synchronized (listeners) {
 			list = listeners.get(serviceClass);

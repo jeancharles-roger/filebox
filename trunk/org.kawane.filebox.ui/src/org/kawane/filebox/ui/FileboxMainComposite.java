@@ -28,6 +28,7 @@ import org.kawane.filebox.core.Filebox;
 import org.kawane.filebox.core.IFilebox;
 import org.kawane.filebox.core.Preferences;
 import org.kawane.filebox.ui.internal.Resources;
+import org.kawane.services.IServiceRegistry;
 import org.kawane.services.advanced.Inject;
 
 /**
@@ -35,12 +36,12 @@ import org.kawane.services.advanced.Inject;
  *
  */
 public class FileboxMainComposite extends Composite {
-	
+
 	private static Logger logger = Logger.getLogger(FileboxMainComposite.class.getName());
 
 	/** Shared resources instances. */
 	protected Resources resources = Resources.getInstance();
-	
+
 	protected GridLayout layout;
 
 	protected Label meLabel;
@@ -55,7 +56,7 @@ public class FileboxMainComposite extends Composite {
 			}
 		}
 	};
-	
+
 	protected Table contactsTable;
 	protected TableColumn statusColumn;
 	protected TableColumn nameColumn;
@@ -76,16 +77,16 @@ public class FileboxMainComposite extends Composite {
 				}
 				return;
 			}
-			
+
 			if ( e.type == SWT.Resize ) {
 				resizeContactTable();
 				return;
 			}
 		}
 	};
-	
-	
-	
+
+
+
 	protected Filebox filebox;
 	protected PropertyChangeListener propertiesListener = new PropertyChangeListener() {
 		public void propertyChange(final PropertyChangeEvent evt) {
@@ -98,7 +99,7 @@ public class FileboxMainComposite extends Composite {
 						}
 						return;
 					}
-					
+
 					// preferences changed
 					if (evt.getSource() == getLocalFilebox().getPreferences() ) {
 						if ( Preferences.NAME.equals(evt.getPropertyName()) ) {
@@ -121,28 +122,28 @@ public class FileboxMainComposite extends Composite {
 		Composite meComposite = new Composite(this, SWT.NONE);
 		meComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 		meComposite.setLayout(new GridLayout(2,false));
-		
+
 		// my name label
 		meLabel = new Label(meComposite, SWT.NONE);
 		meLabel.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false, false));
 		meLabel.setText("Me");
-		
+
 		// status combo
 		statusCombo = new Combo(meComposite, SWT.READ_ONLY);
 		statusCombo.setLayoutData(new GridData(SWT.END, SWT.CENTER, true, false));
 		statusCombo.setItems( new String[] { "On line", "Off line" } );
 		statusCombo.addSelectionListener(statusComboListener);
 //		statusCombo.select(0);
-		
+
 		// a separator
 		Label separator = new Label(this, SWT.SEPARATOR | SWT.HORIZONTAL);
 		separator.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-		
+
 		// contacts label
 		Label contactsLabel = new Label(this, SWT.NONE);
 		contactsLabel.setLayoutData(new GridData(SWT.LEFT, SWT.FILL, false, false));
 		contactsLabel.setText("Contacts" + ":");
-		
+
 		// contacts table
 		contactsTable = new Table(this,  SWT.MULTI | SWT.VIRTUAL | SWT.BORDER);
 		contactsTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
@@ -155,7 +156,7 @@ public class FileboxMainComposite extends Composite {
 		contactsTable.setItemCount(0);
 		resizeContactTable();
 	}
-	
+
 	protected void resizeContactTable() {
 		final float hostRatio = 0.4f;
 		final int statusSize = 20;
@@ -166,9 +167,9 @@ public class FileboxMainComposite extends Composite {
 		nameColumn.setWidth( width - hostSize - statusSize);
 		hostColumn.setWidth(hostSize);
 	}
-	
+
 	@Inject
-	public void setFilebox(final Filebox filebox) {
+	public int setFilebox(final Filebox filebox) {
 		if ( this.filebox != null ) {
 			this.filebox.removePropertyChangeListener(propertiesListener);
 			this.filebox.getPreferences().removePropertyChangeListener(propertiesListener);
@@ -195,10 +196,11 @@ public class FileboxMainComposite extends Composite {
 				}
 			}
 		});
+		return IServiceRegistry.DEPENDENCY_RESOLVED;
 	}
 
 	public Filebox getLocalFilebox() {
 		return filebox;
 	}
-	
+
 }

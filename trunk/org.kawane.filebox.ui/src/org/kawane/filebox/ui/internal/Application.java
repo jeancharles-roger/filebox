@@ -13,9 +13,9 @@ import org.kawane.filebox.core.Filebox;
 import org.kawane.filebox.ui.FileboxMainComposite;
 import org.kawane.services.Service;
 
-import static org.kawane.services.advanced.ServiceManager.*;
+import static org.kawane.services.advanced.ServiceRegistry.*;
 
-@Service(classes={UIFileboxApplication.class})
+@Service(UIFileboxApplication.class)
 public class Application implements UIFileboxApplication {
 
 	private static Logger logger = Logger.getLogger(Application.class.getName());
@@ -66,12 +66,12 @@ public class Application implements UIFileboxApplication {
 		});
 
 		MenuManager menuManager = new MenuManager();
-		inject(menuManager);
+		manage(menuManager);
 		menuManager.createMenuBar(shell);
 		menuManager.createSystemTray(shell);
 
 		composite = new FileboxMainComposite(shell, SWT.NONE);
-		inject(composite);
+		manage(composite);
 
 		shell.open();
 		while (!shell.isDisposed()) {

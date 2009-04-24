@@ -1,7 +1,7 @@
 package org.kawane.filebox.jmdns.internal;
 
 import org.kawane.filebox.core.discovery.IServiceDiscovery;
-import static org.kawane.services.advanced.ServiceManager.*;
+import static org.kawane.services.advanced.ServiceRegistry.*;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 
@@ -11,11 +11,10 @@ public class Activator implements BundleActivator {
 
 	public void start(BundleContext context) throws Exception {
 		serviceDiscovery = new JmDNSServiceDiscovery();
-		inject(serviceDiscovery);
 
 		// Start to listening services
 		serviceDiscovery.start();
-		register(serviceDiscovery);
+		manage(serviceDiscovery);
 	}
 
 	public void stop(BundleContext context) throws Exception {

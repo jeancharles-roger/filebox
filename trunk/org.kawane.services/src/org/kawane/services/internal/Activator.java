@@ -1,6 +1,6 @@
 package org.kawane.services.internal;
 
-import org.kawane.services.ServiceRegistry;
+import org.kawane.services.IServiceRegistry;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.packageadmin.PackageAdmin;
@@ -17,7 +17,7 @@ public class Activator implements BundleActivator {
 		packageAdminTracker.open();
 		// may initialize now the service registry
 		ServiceFactory.createService();
-		ServiceRegistry.instance.getClass();
+		IServiceRegistry.instance.getClass();
 	}
 
 	public void stop(BundleContext context) throws Exception {

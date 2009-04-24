@@ -1,6 +1,6 @@
 package org.kawane.filebox.core.internal;
 
-import static org.kawane.services.advanced.ServiceManager.manage;
+import static org.kawane.services.advanced.ServiceRegistry.manage;
 
 import java.io.File;
 

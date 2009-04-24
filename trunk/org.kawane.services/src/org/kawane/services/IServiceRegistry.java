@@ -15,9 +15,22 @@ import org.kawane.services.internal.ServiceFactory;
  *
  * @author <a href="maito:legoff.laurent@gmail.com">Laurent Le Goff </a>
  */
-public interface ServiceRegistry {
+public interface IServiceRegistry {
 
-	ServiceRegistry instance = ServiceFactory.createService();
+	IServiceRegistry instance = ServiceFactory.createService();
+
+	final int DEPENDENCY_RESOLVED = 0;
+	final int DEPENDENCY_UNRESOLVED = 1;
+
+	/**
+	 * manage a service
+	 * @param <T>
+	 * @param serviceClass
+	 * @param service
+	 */
+	void manage(Object service);
+
+	void unmanage(Object service);
 	/**
 	 * register a service
 	 * @param <T>
@@ -31,7 +44,7 @@ public interface ServiceRegistry {
 	 * @param serviceClass
 	 * @param service
 	 */
-	void register(Class<?> serviceClass, Object service);
+	void register(Object service, Class<?> serviceClass);
 	/**
 	 * unregister a service
 	 * @param <T>
@@ -45,7 +58,7 @@ public interface ServiceRegistry {
 	 * @param serviceClass
 	 * @param service
 	 */
-	void unregister(Class<?> serviceClass, Object service);
+	void unregister(Object service, Class<?> serviceClass);
 	/**
 	 * Return the first service corresponding to this class.
 	 * @param <T>
@@ -92,19 +105,19 @@ public interface ServiceRegistry {
 	 * @param serviceClass
 	 * @param listener
 	 */
-	<T>void addListener(Class<T> serviceClass, IServiceListener<T> listener);
+	<T>void addServiceListener(Class<T> serviceClass, IServiceListener<T> listener);
 	/**
 	 * Add a service listener
 	 * @param <T>
 	 * @param serviceClass
 	 * @param listener
 	 */
-	<T>void addListener(Class<T> serviceClass, IServiceListener<T> listener, boolean sendExistingServices);
+	<T>void addServiceListener(Class<T> serviceClass, IServiceListener<T> listener, boolean sendExistingServices);
 	/**
 	 * Remove a service listener
 	 * @param <T>
 	 * @param serviceClass
 	 * @param listener
 	 */
-	<T>void removeListener(Class<T> serviceClass, IServiceListener<T> listener);
+	<T>void removeServiceListener(Class<T> serviceClass, IServiceListener<T> listener);
 }

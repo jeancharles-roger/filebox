@@ -17,10 +17,11 @@ import org.kawane.filebox.core.IFilebox;
 import org.kawane.filebox.core.IFileboxRegistry;
 import org.kawane.filebox.core.discovery.IConnectionListener;
 import org.kawane.filebox.core.discovery.IServiceDiscovery;
+import org.kawane.services.IServiceRegistry;
 import org.kawane.services.Service;
 import org.kawane.services.advanced.Inject;
 
-@Service(classes={IServiceDiscovery.class})
+@Service(value=IServiceDiscovery.class, depends=IFileboxRegistry.class)
 public class JmDNSServiceDiscovery implements ServiceListener,
 		IServiceDiscovery, ServiceTypeListener {
 
@@ -49,8 +50,9 @@ public class JmDNSServiceDiscovery implements ServiceListener,
 	}
 
 	@Inject
-	public void setFileboxRegistry(IFileboxRegistry registry) {
+	public int setFileboxRegistry(IFileboxRegistry registry) {
 		this.fileboxRegistry = registry;
+		return IServiceRegistry.DEPENDENCY_RESOLVED;
 	}
 
 	public void connect(String lname, int lport,

@@ -2,7 +2,7 @@ package org.kawane.services.internal;
 
 import java.util.logging.Logger;
 
-import org.kawane.services.ServiceRegistry;
+import org.kawane.services.IServiceRegistry;
 import org.osgi.service.packageadmin.PackageAdmin;
 
 
@@ -11,9 +11,9 @@ public class ServiceFactory {
 
 	private static Logger logger = Logger.getLogger(ServiceFactory.class.getName());
 
-	private static ServiceRegistry serviceRegistry;
+	private static IServiceRegistry serviceRegistry;
 
-	synchronized public static ServiceRegistry createService() {
+	synchronized public static IServiceRegistry createService() {
 		if (serviceRegistry == null) {
 			if(!Boolean.getBoolean(CORE_SERVICE_REGISTRY)) {
 				try {
@@ -21,7 +21,7 @@ public class ServiceFactory {
 						ServiceFactory.class.getClassLoader().loadClass("org.osgi.framework.Bundle");
 						PackageAdmin packageAdmin = Activator.getInstance().getPackageAdmin();
 						if (packageAdmin != null) {
-							ServiceRegistry osgiserviceRegistry = new OSGIServiceRegistry(packageAdmin);
+							IServiceRegistry osgiserviceRegistry = new OSGIServiceRegistry(packageAdmin);
 							serviceRegistry = osgiserviceRegistry;
 							return serviceRegistry;
 						}
