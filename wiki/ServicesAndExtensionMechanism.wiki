@@ -5,13 +5,13 @@
 The aim of the services in filebox is to allow the extensions to access to objects that can be extended. To do so, we will provide a class named *Globals* that shares these objects.
 
 Sample:
-
+`
 MenuManager menuBar = Globals.get("menuBar",MenuManager.class);
-
+`
 We can specialize Globals with for instance FileboxGlobals with some application's specific methods.
-
+`
 MenuManager menuBar = FileboxGlobals.getMenuBar();
-
+`
 
 = Details =
 
