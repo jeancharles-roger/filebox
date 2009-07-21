@@ -9,6 +9,12 @@
  * Services discovery over a local network (with zeroconfig network) (*under development*),
  * Simple network operations (including file transfer) through RMI (*under development*).
 
+= M1 updated =
+
+New guide lines has been defined for *Filebox*. It has to be more simple. 
+OSGI, RMI and other complex stuff create tones of code lines for no good reason. 
+It has been decided to stop this and returns to the use of library that has been thought for easy use. 
+
 = M2 (no date yet) =
 
 *(to be defined)*
