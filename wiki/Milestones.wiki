@@ -11,9 +11,17 @@
 
 = M1 updated =
 
-New guide lines has been defined for *Filebox*. It has to be more simple. 
-OSGI, RMI and other complex stuff create tones of code lines for no good reason. 
-It has been decided to stop this and returns to the use of library that has been thought for easy use. 
+New guide lines has been defined for *Filebox*. It has to be more simple, more efficient and doesn't use a truck to move a hand luggage. 
+For instance OSGI is far to complex. Using it implies tones of code and architecture constrains that doesn't suite for our needs. RMI really seems magical, that's cool, but if stops working, what will you do ?
+
+It has been decided to stop the uses of these kind of libraries and use simple one. Even if we have to start from scratch (Java Standard Library isn't really scratch :) ), we'll use right scale solutions for our needs.
+
+ * Removes OSGI Architecture (*to be done*),
+ * Removes RMI (*to be done*),
+ * Basic UI using SWT (*under development*),
+ * Preferences save (*done*),
+ * Services discovery over a local network (with zeroconfig network) (*under development*),
+ * Simple network operations (including file transfer) through HTTP (*to be done*).
 
 = M2 (no date yet) =
 
