@@ -13,9 +13,21 @@ We can specialize Globals with for instance FileboxGlobals with some application
 MenuManager menuBar = FileboxGlobals.getMenuBar();
 }}}
 
-= Details =
+= Modules =
 
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+A module aims to provide new functionality to the core application. To define it we have to implement Module interface and declare it in a Manifest. 
+
+Modules are packaged into jar files, one jar file can contains several modules.
+While starting the core application, modules are loaded in the order defined by a scheduler interface. This interface provides a priority number for each module.
+{{{
+interface Module {
+   boolean start();
+   void stop();
+}
+}}}
+{{{
+interface ModuleScheduler {
+   int getPriority(String jarFile, String moduleClassName);
+   int getPriority(File jarFile, Class<? extends Module> moduleClass);
+}
+}}}
