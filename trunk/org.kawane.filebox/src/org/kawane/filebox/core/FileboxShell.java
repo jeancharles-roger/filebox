@@ -16,9 +16,9 @@ import org.kawane.filebox.ui.FileboxMainComposite;
 import org.kawane.filebox.ui.MenuManager;
 import org.kawane.filebox.ui.Resources;
 
-public class Application  {
+public class FileboxShell  {
 
-	private static Logger logger = Logger.getLogger(Application.class.getName());
+	private static Logger logger = Logger.getLogger(FileboxShell.class.getName());
 
 	protected static final String CONFIG_FILENAME = "filebox.properties";
 
@@ -119,7 +119,7 @@ public class Application  {
 
 	
 	public static void main(String[] args) {
-		Application application = new Application();
+		FileboxShell application = new FileboxShell();
 		application.start();
 	}
 }

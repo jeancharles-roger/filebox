@@ -54,12 +54,12 @@ public class Globals {
 		return get(FILEBOX_REGISTRY_ID, FileboxRegistry.class);
 	}
 	
-	protected static void setFileboxShell(Application fileboxShell) {
-		set(FILEBOX_SHELL_ID, Application.class, fileboxShell);
+	protected static void setFileboxShell(FileboxShell fileboxShell) {
+		set(FILEBOX_SHELL_ID, FileboxShell.class, fileboxShell);
 	}
 	
-	public static Application getFileboxShell() {
-		return get(FILEBOX_SHELL_ID, Application.class);
+	public static FileboxShell getFileboxShell() {
+		return get(FILEBOX_SHELL_ID, FileboxShell.class);
 	}
 	
 	
