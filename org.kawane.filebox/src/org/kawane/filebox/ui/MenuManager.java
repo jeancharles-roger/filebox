@@ -23,7 +23,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tray;
 import org.eclipse.swt.widgets.TrayItem;
-import org.kawane.filebox.core.Application;
+import org.kawane.filebox.core.FileboxShell;
 import org.kawane.filebox.core.Globals;
 import org.kawane.filebox.ui.toolkit.ToolKit;
 
@@ -56,13 +56,13 @@ public class MenuManager {
 	/** FileBox menu action list */
 	protected List<IAction> fileBoxActions = null;
 
-	private Application application;
+	private FileboxShell application;
 
 	public MenuManager() {
 		setApplication(Globals.getFileboxShell());
 	}
 	
-	public void setApplication(Application application) {
+	public void setApplication(FileboxShell application) {
 		this.application = application;
 	}
 
