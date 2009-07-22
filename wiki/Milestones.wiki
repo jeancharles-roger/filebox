@@ -16,8 +16,8 @@ For instance OSGI is far to complex. Using it implies tones of code and architec
 
 It has been decided to stop the uses of these kind of libraries and use simple one. Even if we have to start from scratch (Java Standard Library isn't really scratch :) ), we'll use right scale solutions for our needs.
 
- * Removes OSGI Architecture (*to be done*),
- * Removes RMI (*to be done*),
+ * Removes OSGI Architecture (*done*),
+ * Removes RMI (*done*),
  * Basic UI using SWT (*under development*),
  * Preferences save (*done*),
  * Services discovery over a local network (with zeroconfig network) (*under development*),
