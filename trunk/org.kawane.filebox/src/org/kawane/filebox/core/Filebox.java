@@ -1,8 +1,6 @@
 package org.kawane.filebox.core;
 
 import java.beans.PropertyChangeListener;
-import java.rmi.RemoteException;
-import java.rmi.registry.Registry;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -13,7 +11,7 @@ public class Filebox implements  Observable {
 	public static final String HOST = "host";
 	public static final String PORT = "port";
 	public static final String PROPERTIES = "properties";
-	
+
 	public static final String FILEBOXES = "fileboxes";
 
 	final private List<Filebox> fileboxes = new ArrayList<Filebox>();
@@ -26,7 +24,6 @@ public class Filebox implements  Observable {
 	protected int port;
 
 	protected boolean connected = false;
-	protected Registry registry = null;
 
 	public Filebox() {
 		preferences = Globals.getPreferences();
@@ -78,7 +75,7 @@ public class Filebox implements  Observable {
 	}
 
 
-	public String getHost() throws RemoteException{
+	public String getHost() {
 		return host;
 	}
 
@@ -88,7 +85,7 @@ public class Filebox implements  Observable {
 		obs.firePropertyChange(this, HOST, oldValue, host);
 	}
 
-	public int getPort() throws RemoteException{
+	public int getPort() {
 		return port;
 	}
 
@@ -98,7 +95,7 @@ public class Filebox implements  Observable {
 		obs.firePropertyChange(this, PORT, oldValue, port);
 	}
 
-	public String getName() throws RemoteException{
+	public String getName() {
 		return name;
 	}
 
