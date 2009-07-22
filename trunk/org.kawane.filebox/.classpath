@@ -2,7 +2,7 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="con" path="SWT_CONTAINER/PLATFORM"/>
 	<classpathentry kind="lib" path="/dist/jars/jmds.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/SWT"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
