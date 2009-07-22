@@ -2,7 +2,7 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="/filebox-platform/jmds.jar"/>
-	<classpathentry kind="lib" path="/filebox-platform/org.eclipse.swt.cocoa.macosx_3.5.0.v3529a.jar"/>
+	<classpathentry kind="con" path="SWT_CONTAINER/PLATFORM"/>
+	<classpathentry kind="lib" path="/dist/jars/jmds.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
