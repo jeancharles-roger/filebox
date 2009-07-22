@@ -31,7 +31,6 @@
 				<exclude name="**/.svn" />
 			</fileset>
 		</copy>
-		<rename dest="${template_dir}/macosx/Filebox.app_" src="${template_dir}/macosx/Filebox.app"/>
 		<pde.exportPlugins destination="${destination}/Filebox.app/Contents/MacOS" exportSource="false" plugins="${bundles}" exportType="directory" useJARFormat="true" />
 		<copy todir="${destination}/Filebox.app/Contents/MacOS/plugins">
 			<fileset dir="${platform_dir}">
