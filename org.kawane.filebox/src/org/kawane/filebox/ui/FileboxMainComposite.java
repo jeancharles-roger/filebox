@@ -6,9 +6,6 @@ package org.kawane.filebox.ui;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.rmi.RemoteException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -33,8 +30,6 @@ import org.kawane.filebox.core.Preferences;
  *
  */
 public class FileboxMainComposite extends Composite {
-
-	private static Logger logger = Logger.getLogger(FileboxMainComposite.class.getName());
 
 	/** Shared resources instances. */
 	protected Resources resources = Resources.getInstance();
@@ -61,7 +56,6 @@ public class FileboxMainComposite extends Composite {
 	protected Listener contactsTableListener = new Listener() {
 		public void handleEvent(Event e) {
 			if ( e.type == SWT.SetData ) {
-				try {
 					TableItem item = (TableItem)e.item;
 					int index = contactsTable.indexOf(item);
 					Filebox distantFilebox = filebox.getFilebox(index);
@@ -69,9 +63,6 @@ public class FileboxMainComposite extends Composite {
 					item.setImage(0, resources.getImage(distantFilebox.isConnected() ? "connected.png" : "disconnected.png"));
 					item.setText(1, distantFilebox.getName());
 					item.setText(2, distantFilebox.getHost());
-				} catch (RemoteException e1) {
-					logger.log(Level.SEVERE, "An Error Occured", e1);
-				}
 				return;
 			}
 
@@ -113,7 +104,7 @@ public class FileboxMainComposite extends Composite {
 	public FileboxMainComposite(Composite parent, int style) {
 		super(parent, style);
 		setFilebox(Globals.getLocalFilebox());
-		
+
 		layout = new GridLayout(1,false);
 		setLayout(layout);
 
@@ -180,13 +171,9 @@ public class FileboxMainComposite extends Composite {
 		Display.getDefault().asyncExec(new Runnable() {
 			public void run() {
 				if (filebox != null) {
-					try {
 						meLabel.setText(filebox.getName());
 						meLabel.getParent().layout();
 						statusCombo.select(filebox.isConnected() ? 0 : 1);
-					} catch (RemoteException e) {
-						logger.log(Level.SEVERE, "An Error Occured", e);
-					}
 				} else {
 					meLabel.setText("Me");
 					meLabel.getParent().layout();

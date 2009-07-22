@@ -1,23 +1,14 @@
 package org.kawane.filebox.core;
 
 import java.beans.PropertyChangeListener;
-import java.rmi.AccessException;
-import java.rmi.NotBoundException;
-import java.rmi.RemoteException;
-import java.rmi.registry.LocateRegistry;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 
 public class FileboxRegistry implements Observable {
 
 	public static final String FILEBOXES = "fileboxes";
-
-	private static Logger logger = Logger.getLogger(FileboxRegistry.class.getName());
-
 
 	/** Internal descriptor for Fileboxes */
 	static class FileboxDescriptor {
@@ -100,16 +91,9 @@ public class FileboxRegistry implements Observable {
 
 		FileboxDescriptor desc = new FileboxDescriptor(name, host, port, null);
 		if ( !fileboxes.contains(desc)) {
-			try {
-				desc.filebox = (Filebox) LocateRegistry.getRegistry(host, port).lookup("filebox");
+			// TODO Retrieve Filebox remote info: deserialized from HTTP json
+//				desc.filebox = (Filebox) LocateRegistry.getRegistry(host, port).lookup("filebox");
 				addFilebox(desc);
-			} catch (AccessException e) {
-				logger.log(Level.WARNING, "Can't register filebox.", e);
-			} catch (RemoteException e) {
-				logger.log(Level.WARNING, "Can't register filebox.", e);
-			} catch (NotBoundException e) {
-				logger.log(Level.WARNING, "Can't register filebox.", e);
-			}
 		}
 	}
 
