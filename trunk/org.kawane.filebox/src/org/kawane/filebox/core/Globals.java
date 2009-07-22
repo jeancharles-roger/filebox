@@ -3,6 +3,8 @@ package org.kawane.filebox.core;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.kawane.filebox.core.discovery.ServiceDiscovery;
+
 public class Globals {
 
 	public static final String PREFERENCES_ID = "preferences";
@@ -11,6 +13,8 @@ public class Globals {
 	public static final String FILEBOX_REGISTRY_ID = "filebox.registry";
 	public static final String FILEBOX_SHELL_ID = "filebox.shell";
 	
+	public static final String SERVICE_DISCORVERY_ID = "service.discovery";
+
 	static final private Map<Class<?>, Map<String, Object>> globals = new HashMap<Class<?>, Map<String,Object>>();
 	
 	public static <T> T get(String id, Class<T> clazz) {
@@ -62,5 +66,11 @@ public class Globals {
 		return get(FILEBOX_SHELL_ID, FileboxShell.class);
 	}
 	
+	protected static void setServiceDiscovery(ServiceDiscovery fileboxShell) {
+		set(SERVICE_DISCORVERY_ID, ServiceDiscovery.class, fileboxShell);
+	}
 	
+	public static ServiceDiscovery getServiceDiscovery() {
+		return get(SERVICE_DISCORVERY_ID, ServiceDiscovery.class);
+	}
 }
