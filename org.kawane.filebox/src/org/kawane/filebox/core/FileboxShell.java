@@ -27,13 +27,8 @@ public class FileboxShell  {
 	/** Shared resources instances. */
 	protected Resources resources;
 
-	private ServiceDiscovery serviceDiscovery;
-	
 	private Display display;
 
-	public ServiceDiscovery getServiceDiscovery() {
-		return serviceDiscovery;
-	}
 	
 	public Display getDisplay() {
 		return display;
@@ -50,8 +45,10 @@ public class FileboxShell  {
 		Globals.setLocalFilebox(new Filebox());
 	
 		Globals.setFileboxRegistry(new FileboxRegistry());
-		serviceDiscovery = new JmDNSServiceDiscovery();
+		
+		ServiceDiscovery serviceDiscovery = new JmDNSServiceDiscovery();
 		serviceDiscovery.start();
+		Globals.setServiceDiscovery(serviceDiscovery);
 	}
 
 	public void start() {
@@ -109,6 +106,7 @@ public class FileboxShell  {
 	 * @see org.kawane.filebox.ui.internal.UIFileboxApplication#stop()
 	 */
 	public void stop() {
+		ServiceDiscovery serviceDiscovery = Globals.getServiceDiscovery();
 		serviceDiscovery.disconnect(null);
 		serviceDiscovery.stop();
 
