@@ -12,6 +12,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.kawane.filebox.core.discovery.JmDNSServiceDiscovery;
 import org.kawane.filebox.core.discovery.ServiceDiscovery;
+import org.kawane.filebox.core.network.HttpServer;
 import org.kawane.filebox.ui.FileboxMainComposite;
 import org.kawane.filebox.ui.MenuManager;
 import org.kawane.filebox.ui.Resources;
@@ -49,6 +50,10 @@ public class FileboxShell  {
 		ServiceDiscovery serviceDiscovery = new JmDNSServiceDiscovery();
 		serviceDiscovery.start();
 		Globals.setServiceDiscovery(serviceDiscovery);
+		
+		HttpServer httpServer = new HttpServer();
+		httpServer.start();
+		Globals.setHttpServer(httpServer);
 	}
 
 	public void start() {
@@ -110,6 +115,9 @@ public class FileboxShell  {
 		serviceDiscovery.disconnect(null);
 		serviceDiscovery.stop();
 
+		HttpServer server = Globals.getHttpServer();
+		server.stop();
+		
 		if (display != null && !display.isDisposed()) {
 			display.dispose();
 		}

@@ -17,7 +17,7 @@ public class Filebox implements  Observable {
 	final private List<Filebox> fileboxes = new ArrayList<Filebox>();
 	final protected Observable.Stub obs = new Observable.Stub();
 
-	final protected Preferences preferences;
+	final private Preferences preferences = Globals.getPreferences();
 
 	protected String name;
 	protected String host;
@@ -26,7 +26,6 @@ public class Filebox implements  Observable {
 	protected boolean connected = false;
 
 	public Filebox() {
-		preferences = Globals.getPreferences();
 		String preferencesName = preferences.getName();
 		this.name = preferencesName == null ? "Me" : preferencesName;
 
@@ -69,11 +68,6 @@ public class Filebox implements  Observable {
 	public void clearFileboxes() {
 		while ( !fileboxes.isEmpty() ) removeFilebox(0);
 	}
-
-	public Preferences getPreferences() {
-		return preferences;
-	}
-
 
 	public String getHost() {
 		return host;
