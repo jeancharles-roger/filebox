@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.kawane.filebox.core.discovery.ServiceDiscovery;
+import org.kawane.filebox.core.network.HttpServer;
 
 public class Globals {
 
@@ -13,7 +14,9 @@ public class Globals {
 	public static final String FILEBOX_REGISTRY_ID = "filebox.registry";
 	public static final String FILEBOX_SHELL_ID = "filebox.shell";
 	
-	public static final String SERVICE_DISCORVERY_ID = "service.discovery";
+	public static final String SERVICE_DISCOVERY_ID = "service.discovery";
+
+	public static final String HTTP_SERVER_ID = "http.server";
 
 	static final private Map<Class<?>, Map<String, Object>> globals = new HashMap<Class<?>, Map<String,Object>>();
 	
@@ -67,10 +70,18 @@ public class Globals {
 	}
 	
 	protected static void setServiceDiscovery(ServiceDiscovery fileboxShell) {
-		set(SERVICE_DISCORVERY_ID, ServiceDiscovery.class, fileboxShell);
+		set(SERVICE_DISCOVERY_ID, ServiceDiscovery.class, fileboxShell);
 	}
 	
 	public static ServiceDiscovery getServiceDiscovery() {
-		return get(SERVICE_DISCORVERY_ID, ServiceDiscovery.class);
+		return get(SERVICE_DISCOVERY_ID, ServiceDiscovery.class);
+	}
+
+	protected static void setHttpServer(HttpServer httpServer) {
+		set(HTTP_SERVER_ID, HttpServer.class, httpServer);
+	}
+	
+	public static HttpServer getHttpServer() {
+		return get(HTTP_SERVER_ID, HttpServer.class);
 	}
 }

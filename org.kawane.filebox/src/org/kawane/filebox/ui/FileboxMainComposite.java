@@ -34,6 +34,8 @@ public class FileboxMainComposite extends Composite {
 	/** Shared resources instances. */
 	protected Resources resources = Resources.getInstance();
 
+	final private Preferences preferences = Globals.getPreferences();
+
 	protected GridLayout layout;
 
 	protected Label meLabel;
@@ -89,9 +91,9 @@ public class FileboxMainComposite extends Composite {
 					}
 
 					// preferences changed
-					if (evt.getSource() == getLocalFilebox().getPreferences() ) {
+					if (evt.getSource() == preferences ) {
 						if ( Preferences.NAME.equals(evt.getPropertyName()) ) {
-							meLabel.setText(getLocalFilebox().getPreferences().getName());
+							meLabel.setText(preferences.getName());
 							// refresh parent's layout for label length
 							meLabel.getParent().layout();
 						}
@@ -161,11 +163,9 @@ public class FileboxMainComposite extends Composite {
 	public void setFilebox(final Filebox filebox) {
 		if ( this.filebox != null ) {
 			this.filebox.removePropertyChangeListener(propertiesListener);
-			this.filebox.getPreferences().removePropertyChangeListener(propertiesListener);
 		}
 		if ( filebox != null ) {
 			filebox.addPropertyChangeListener(propertiesListener);
-			filebox.getPreferences().addPropertyChangeListener(propertiesListener);
 		}
 		this.filebox = filebox;
 		Display.getDefault().asyncExec(new Runnable() {
