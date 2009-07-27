@@ -76,6 +76,7 @@ public class HttpResponse {
 		response.append(code);
 		response.append(" ");
 		response.append(text);
+		response.append(Http.NL);
 		for ( Entry<String, String> entry : header.entrySet() ) {
 			response.append(entry.getKey());
 			response.append(": ");
