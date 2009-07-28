@@ -1,6 +1,8 @@
 package org.kawane.filebox.core;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -12,7 +14,9 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.kawane.filebox.core.discovery.JmDNSServiceDiscovery;
 import org.kawane.filebox.core.discovery.ServiceDiscovery;
+import org.kawane.filebox.core.network.FileboxService;
 import org.kawane.filebox.core.network.HttpServer;
+import org.kawane.filebox.core.network.NetworkService;
 import org.kawane.filebox.ui.FileboxMainComposite;
 import org.kawane.filebox.ui.MenuManager;
 import org.kawane.filebox.ui.Resources;
@@ -50,6 +54,10 @@ public class FileboxShell  {
 		ServiceDiscovery serviceDiscovery = new JmDNSServiceDiscovery();
 		serviceDiscovery.start();
 		Globals.setServiceDiscovery(serviceDiscovery);
+		
+		Map<String, NetworkService> networkServices = new HashMap<String, NetworkService>();
+		Globals.setNetworkServices(networkServices);
+		networkServices.put("filebox", new FileboxService());
 		
 		HttpServer httpServer = new HttpServer();
 		httpServer.start();
@@ -111,12 +119,13 @@ public class FileboxShell  {
 	 * @see org.kawane.filebox.ui.internal.UIFileboxApplication#stop()
 	 */
 	public void stop() {
+		
+		HttpServer server = Globals.getHttpServer();
+		server.stop();
+
 		ServiceDiscovery serviceDiscovery = Globals.getServiceDiscovery();
 		serviceDiscovery.disconnect(null);
 		serviceDiscovery.stop();
-
-		HttpServer server = Globals.getHttpServer();
-		server.stop();
 		
 		if (display != null && !display.isDisposed()) {
 			display.dispose();

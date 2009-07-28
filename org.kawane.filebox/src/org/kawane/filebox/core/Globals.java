@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.kawane.filebox.core.discovery.ServiceDiscovery;
 import org.kawane.filebox.core.network.HttpServer;
+import org.kawane.filebox.core.network.NetworkService;
 
 public class Globals {
 
@@ -17,6 +18,7 @@ public class Globals {
 	public static final String SERVICE_DISCOVERY_ID = "service.discovery";
 
 	public static final String HTTP_SERVER_ID = "http.server";
+	public static final String NETWORK_SERVICE_ID = "network.service";
 
 	static final private Map<Class<?>, Map<String, Object>> globals = new HashMap<Class<?>, Map<String,Object>>();
 	
@@ -83,5 +85,15 @@ public class Globals {
 	
 	public static HttpServer getHttpServer() {
 		return get(HTTP_SERVER_ID, HttpServer.class);
+	}
+
+	protected static void setNetworkServices(Map<String, NetworkService> httpServer) {
+		set(NETWORK_SERVICE_ID, Map.class, httpServer);
+	}
+	
+	
+	@SuppressWarnings("unchecked")
+	public static Map<String, NetworkService> getNetworkServices() {
+		return get(NETWORK_SERVICE_ID, Map.class);
 	}
 }
