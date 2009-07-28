@@ -5,7 +5,6 @@
 
 package org.kawane.filebox.core.network;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -77,11 +76,26 @@ public class HttpServer implements Runnable {
 	protected void handleSocket(Socket socket) {
 		try {
 			HttpRequest request = HttpRequest.readRequest(socket.getInputStream());
-			System.out.println(request);
+
+			NetworkService service = null;
+			if ( request != null ) {
+				String [] fragments = request.getUrl().split("/");
+				if ( fragments.length > 0 ) {
+					int i = 0;
+					while ( i < fragments.length  && fragments[i].length() == 0) i++;
+					service = Globals.getNetworkServices().get(fragments[i]);
+				}
+			}
 			HttpResponse response = new HttpResponse();
-			response.setContents(new ByteArrayInputStream("<html><body>Hello world!</body></html>".getBytes()));
+			if  ( service != null ) {
+				service.handleRequest(request, response);
+			} else {
+				response.setCode(Http.CODE_FORBIDDEN);
+				response.setText(Http.TEXT_FORBIDDEN);
+			}
 			response.writeResponse(socket.getOutputStream());
 			socket.close();
+			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

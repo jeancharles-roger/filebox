@@ -61,11 +61,13 @@ public class HttpResponse {
 	public void writeResponse(OutputStream stream) throws Exception {
 		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(stream));
 		writer.append(prepareHeader());
-		byte [] buffer = new byte[1024];
-		int read = contents.read(buffer);
-		while (read >= 0 ) {
-			stream.write(buffer);
-			read = contents.read(buffer);
+		if ( contents != null ) {
+			byte [] buffer = new byte[1024];
+			int read = contents.read(buffer);
+			while (read >= 0 ) {
+				stream.write(buffer);
+				read = contents.read(buffer);
+			}
 		}
 	}
 	
