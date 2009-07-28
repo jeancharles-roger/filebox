@@ -11,7 +11,13 @@ public class Http {
 
 	
 	public static final int CODE_OK = 200;
+	public static final int CODE_FORBIDDEN = 403;
+	public static final int CODE_NOTFOUND = 404;
+	
 	public static final String TEXT_OK = "OK";
+	public static final String TEXT_FORBIDDEN = "FORBIDDEN";
+	public static final String TEXT_NOTFOUND = "NOT FOUND";
+	
 	
 	
 	
