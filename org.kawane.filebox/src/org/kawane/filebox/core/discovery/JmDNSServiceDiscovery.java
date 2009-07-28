@@ -101,7 +101,7 @@ public class JmDNSServiceDiscovery implements ServiceListener,
 			// synchronized (waitInitialization) {
 			// TODO is this close method call really nesessary in zeroconf
 			// protocol: http://www.zeroconf.org/
-			// dns.close();
+			dns.close();
 			// }
 		}
 	}
