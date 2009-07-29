@@ -15,7 +15,7 @@ public final class HttpRequest {
 	private final String url;
 	
 	private final Map<String, String> header = new HashMap<String, String>();
-	private final BufferedReader contents;
+	private final InputStream contents;
 	
 	private String retrievedContents;
 	
@@ -46,10 +46,10 @@ public final class HttpRequest {
 			line = reader.readLine();
 		}
 		
-		return new HttpRequest(http, method, url, header, line == null ? null : reader);
+		return new HttpRequest(http, method, url, header, line == null ? null : stream);
 	}
 
-	private HttpRequest(String http, String method, String url, Map<String, String> header,	BufferedReader contents) {
+	private HttpRequest(String http, String method, String url, Map<String, String> header,	InputStream contents) {
 		this.http = http;
 		this.method = method;
 		this.url = url;
@@ -77,20 +77,21 @@ public final class HttpRequest {
 		return header;
 	}
 
-	/** @return a {@link BufferedReader} for the request contents. If null there is no content. */
-	public BufferedReader getContents() {
+	/** @return a {@link InputStream} for the request contents. If null there is no content. */
+	public InputStream getContents() {
 		return contents;
 	}
 	
 	public String getRetrievedContents() {
 		if ( retrievedContents == null && contents != null ) {
 			try {
+				BufferedReader reader = new BufferedReader(new InputStreamReader(contents));
 				StringBuilder buffer = new StringBuilder();
-				String line = contents.readLine();
+				String line = reader.readLine();
 				while ( line != null ) {
 					buffer.append(line);
 					buffer.append(Http.NL);
-					line = contents.readLine();
+					line = reader.readLine();
 				}
 				retrievedContents = buffer.toString();
 			} catch (IOException e) {
