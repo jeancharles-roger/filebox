@@ -4,7 +4,10 @@
  */
 package org.kawane.filebox.core.network;
 
-import java.io.ByteArrayInputStream;
+import java.io.BufferedOutputStream;
+import java.io.IOException;
+
+import org.kawane.filebox.boost.JBoost;
 
 /**
  * @author Jean-Charles Roger
@@ -12,10 +15,19 @@ import java.io.ByteArrayInputStream;
  */
 public class FileboxService implements NetworkService {
 
-	
-	
 	public void handleRequest(HttpRequest request, HttpResponse response) {
-		response.setContents(new ByteArrayInputStream("<html><body>Hello world!</body></html>".getBytes()));
+		JBoost boost = new JBoost("filebox", 1);
+		boost.initializeReading(request.getContents());
+		String readString = boost.readString();
+		boost.close();
+		System.out.println("Read " + readString);
 	}
 
+	
+	public static void main(String[] args) throws IOException {
+		JBoost boost = new JBoost("filebox", 1);
+		boost.initializeWriting(new BufferedOutputStream(System.out));
+		boost.writeString("Hello Laurent");
+		boost.close();
+	}
 }
