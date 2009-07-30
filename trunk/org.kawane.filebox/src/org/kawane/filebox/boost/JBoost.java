@@ -800,7 +800,9 @@ public class JBoost implements Boost {
 	
 	protected void basicReadChar() {
 		try {
-			lookAheadChar = (char) reader.read();
+			int read = reader.read();
+			if ( read < 0 ) errorHandler.handleError(ErrorHandler.FATAL_ERROR, "EOF reached.");
+			lookAheadChar = (char) read;
 		} catch (IOException e) {
 			errorHandler.handleError(ErrorHandler.FATAL_ERROR, "I/O error: " + e.getMessage());
 		}
