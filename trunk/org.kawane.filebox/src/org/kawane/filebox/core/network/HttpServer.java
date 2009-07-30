@@ -94,9 +94,14 @@ public class HttpServer implements Runnable {
 				response.setText(Http.TEXT_FORBIDDEN);
 			}
 			response.writeResponse(socket.getOutputStream());
-			socket.close();
 			
 		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		try {
+			socket.close();
+		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
