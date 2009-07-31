@@ -11,6 +11,7 @@ import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.kawane.filebox.core.DistantFilebox;
 import org.kawane.filebox.core.Globals;
 import org.kawane.filebox.core.Preferences;
 
@@ -58,6 +59,7 @@ public class HttpServer implements Runnable {
 		while (isRunning()) {
 			try {
 				final Socket socket = serverSocket.accept();
+				System.out.println("Accepted socket: " + socket);
 				executors.execute(new Runnable() {
 					public void run() {
 						handleSocket(socket);
@@ -75,25 +77,26 @@ public class HttpServer implements Runnable {
 	 */
 	protected void handleSocket(Socket socket) {
 		try {
-			HttpRequest request = HttpRequest.readRequest(socket.getInputStream());
-
+			HttpRequest request = HttpRequest.read(socket.getInputStream());
 			NetworkService service = null;
+			DistantFilebox filebox = null;
 			if ( request != null ) {
 				String [] fragments = request.getUrl().split("/");
 				if ( fragments.length > 0 ) {
 					int i = 0;
 					while ( i < fragments.length  && fragments[i].length() == 0) i++;
-					service = Globals.getNetworkServices().get(fragments[i]);
+					service = Globals.getNetworkServices().get(fragments[i++]);
+					if ( i < fragments.length ) filebox = Globals.getFileboxRegistry().getFilebox(fragments[i]);
 				}
 			}
 			HttpResponse response = new HttpResponse();
-			if  ( service != null ) {
-				service.handleRequest(request, response);
+			if  ( service != null || filebox != null ) {
+				service.handleRequest(filebox, request, response);
 			} else {
 				response.setCode(Http.CODE_FORBIDDEN);
 				response.setText(Http.TEXT_FORBIDDEN);
 			}
-			response.writeResponse(socket.getOutputStream());
+			response.write(socket.getOutputStream());
 			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

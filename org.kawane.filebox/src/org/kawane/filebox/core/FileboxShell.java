@@ -59,9 +59,7 @@ public class FileboxShell  {
 		Globals.setNetworkServices(networkServices);
 		networkServices.put("filebox", new FileboxService());
 		
-		HttpServer httpServer = new HttpServer();
-		httpServer.start();
-		Globals.setHttpServer(httpServer);
+		Globals.setHttpServer(new HttpServer());
 	}
 
 	public void start() {

@@ -14,16 +14,16 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
+import org.kawane.filebox.core.DistantFilebox;
 import org.kawane.filebox.core.Filebox;
+import org.kawane.filebox.core.FileboxRegistry;
 import org.kawane.filebox.core.Globals;
-import org.kawane.filebox.core.Preferences;
 
 /**
  * @author Jean-Charles Roger
@@ -34,8 +34,6 @@ public class FileboxMainComposite extends Composite {
 	/** Shared resources instances. */
 	protected Resources resources = Resources.getInstance();
 
-	final private Preferences preferences = Globals.getPreferences();
-
 	protected GridLayout layout;
 
 	protected Label meLabel;
@@ -44,9 +42,9 @@ public class FileboxMainComposite extends Composite {
 		@Override
 		public void widgetSelected(SelectionEvent e) {
 			if ( statusCombo.getSelectionIndex() == 0 ) {
-				getLocalFilebox().connect();
+				Globals.getLocalFilebox().connect();
 			} else {
-				getLocalFilebox().disconnect();
+				Globals.getLocalFilebox().disconnect();
 			}
 		}
 	};
@@ -60,9 +58,9 @@ public class FileboxMainComposite extends Composite {
 			if ( e.type == SWT.SetData ) {
 					TableItem item = (TableItem)e.item;
 					int index = contactsTable.indexOf(item);
-					Filebox distantFilebox = filebox.getFilebox(index);
+					DistantFilebox distantFilebox = Globals.getFileboxRegistry().getFilebox(index);
 					item.setData(distantFilebox);
-					item.setImage(0, resources.getImage(distantFilebox.isConnected() ? "connected.png" : "disconnected.png"));
+					item.setImage(0, resources.getImage(/*distantFilebox.isConnected()*/ true ? "connected.png" : "disconnected.png"));
 					item.setText(1, distantFilebox.getName());
 					item.setText(2, distantFilebox.getHost());
 				return;
@@ -82,20 +80,19 @@ public class FileboxMainComposite extends Composite {
 		public void propertyChange(final PropertyChangeEvent evt) {
 			getDisplay().asyncExec(new Runnable(){
 				public void run() {
-					// application changed
-					if ( evt.getSource() == getLocalFilebox() ) {
-						if ( Filebox.FILEBOXES.equals(evt.getPropertyName()) ) {
-							contactsTable.setItemCount(getLocalFilebox().getFileboxesCount());
-						}
-						return;
+					
+					// local filebox changed
+					if ( evt.getSource() == Globals.getLocalFilebox() ) {
+						meLabel.setText(Globals.getLocalFilebox().getName());
+						meLabel.getParent().layout();
+						statusCombo.select(Globals.getLocalFilebox().isConnected() ? 0 : 1);
 					}
-
-					// preferences changed
-					if (evt.getSource() == preferences ) {
-						if ( Preferences.NAME.equals(evt.getPropertyName()) ) {
-							meLabel.setText(preferences.getName());
-							// refresh parent's layout for label length
-							meLabel.getParent().layout();
+					
+					// fileboxes changed
+					if ( evt.getSource() == Globals.getFileboxRegistry() ) {
+						if ( FileboxRegistry.FILEBOXES.equals(evt.getPropertyName()) ) {
+							contactsTable.setItemCount(Globals.getFileboxRegistry().getFileboxesCount());
+							contactsTable.clearAll();
 						}
 						return;
 					}
@@ -105,7 +102,8 @@ public class FileboxMainComposite extends Composite {
 	};
 	public FileboxMainComposite(Composite parent, int style) {
 		super(parent, style);
-		setFilebox(Globals.getLocalFilebox());
+		Globals.getLocalFilebox().addPropertyChangeListener(propertiesListener);
+		Globals.getFileboxRegistry().addPropertyChangeListener(propertiesListener);
 
 		layout = new GridLayout(1,false);
 		setLayout(layout);
@@ -160,31 +158,13 @@ public class FileboxMainComposite extends Composite {
 		hostColumn.setWidth(hostSize);
 	}
 
-	public void setFilebox(final Filebox filebox) {
-		if ( this.filebox != null ) {
-			this.filebox.removePropertyChangeListener(propertiesListener);
-		}
-		if ( filebox != null ) {
-			filebox.addPropertyChangeListener(propertiesListener);
-		}
-		this.filebox = filebox;
-		Display.getDefault().asyncExec(new Runnable() {
-			public void run() {
-				if (filebox != null) {
-						meLabel.setText(filebox.getName());
-						meLabel.getParent().layout();
-						statusCombo.select(filebox.isConnected() ? 0 : 1);
-				} else {
-					meLabel.setText("Me");
-					meLabel.getParent().layout();
-					statusCombo.select(1);
-				}
-			}
-		});
+	@Override
+	public void dispose() {
+		super.dispose();
+		
+		Globals.getLocalFilebox().removePropertyChangeListener(propertiesListener);
+		Globals.getFileboxRegistry().removePropertyChangeListener(propertiesListener);
+	
 	}
-
-	public Filebox getLocalFilebox() {
-		return filebox;
-	}
-
+	
 }
