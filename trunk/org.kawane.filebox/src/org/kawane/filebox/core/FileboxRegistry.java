@@ -10,32 +10,7 @@ public class FileboxRegistry implements Observable {
 
 	public static final String FILEBOXES = "fileboxes";
 
-	/** Internal descriptor for Fileboxes */
-	static class FileboxDescriptor {
-		public String name;
-		public String host;
-		public int port;
-		public Filebox filebox;
-
-		public FileboxDescriptor(String name, String host, int port, Filebox filebox) {
-			this.name = name;
-			this.host = host;
-			this.port = port;
-			this.filebox = filebox;
-		}
-
-		public boolean equals(Object obj) {
-			if ( obj instanceof FileboxDescriptor ) {
-				FileboxDescriptor fd = (FileboxDescriptor) obj;
-				return 	(name == null ? fd.name == null : name.equals(fd.name)) &&
-						(host == null ? fd.host == null : host.equals(fd.host)) &&
-						port == fd.port;
-			}
-			return false;
-		}
-	}
-
-	final private ArrayList<FileboxDescriptor> fileboxes = new ArrayList<FileboxDescriptor>();
+	final private ArrayList<DistantFilebox> fileboxes = new ArrayList<DistantFilebox>();
 
 	final protected Observable.Stub obs = new Observable.Stub();
 
@@ -46,39 +21,48 @@ public class FileboxRegistry implements Observable {
 		return fileboxes.size();
 	}
 
-	public List<Filebox> getFileboxes() {
-		List<Filebox> result = new ArrayList<Filebox>(fileboxes.size());
-		for ( FileboxDescriptor desc : fileboxes ) {
-			result.add(desc.filebox);
+	public List<DistantFilebox> getFileboxes() {
+		List<DistantFilebox> result = new ArrayList<DistantFilebox>(fileboxes.size());
+		for ( DistantFilebox desc : fileboxes ) {
+			result.add(desc);
 		}
 		return Collections.unmodifiableList(result);
 	}
 
-	public Filebox getFilebox(int index) {
-		return fileboxes.get(index).filebox;
+	public DistantFilebox getFilebox(int index) {
+		return fileboxes.get(index);
+	}
+	
+	public DistantFilebox getFilebox(String id) {
+		for ( DistantFilebox filebox : fileboxes ) {
+			if ( filebox.getId().equals(id) ) {
+				return filebox;
+			}
+		}
+		return null;
 	}
 
-	public void addFilebox(FileboxDescriptor newFilebox) {
+	public void addFilebox(DistantFilebox newFilebox) {
 		addFilebox(0, newFilebox);
 	}
 
-	public void addFilebox(int index, FileboxDescriptor newFilebox) {
+	public void addFilebox(int index, DistantFilebox newFilebox) {
 		fileboxes.add(index, newFilebox);
-		obs.fireIndexedPropertyChange(this, FILEBOXES, index, null, newFilebox.filebox);
+		obs.fireIndexedPropertyChange(this, FILEBOXES, index, null, newFilebox);
 	}
 
-	public Filebox removeFilebox(FileboxDescriptor filebox) {
+	public DistantFilebox removeFilebox(DistantFilebox filebox) {
 		int index = fileboxes.indexOf(filebox);
 		if ( index < 0) return null;
 		return removeFilebox(index);
 	}
 
-	public Filebox removeFilebox(int index) {
-		FileboxDescriptor oldFilebox = fileboxes.remove(index);
-		obs.fireIndexedPropertyChange(this, FILEBOXES, index, oldFilebox.filebox, null);
-		return oldFilebox.filebox;
+	public DistantFilebox removeFilebox(int index) {
+		DistantFilebox oldFilebox = fileboxes.remove(index);
+		obs.fireIndexedPropertyChange(this, FILEBOXES, index, oldFilebox, null);
+		return oldFilebox;
 	}
-
+	
 	public void addPropertyChangeListener(PropertyChangeListener listener) {
 		obs.addPropertyChangeListener(listener);
 	}
@@ -89,16 +73,14 @@ public class FileboxRegistry implements Observable {
 
 	public void registerFilebox(String name, String host, int port) {
 
-		FileboxDescriptor desc = new FileboxDescriptor(name, host, port, null);
+		DistantFilebox desc = new DistantFilebox(name, host, port);
 		if ( !fileboxes.contains(desc)) {
-			// TODO Retrieve Filebox remote info: deserialized from HTTP json
-//				desc.filebox = (Filebox) LocateRegistry.getRegistry(host, port).lookup("filebox");
-				addFilebox(desc);
+			addFilebox(desc);
 		}
 	}
 
 	public void unregisterFilebox(String name, String host, int port) {
-		FileboxDescriptor desc = new FileboxDescriptor(name, host, port, null);
-		/* Filebox removedFilebox = */ removeFilebox(desc);
+		DistantFilebox desc = new DistantFilebox(name, host, port);
+		removeFilebox(desc);
 	}
 }

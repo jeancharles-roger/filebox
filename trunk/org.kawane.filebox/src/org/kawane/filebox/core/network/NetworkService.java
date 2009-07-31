@@ -4,6 +4,8 @@
  */
 package org.kawane.filebox.core.network;
 
+import org.kawane.filebox.core.DistantFilebox;
+
 /**
  * 
  * A {@link NetworkService} is able to handle {@link HttpRequest} to propose a network service. 
@@ -13,7 +15,7 @@ package org.kawane.filebox.core.network;
  */
 public interface NetworkService {
 
-	/** Handle a request */
-	public void handleRequest(HttpRequest request, HttpResponse response); 
+	/** Handle a request for a given Filebox. */
+	public void handleRequest(DistantFilebox source, HttpRequest request, HttpResponse response); 
 	
 }

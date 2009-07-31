@@ -1,7 +1,6 @@
 package org.kawane.filebox.core.discovery;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -14,13 +13,11 @@ import javax.jmdns.ServiceListener;
 import javax.jmdns.ServiceTypeListener;
 
 import org.kawane.filebox.core.Filebox;
-import org.kawane.filebox.core.FileboxRegistry;
+import org.kawane.filebox.core.Globals;
 
-public class JmDNSServiceDiscovery implements ServiceListener,
-		ServiceDiscovery, ServiceTypeListener {
+public class JmDNSServiceDiscovery implements ServiceListener, ServiceDiscovery, ServiceTypeListener {
 
-	private static Logger logger = Logger.getLogger(JmDNSServiceDiscovery.class
-			.getName());
+	private static Logger logger = Logger.getLogger(JmDNSServiceDiscovery.class.getName());
 
 	Map<String, Filebox> fileBoxes = new HashMap<String, Filebox>();
 
@@ -29,7 +26,6 @@ public class JmDNSServiceDiscovery implements ServiceListener,
 	private String name;
 	private int port;
 	private Object waitInitialization = new Object();
-	private FileboxRegistry fileboxRegistry;
 
 	public String getName() {
 		return name;
@@ -43,10 +39,6 @@ public class JmDNSServiceDiscovery implements ServiceListener,
 		return dns.getHostName();
 	}
 
-	public void setFileboxRegistry(FileboxRegistry registry) {
-		this.fileboxRegistry = registry;
-	}
-
 	public void connect(String lname, int lport,
 			final ConnectionListener listener) {
 		this.name = lname;
@@ -56,10 +48,9 @@ public class JmDNSServiceDiscovery implements ServiceListener,
 				@Override
 				public void run() {
 					try {
-						serviceInfo = ServiceInfo.create(FILEBOX_TYPE, name,
-								port, "");
+						serviceInfo = ServiceInfo.create(FILEBOX_TYPE, name, port, "");
 						dns.registerService(serviceInfo);
-						listener.connected(JmDNSServiceDiscovery.this);
+						if ( listener != null ) listener.connected(JmDNSServiceDiscovery.this);
 					} catch (IOException e) {
 						logger.log(Level.SEVERE, "An Error Occured", e);
 					}
@@ -106,15 +97,6 @@ public class JmDNSServiceDiscovery implements ServiceListener,
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see org.kawane.filebox.core.IServiceDiscovery#getServices()
-	 */
-	public Collection<Filebox> getServices() {
-		return fileboxRegistry.getFileboxes();
-	}
-
 	public void serviceTypeAdded(ServiceEvent event) {
 		if (event.getType().equals(FILEBOX_TYPE)) {
 			dns.addServiceListener(FILEBOX_TYPE, JmDNSServiceDiscovery.this);
@@ -130,20 +112,20 @@ public class JmDNSServiceDiscovery implements ServiceListener,
 						dns.requestServiceInfo(event.getType(), event.getName());
 						info = dns.getServiceInfo(event.getType(), event.getName());
 					}
-					fileboxRegistry.registerFilebox(event.getName(), info.getHostAddress(), info.getPort());
+					Globals.getFileboxRegistry().registerFilebox(event.getName(), info.getHostAddress(), info.getPort());
 				}
 			});
 			// this thread forces to resolve the service.
 			thread.start();
 		} else {
 			// register the service now
-			fileboxRegistry.registerFilebox(event.getName(), event.getInfo().getHostAddress(), event.getInfo().getPort());
+			Globals.getFileboxRegistry().registerFilebox(event.getName(), event.getInfo().getHostAddress(), event.getInfo().getPort());
 		}
 	}
 
 	public void serviceRemoved(ServiceEvent event) {
 		ServiceInfo info = event.getDNS().getServiceInfo(FILEBOX_TYPE, event.getName());
-		fileboxRegistry.unregisterFilebox(event.getName(), info.getHostAddress(), info.getPort());
+		Globals.getFileboxRegistry().unregisterFilebox(event.getName(), info.getHostAddress(), info.getPort());
 	}
 
 	public void serviceResolved(ServiceEvent event) {
