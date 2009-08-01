@@ -1,9 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="File box" default="build.linux">
+<project name="FileBox" default="build.macosx">
 	<property file="build.properties" />
 	<delete dir="${destination}" />
 	<mkdir dir="${destination}" />
+	<mkdir dir="${destination}/jars" />
 
+	<target name="jar">
+		<jar 
+			destfile="${destination}/jars/Filebox.jar"
+			manifest="${template_dir}/jars/MANIFEST.MF"
+		>
+			<fileset dir="../org.kawane.filebox/bin">
+				<include name="**/*" />
+			</fileset>
+			
+		</jar>
+	</target>
+	
 	<target name="build.linux">
 		<pde.exportPlugins destination="${destination}" exportSource="false" plugins="${bundles}" exportType="directory" useJARFormat="true" />
 		<copy todir="${destination}/plugins">
@@ -24,21 +37,16 @@
 	</target>
 
 	
-	<target name="build.macosx">
+	<target name="build.macosx" depends="jar">
 		<copy todir="${destination}">
 			<fileset dir="${template_dir}/macosx">
 				<include name="**/*" />
 				<exclude name="**/.svn" />
 			</fileset>
 		</copy>
-		<pde.exportPlugins destination="${destination}/Filebox.app/Contents/MacOS" exportSource="false" plugins="${bundles}" exportType="directory" useJARFormat="true" />
-		<copy todir="${destination}/Filebox.app/Contents/MacOS/plugins">
-			<fileset dir="${platform_dir}">
-				<include name="*.jar" />
-				<exclude name="*linux*.jar"/>
-				<exclude name="*win32*.jar"/>
-			</fileset>
-		</copy>
+		<copy file="${destination}/jars/Filebox.jar" tofile="${destination}/Filebox.app/Contents/MacOS/jars/Filebox.jar"/>
+		<copy file="jars/org.eclipse.swt.cocoa.macosx_3.5.0.v3550b.jar" tofile="${destination}/Filebox.app/Contents/MacOS/jars/swt.jar"/>
+		<copy file="jars/jmdns.jar" tofile="${destination}/Filebox.app/Contents/MacOS/jars/jmdns.jar"/>
 		<chmod perm="+x" file="${destination}/Filebox.app/Contents/MacOS/filebox"/>
 		<eclipse.refreshLocal resource="dist" />
 	</target>
