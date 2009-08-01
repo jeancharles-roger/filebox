@@ -14,6 +14,7 @@ import org.eclipse.swt.events.MenuAdapter;
 import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
@@ -95,8 +96,13 @@ public class MenuManager {
 			final TrayItem item = new TrayItem(tray, SWT.NONE);
 			final Menu menu = createPopupMenu(shell, getSystemTrayActions(shell));
 
-			item.setImage(resources.getImage("filebox-small.png"));
+			item.setImage(resources.getImage("filebox-tray.png"));
 			item.setToolTipText("Filebox");
+//			item.addSelectionListener(new SelectionAdapter() {
+//				public void widgetSelected(SelectionEvent arg0) {
+//					menu.setVisible(true);
+//				}
+//			});
 			item.addListener(SWT.MenuDetect, new Listener() {
 				public void handleEvent(Event event) {
 					menu.setVisible(true);

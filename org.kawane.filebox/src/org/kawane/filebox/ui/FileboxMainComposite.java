@@ -60,7 +60,8 @@ public class FileboxMainComposite extends Composite {
 					int index = contactsTable.indexOf(item);
 					DistantFilebox distantFilebox = Globals.getFileboxRegistry().getFilebox(index);
 					item.setData(distantFilebox);
-					item.setImage(0, resources.getImage(/*distantFilebox.isConnected()*/ true ? "connected.png" : "disconnected.png"));
+					//item.setImage(0, resources.getImage(distantFilebox.isConnected() ? "connected.png" : "disconnected.png"));
+					item.setImage(0, resources.getImage("connected.png"));
 					item.setText(1, distantFilebox.getName());
 					item.setText(2, distantFilebox.getHost());
 				return;
