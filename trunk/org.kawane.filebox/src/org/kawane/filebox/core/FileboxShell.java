@@ -74,7 +74,7 @@ public class FileboxShell  {
 
 		// our first window
 		final Shell shell = new Shell(display);
-		shell.setImage(resources.getImage("filebox.png"));
+		shell.setImage(resources.getImage("filebox-icon-256x256.png"));
 		shell.setLayout(new FillLayout());
 		shell.setSize(300, 300);
 		shell.setText("FileBox");
