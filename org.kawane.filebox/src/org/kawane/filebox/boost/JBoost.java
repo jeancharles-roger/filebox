@@ -30,9 +30,9 @@ import org.kawane.filebox.core.ErrorHandler;
  * A {@link JBoost} is able to serialize and deserialize {@link BoostObject} to
  * text files in UTF-8 encoding.
  * </p>
- * 
+ *
  * <b>Writing example</b>
- * 
+ *
  * <pre>
  * JBoost boost = new JBoost(&quot;Cob&quot;, 1);
  * FileOutputStream fileStream = new FileOutputStream(file);
@@ -40,9 +40,9 @@ import org.kawane.filebox.core.ErrorHandler;
  * boost.writeObject(this);
  * boost.close();
  * </pre>
- * 
+ *
  * <b>Reading example</b>
- * 
+ *
  * <pre>
  * JBoost boost = new JBoost(&quot;Cob&quot;, 1);
  * FileInputStream fileStream = new FileInputStream(file);
@@ -50,9 +50,9 @@ import org.kawane.filebox.core.ErrorHandler;
  * Model result = (Model) boost.readObject();
  * boost.close();
  * </pre>
- * 
+ *
  * @author Jean-Charles Roger (jeancharles.roger@geensys.com)
- * 
+ *
  */
 public class JBoost implements Boost {
 
@@ -138,7 +138,7 @@ public class JBoost implements Boost {
 	 * <p>
 	 * Creates a {@link JBoost} instance for a special type and version.
 	 * </p>
-	 * 
+	 *
 	 * @param type
 	 *            type of file to read.
 	 * @param version
@@ -154,7 +154,7 @@ public class JBoost implements Boost {
 	 * The current file version that is currently loading. Accessible only after
 	 * {@link #initializeReading(InputStream)}.
 	 * </p>
-	 * 
+	 *
 	 * @return the current file version.
 	 */
 	public int getFileVersion() {
@@ -563,9 +563,9 @@ public class JBoost implements Boost {
 			return null;
 		}
 
-		// case of a reference 
+		// case of a reference
 		if ( token.charAt(0) == '!' ) {
-			
+
 			// get size from token: '![size]'
 			int size = Integer.valueOf(token.substring(1));
 
@@ -573,14 +573,14 @@ public class JBoost implements Boost {
 			readToken(":");
 
 			String result = readNCharacters(size);
-			
+
 			// consume space after string.
 			readToken(" ");
-			
+
 			return resolveReference(result, objectClass);
 		}
-		
-		
+
+
 		// lastDelimiter must be must be equals to "{".
 
 		token = nextToken();
@@ -592,7 +592,7 @@ public class JBoost implements Boost {
 		if (token.equals(" ")) {
 			Class<? extends T> objectRealClass = readClass(objectClass);
 			try {
-				result = (T) objectRealClass.newInstance();
+				result = objectRealClass.newInstance();
 			} catch (InstantiationException e) {
 				errorHandler.handleError(ErrorHandler.FATAL_ERROR, "Instanciation error: " + e.getMessage());
 				return result;
@@ -671,8 +671,12 @@ public class JBoost implements Boost {
 		}
 
 		if (!parentClass.isAssignableFrom(result)) {
+			String simpleName = null;
+			if(result != null) {
+				simpleName = result.getSimpleName();
+			}
 			errorHandler.handleError(ErrorHandler.FATAL_ERROR, "Excepting for class " + parentClass.getSimpleName()
-					+ " but read incompatible class " + result.getSimpleName() + ".");
+					+ " but read incompatible class " + simpleName + ".");
 			return null;
 		}
 
@@ -704,7 +708,7 @@ public class JBoost implements Boost {
 		readToken(":");
 
 		String result = readNCharacters(size);
-		
+
 		// consume space after string.
 		readToken(" ");
 		return result;
@@ -745,7 +749,7 @@ public class JBoost implements Boost {
 	public <T extends Enum<T>> T readEnum(Class<T> enumClass) {
 		return Enum.valueOf(enumClass, readString());
 	}
-	
+
 	protected void basicWriteString(String value) {
 		try {
 			writer.write(value);
@@ -778,7 +782,7 @@ public class JBoost implements Boost {
 	 * ', '<code> </code>', '<code>s3</code>', '<code>:</code>', '
 	 * <code>token</code>'
 	 * </ul>
-	 * 
+	 *
 	 * @return the next token in the stream.
 	 */
 	protected String nextToken() {
@@ -791,13 +795,13 @@ public class JBoost implements Boost {
 					basicReadChar();
 				}
 				return tokenBuffer.toString();
-			default: 
+			default:
 				tokenBuffer.append(lookAheadChar);
 				basicReadChar();
 			}
 		}
 	}
-	
+
 	protected void basicReadChar() {
 		try {
 			int read = reader.read();
@@ -830,6 +834,6 @@ public class JBoost implements Boost {
 		errorHandler.handleError(ErrorHandler.ERROR, "This Boost implementation doesn't handle references (ref: " + reference + ").");
 		return null;
 	}
-	
+
 }
 

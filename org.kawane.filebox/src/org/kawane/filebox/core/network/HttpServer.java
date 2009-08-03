@@ -22,16 +22,16 @@ import org.kawane.filebox.core.Preferences;
 public class HttpServer implements Runnable {
 
 	private static final int THREADS_POOL_SIZE = 3;
-	
+
 //	private Filebox filebox = Globals.getLocalFilebox();
 	private Preferences preferences = Globals.getPreferences();
-	
+
 	private ServerSocket serverSocket;
 	private ExecutorService executors = Executors.newFixedThreadPool(THREADS_POOL_SIZE);
 	private Thread internalThread = new Thread(this, "HttpServer");
-	
+
 	private boolean running = false;
-	
+
 	protected void initializeServer() {
 		try {
 			serverSocket = new ServerSocket(preferences.getPort());
@@ -40,21 +40,21 @@ public class HttpServer implements Runnable {
 			// TOD check errors
 		}
 	}
-	
+
 	public synchronized boolean isRunning() { return running; }
-	
-	
+
+
 	public void start() {
 		initializeServer();
 		running = true;
 		internalThread.start();
 	}
-	
+
 	public synchronized void stop() {
 		running = false;
 		executors.shutdown();
 	}
-	
+
 	public void run() {
 		while (isRunning()) {
 			try {
@@ -66,11 +66,11 @@ public class HttpServer implements Runnable {
 					}
 				});
 			} catch (IOException e) {
-				// do nothing 
+				// do nothing
 			}
 		}
 	}
-	
+
 	/**
 	 * Ran in a thread from the executor pools.
 	 * It handles a socket when it receives it.
@@ -90,14 +90,14 @@ public class HttpServer implements Runnable {
 				}
 			}
 			HttpResponse response = new HttpResponse();
-			if  ( service != null || filebox != null ) {
+			if  ( service != null && filebox != null ) {
 				service.handleRequest(filebox, request, response);
 			} else {
 				response.setCode(Http.CODE_FORBIDDEN);
 				response.setText(Http.TEXT_FORBIDDEN);
 			}
 			response.write(socket.getOutputStream());
-			
+
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

@@ -65,12 +65,16 @@ public class JmDNSServiceDiscovery implements ServiceListener, ServiceDiscovery,
 			Thread thread = new Thread() {
 				@Override
 				public void run() {
-					if (serviceInfo != null) {
-						dns.unregisterService(serviceInfo);
-						serviceInfo = null;
-					}
-					if(listener != null) {
-						listener.disconnected(JmDNSServiceDiscovery.this);
+					try {
+						if (serviceInfo != null) {
+							dns.unregisterService(serviceInfo);
+							serviceInfo = null;
+						}
+						if(listener != null) {
+							listener.disconnected(JmDNSServiceDiscovery.this);
+						}
+					} catch (Exception e) {
+						logger.log(Level.SEVERE, "An Error Occured", e);
 					}
 				}
 			};
