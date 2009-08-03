@@ -19,24 +19,24 @@ import java.util.logging.Logger;
  *
  */
 public class Preferences implements Observable {
-	
+
 	public static final String NAME = "filebox.name";
 	public static final String PORT = "filebox.port";
-	
+
 	protected static final int DEFAULT_PORT = 9999;
 
 	private static Logger logger = Logger.getLogger(Preferences.class.getName());
-	
+
 	protected Date configurationLastLoadDate = null;
 	protected File configurationFile = null;
-	
+
 	final protected Observable.Stub obs = new Observable.Stub();
 
 	public Preferences(File configurationFile) {
 		this.configurationFile = configurationFile;
 	}
-	
-	/** 
+
+	/**
 	 * @return the configuration file.
 	 */
 	protected File getConfigurationFile() {
@@ -77,7 +77,7 @@ public class Preferences implements Observable {
 	 */
 	public void saveProperties() {
 		try {
-			configuration.store(new FileOutputStream(getConfigurationFile()), "Saved by CobEditor");
+			configuration.store(new FileOutputStream(getConfigurationFile()), "Saved by FileBox");
 		} catch (IOException e) {
 			logger.log(Level.SEVERE,"Can't save preferences (I/O error: " + e.getMessage() +").");
 		}
@@ -87,7 +87,7 @@ public class Preferences implements Observable {
 	 * <p>
 	 * Get one property's value. It reloads the configuration file if needed.
 	 * </p>
-	 * 
+	 *
 	 * @param name
 	 *            properties name.
 	 * @return the value or null if it doesn't exists.
@@ -102,7 +102,7 @@ public class Preferences implements Observable {
 	 * <p>
 	 * Set one property value. It saves the configuration file after.
 	 * </p>
-	 * 
+	 *
 	 * @param name
 	 *            properties name.
 	 * @param value
@@ -116,7 +116,7 @@ public class Preferences implements Observable {
 		obs.firePropertyChange(this, name, oldValue, value);
 	}
 
-	
+
 	public String getName() {
 		String name = getProperty(NAME);
 		if ( name == null || name.length() == 0  ) {
@@ -124,12 +124,12 @@ public class Preferences implements Observable {
 		}
 		return name;
 	}
-	
+
 	public void setName(String value) {
 		setProperty(NAME, value);
 	}
 
-	
+
 	public int getPort() {
 		String stringValue = getProperty(PORT);
 		int value = DEFAULT_PORT;
@@ -138,7 +138,7 @@ public class Preferences implements Observable {
 		} catch( NumberFormatException e)  { /* do nothing */ }
 		return value;
 	}
-	
+
 	public void setPort(int value) {
 		setProperty(PORT, Integer.toString(value));
 	}
@@ -150,5 +150,5 @@ public class Preferences implements Observable {
 	public void removePropertyChangeListener(PropertyChangeListener listener) {
 		obs.removePropertyChangeListener(listener);
 	}
-	
+
 }
