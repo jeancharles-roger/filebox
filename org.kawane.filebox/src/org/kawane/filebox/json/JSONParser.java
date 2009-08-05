@@ -64,8 +64,6 @@ public class JSONParser implements JSON {
 					context = parseMember();
 					break;
 				case ARRAY:
-					context = parseValue();
-					break;
 				case VALUE:
 					context = parseValue();
 					break;
@@ -111,14 +109,7 @@ public class JSONParser implements JSON {
 					return contexts.peek();
 				} else if (Character.isLetter(c)) {
 					// keyword
-					String value = parseIdentifier(c);
-					if (TRUE.equalsIgnoreCase(value) || FALSE.equalsIgnoreCase(value)) {
-						handler.booleanValue(Boolean.parseBoolean(value));
-					} else if (NULL.equalsIgnoreCase(value)) {
-						handler.nullValue();
-					} else {
-						handler.value(value);
-					}
+					handleKeyword(parseIdentifier(c));
 					return contexts.peek();
 				}
 			}
@@ -148,6 +139,16 @@ public class JSONParser implements JSON {
 			c = eat();
 		}
 		return null;
+	}
+
+	private void handleKeyword(String value) {
+		if (TRUE.equalsIgnoreCase(value) || FALSE.equalsIgnoreCase(value)) {
+			handler.booleanValue(Boolean.parseBoolean(value));
+		} else if (NULL.equalsIgnoreCase(value)) {
+			handler.nullValue();
+		} else {
+			handler.value(value);
+		}
 	}
 
 	private int parseMember() throws IOException {
