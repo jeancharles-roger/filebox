@@ -7,9 +7,9 @@ package org.kawane.filebox.core;
  * <p>
  * Handles errors for models actions;
  * </p>
- * 
- * @author Jean-Charles Roger 
- * 
+ *
+ * @author Jean-Charles Roger
+ *
  */
 public interface ErrorHandler {
 
@@ -17,7 +17,8 @@ public interface ErrorHandler {
 	static final int ERROR = 1;
 	static final int FATAL_ERROR = 2;
 
-	public void handleError(int type, String message);
+	void handleError(int type, String message);
+	void handleError(int type, Exception e);
 
 	/**
 	 * <p>
@@ -34,6 +35,17 @@ public interface ErrorHandler {
 				throw new RuntimeException(message);
 			}
 		};
+		@Override
+		public void handleError(int type, Exception e) {
+			e.printStackTrace();
+			switch (type) {
+			case ERROR:
+			case FATAL_ERROR:
+				throw new RuntimeException(e);
+			}
+		}
 	};
+
+
 
 }

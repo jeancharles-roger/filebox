@@ -1,34 +1,12 @@
-package org.kawane.filebox.boost;
+package org.kawane.filebox.json;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.Stack;
 
-public class JSONStreamReader {
+public class JSONStreamReader implements JSONConstants, JSONReader{
 
-	static final public int JSON_END_DOCUMENT = -1;
-	static final public int JSON_START = 0;
-	static final public int JSON_START_DOCUMENT = 1;
-	static final public int JSON_START_OBJECT = 2;
-	static final public int JSON_END_OBJECT = 3;
-	static final public int JSON_MEMBER = 4;
-	static final public int JSON_VALUE = 5;
-	static final public int JSON_START_ARRAY = 6;
-	static final public int JSON_END_ARRAY = 7;
-
-	static final public int JSON_STRING_TYPE = 1;
-	static final public int JSON_NUMBER_TYPE = 2;
-	static final public int JSON_BOOLEAN_TYPE = 3;
-	static final public int JSON_NULL_TYPE = 4;
-	static final public int JSON_UNKNOWN_TYPE = 5;
-
-	// KEYWORD
-	static final public String TRUE = "true";
-	static final public String FALSE = "false";
-	static final public String NULL = "null";
+	public static int defaultCharBufferSize = 8192;
 
 	private Reader in;
 
@@ -39,21 +17,45 @@ public class JSONStreamReader {
 
 	private String name;
 
-	private Object value;
+	private String value;
 
 	private int type;
 
-	private char charMemento = 0;
 	private StringBuffer sb = new StringBuffer();
 
-	public JSONStreamReader(Reader reader) {
+	private char[] buf;
+
+	private int cursor = -1;
+
+	private int length = 0;
+
+	public JSONStreamReader(Reader in) {
+		this(in, defaultCharBufferSize);
+	}
+
+	public JSONStreamReader(Reader reader, int bufferSize) {
 		this.in = reader;
+		buf = new char[bufferSize];
 	}
 
-	static public JSONStreamReader create(Reader reader) {
-		return new JSONStreamReader(new BufferedReader(reader));
+	static public JSONReader create(Reader reader) {
+		return new JSONStreamReader(reader);
 	}
 
+	private char eat() throws IOException {
+		if(cursor == -1 || cursor >= length) {
+				length = in.read(buf);
+				cursor = 0;
+				if(length == -1 || length == 0) {
+					return (char)-1;
+			}
+		}
+		return buf[cursor++];
+	}
+
+	/* (non-Javadoc)
+	 * @see org.kawane.filebox.boost.JSONReader#next()
+	 */
 	public int next() throws IOException {
 		int token = -1;
 		value = null;
@@ -86,15 +88,6 @@ public class JSONStreamReader {
 		}
 		currentToken = token;
 		return token;
-	}
-
-	private char eat() throws IOException {
-		if(charMemento != 0) {
-			char recordChar = charMemento;
-			charMemento = 0;
-			return recordChar;
-		}
-		return (char) in.read();
 	}
 
 	private int parseDocument() throws IOException {
@@ -135,10 +128,9 @@ public class JSONStreamReader {
 				} else if (Character.isLetter(c)){
 					// keyword
 					value = parseIdentifier(c);
-					if (TRUE.equalsIgnoreCase((String) value) || FALSE.equalsIgnoreCase((String) value)) {
-						value = Boolean.valueOf((String) value);
+					if (TRUE.equalsIgnoreCase(value) || FALSE.equalsIgnoreCase(value)) {
 						type = JSON_BOOLEAN_TYPE;
-					} else if (NULL.equalsIgnoreCase((String) value)) {
+					} else if (NULL.equalsIgnoreCase(value)) {
 						value = null;
 						type = JSON_NULL_TYPE;
 					} else {
@@ -151,11 +143,11 @@ public class JSONStreamReader {
 		return -1;
 	}
 
-	private Object parseNumber(char c) throws IllegalArgumentException, IOException {
+	private String parseNumber(char c) throws IllegalArgumentException, IOException {
 		return parseIdentifier(c);
 	}
 
-	private Object parseIdentifier(char c) throws IllegalArgumentException, IOException {
+	private String parseIdentifier(char c) throws IllegalArgumentException, IOException {
 		sb.setLength(0);
 		while (c != -1) {
 			switch (c) {
@@ -163,7 +155,7 @@ public class JSONStreamReader {
 				return sb.toString();
 			case '}':
 			case ']':
-				charMemento = c;
+				cursor --;
 				return sb.toString();
 			}
 			if(Character.isWhitespace(c)) {
@@ -242,84 +234,58 @@ public class JSONStreamReader {
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see org.kawane.filebox.boost.JSONReader#getName()
+	 */
 	public String getName() {
 		return name;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.kawane.filebox.boost.JSONReader#getValueType()
+	 */
 	public int getValueType() {
 		return type;
 	}
 
-	public Object getValue() {
+	/* (non-Javadoc)
+	 * @see org.kawane.filebox.boost.JSONReader#getValue()
+	 */
+	public String getValue() {
 		return value;
 	}
-	/**
-	 * Possible values are JSON_START_DOCUMENT, JSON_START_OBJECT, JSON_START_ARRAY
-	 * @return
+	@Override
+	public boolean getBoolean() {
+		return Boolean.valueOf(value);
+	}
+	@Override
+	public double getDouble() {
+		return Double.valueOf(value);
+	}
+	@Override
+	public float getFloat() {
+		return Float.valueOf(value);
+	}
+	@Override
+	public int getInteger() {
+		return Integer.valueOf(value);
+	}
+	@Override
+	public long getLong() {
+		return Long.valueOf(value);
+	}
+	/* (non-Javadoc)
+	 * @see org.kawane.filebox.boost.JSONReader#getContext()
 	 */
 	public int getContext() {
 		return contexts.peek();
 	}
 
+	/* (non-Javadoc)
+	 * @see org.kawane.filebox.boost.JSONReader#close()
+	 */
 	public void close() throws IOException {
 		in.close();
-	}
-
-	public static void main(String[] args) {
-		File folder = new File("jsonTests");
-		for (File file : folder.listFiles()) {
-			if(file.isFile() && file.getName().endsWith(".json")) {
-				try {
-					JSONStreamReader reader = JSONStreamReader.create(new FileReader(file));
-					int token = reader.next();
-					String tab = "";
-					while(token != -1) {
-						switch (token) {
-						case JSON_START_OBJECT:
-						case JSON_START_DOCUMENT:
-							tab+="\t";
-							System.out.print("{");
-							break;
-						case JSON_START_ARRAY:
-							System.out.print("[");
-							break;
-						case JSON_END_ARRAY:
-							System.out.print("]");
-							break;
-						case JSON_END_OBJECT:
-						case JSON_END_DOCUMENT:
-							tab = tab.substring(1);
-							System.out.println();
-							System.out.print(tab);
-							System.out.print("}");
-							break;
-						case JSON_MEMBER:
-							System.out.println();
-							System.out.print(tab);
-							System.out.print("\"" + reader.getName() + "\" : ");
-							break;
-						case JSON_VALUE:
-							if(reader.getValueType() == JSON_STRING_TYPE) {
-								System.out.print("\"");
-								System.out.print(reader.getValue());
-								System.out.print("\"");
-							} else {
-								System.out.print(reader.getValue());
-							}
-							System.out.print(", ");
-							break;
-						default:
-							break;
-						}
-						token = reader.next();
-					}
-					reader.close();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-
-			}
-		}
 	}
 
 
