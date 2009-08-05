@@ -55,6 +55,7 @@ public class FileboxShell  {
 		serviceDiscovery.start();
 		Globals.setServiceDiscovery(serviceDiscovery);
 		
+		
 		Map<String, NetworkService> networkServices = new HashMap<String, NetworkService>();
 		Globals.setNetworkServices(networkServices);
 		networkServices.put("filebox", new FileboxService());

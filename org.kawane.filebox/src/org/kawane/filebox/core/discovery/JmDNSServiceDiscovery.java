@@ -1,8 +1,6 @@
 package org.kawane.filebox.core.discovery;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -12,14 +10,11 @@ import javax.jmdns.ServiceInfo;
 import javax.jmdns.ServiceListener;
 import javax.jmdns.ServiceTypeListener;
 
-import org.kawane.filebox.core.Filebox;
 import org.kawane.filebox.core.Globals;
 
 public class JmDNSServiceDiscovery implements ServiceListener, ServiceDiscovery, ServiceTypeListener {
 
 	private static Logger logger = Logger.getLogger(JmDNSServiceDiscovery.class.getName());
-
-	Map<String, Filebox> fileBoxes = new HashMap<String, Filebox>();
 
 	private JmDNS dns;
 	private ServiceInfo serviceInfo;

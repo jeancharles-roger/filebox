@@ -6,10 +6,13 @@ package org.kawane.filebox.core.network;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.InputStreamReader;
 import java.net.Socket;
 
-import org.kawane.filebox.boost.JBoost;
 import org.kawane.filebox.core.DistantFilebox;
+import org.kawane.filebox.json.JSON;
+import org.kawane.filebox.json.JSONStreamReader;
+import org.kawane.filebox.json.JSONStreamWriter;
 
 /**
  * @author Jean-Charles Roger
@@ -18,9 +21,30 @@ import org.kawane.filebox.core.DistantFilebox;
 public class FileboxService implements NetworkService {
 
 	public void handleRequest(DistantFilebox source, HttpRequest request, HttpResponse response) {
-		JBoost boost = new JBoost("filebox", 1);
-		boost.initializeReading(request.getContents());
-		String readString = boost.readString();
+//		JBoost boost = new JBoost("filebox", 1);
+//		boost.initializeReading(request.getContents());
+//		String readString = boost.readString();
+		// do not close boost
+		String readString = null;
+		try {
+			JSONStreamReader reader = new JSONStreamReader(new InputStreamReader(request.getContents()));
+			int token =reader.next();
+			while (token != -1) {
+				switch (token) {
+				case JSON.VALUE:
+					readString = reader.getValue();
+					break;
+	
+				default:
+					break;
+				}
+				token = reader.next();
+			}
+			reader.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
 		// do not close boost
 		System.out.println("------------------");
 		System.out.println("Filebox service");
@@ -36,12 +60,17 @@ public class FileboxService implements NetworkService {
 		
 		Socket socket = new Socket("localhost", 9999);
 		HttpRequest request = new HttpRequest("/filebox");
-		JBoost boost = new JBoost("filebox", 1);
+//		JBoost boost = new JBoost("filebox", 1);
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-		boost.initializeWriting(outputStream);
-		boost.writeString("une phrase, on va bouffer bordel enfin j'ai la d‚‚‚‚‚‚‚lllllleee\n de mes deux");
-		boost.close();
-
+		JSONStreamWriter writer = new JSONStreamWriter(outputStream);
+		writer.beginDocument();
+		writer.writeMember("phrase");
+		writer.writeString("une phrase, on va bouffer bordel enfin j'ai la d‚‚‚‚‚‚‚lllllleee\n de mes deux");
+		writer.endDocument();
+		writer.close();
+//		boost.initializeWriting(outputStream);
+//		boost.writeString("une phrase, on va bouffer bordel enfin j'ai la d‚‚‚‚‚‚‚lllllleee\n de mes deux");
+//		boost.close();
 		ByteArrayInputStream contents = new ByteArrayInputStream(outputStream.toByteArray());
 		request.setContents(contents);
 		request.write(socket.getOutputStream());
