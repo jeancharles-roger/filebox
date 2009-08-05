@@ -34,7 +34,7 @@ public class FileboxService implements NetworkService {
 				case JSON.VALUE:
 					readString = reader.getValue();
 					break;
-	
+
 				default:
 					break;
 				}
@@ -54,28 +54,28 @@ public class FileboxService implements NetworkService {
 		System.out.println(readString);
 	}
 
-	
+
 	public static void main(String[] args) throws Exception {
 //		URL url = new URL("http://192.168.7.166:9999/filebox");
-		
+
 		Socket socket = new Socket("localhost", 9999);
 		HttpRequest request = new HttpRequest("/filebox");
 //		JBoost boost = new JBoost("filebox", 1);
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 		JSONStreamWriter writer = new JSONStreamWriter(outputStream);
 		writer.beginDocument();
-		writer.writeMember("phrase");
-		writer.writeString("une phrase, on va bouffer bordel enfin j'ai la dâââââââlllllleee\n de mes deux");
+		writer.member("phrase");
+		writer.stringValue("une phrase, on va bouffer bordel enfin j'ai la dï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½lllllleee\n de mes deux");
 		writer.endDocument();
 		writer.close();
 //		boost.initializeWriting(outputStream);
-//		boost.writeString("une phrase, on va bouffer bordel enfin j'ai la dâââââââlllllleee\n de mes deux");
+//		boost.writeString("une phrase, on va bouffer bordel enfin j'ai la dï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½lllllleee\n de mes deux");
 //		boost.close();
 		ByteArrayInputStream contents = new ByteArrayInputStream(outputStream.toByteArray());
 		request.setContents(contents);
 		request.write(socket.getOutputStream());
 		socket.getOutputStream().close();
-		
+
 		System.out.println(HttpResponse.read(socket.getInputStream()));
 	}
 }

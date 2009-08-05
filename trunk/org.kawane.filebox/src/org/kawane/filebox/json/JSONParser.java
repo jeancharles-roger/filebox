@@ -5,22 +5,19 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.Stack;
 
-public class JSONStreamReader implements JSON{
+public class JSONParser implements JSON {
+
+	public static final int EOF = -1;
+	public static final int MAIN = 0;
+	public static final int OBJECT = 1;
+	public static final int ARRAY = 2;
+	public static final int VALUE = 3;
 
 	public static int defaultCharBufferSize = 8192;
 
 	private Reader in;
 
-	private Stack<String> objects = new Stack<String>();
 	private Stack<Integer> contexts = new Stack<Integer>();
-
-	private int currentToken = 0;
-
-	private String name;
-
-	private String value;
-
-	private int type;
 
 	private StringBuffer sb = new StringBuffer();
 
@@ -29,21 +26,22 @@ public class JSONStreamReader implements JSON{
 	private int cursor = -1;
 
 	private int length = 0;
+	private JSONHandler handler;
 
-	public JSONStreamReader(Reader in) {
+	public JSONParser(Reader in) {
 		this(in, defaultCharBufferSize);
 	}
 
-	public JSONStreamReader(Reader reader, int bufferSize) {
+	public JSONParser(Reader reader, int bufferSize) {
 		this.in = reader;
 		buf = new char[bufferSize];
 	}
 
 	private char eat() throws IOException {
-		if(cursor == -1 || cursor >= length) {
+		if (cursor == -1 || cursor >= length) {
 			length = in.read(buf);
 			cursor = 0;
-			if(length == -1 /*|| length == 0*/) {
+			if (length == -1 || length == 0) {
 				throw new EOFException();
 			}
 		}
@@ -53,46 +51,37 @@ public class JSONStreamReader implements JSON{
 	/* (non-Javadoc)
 	 * @see org.kawane.filebox.boost.JSONReader#next()
 	 */
-	public int next() throws IOException {
-		int token = -1;
-		value = null;
-		type = -1;
-		switch (currentToken) {
-		case START:
-			token = parseDocument();
-			break;
-		case START_DOCUMENT:
-		case START_OBJECT:
-			token = parseMember();
-			break;
-		case MEMBER:
-		case START_ARRAY:
-			token = parseValue();
-			break;
-		case END_OBJECT:
-		case END_ARRAY:
-		case VALUE:
-			switch (contexts.peek()) {
-			case START_OBJECT:
-			case START_DOCUMENT:
-				token = parseMember();
-				break;
-			case START_ARRAY:
-				token = parseValue();
-				break;
+	public void parse(JSONHandler handler) throws IOException {
+		this.handler = handler;
+		int context = MAIN;
+		try {
+			while (context != EOF) {
+				switch (context) {
+				case MAIN:
+					context = parseDocument();
+					break;
+				case OBJECT:
+					context = parseMember();
+					break;
+				case ARRAY:
+					context = parseValue();
+					break;
+				case VALUE:
+					context = parseValue();
+					break;
+				}
 			}
-			break;
+		} catch (EOFException e) {
+
 		}
-		currentToken = token;
-		return token;
 	}
 
 	private int parseDocument() throws IOException {
 		char c;
 		while ((c = eat()) != -1) {
 			if (c == '{') {
-				contexts.push(START_DOCUMENT);
-				return START_DOCUMENT;
+				handler.beginDocument();
+				return contexts.push(OBJECT);
 			}
 		}
 		return -1;
@@ -103,37 +92,34 @@ public class JSONStreamReader implements JSON{
 		while ((c = eat()) != -1) {
 			switch (c) {
 			case '{':
-				objects.push(name);
-				contexts.push(START_OBJECT);
-				return START_OBJECT;
+				handler.beginObject();
+				return contexts.push(OBJECT);
 			case '"':
-				value = parseString();
-				type = STRING_TYPE;
-				return VALUE;
+				handler.stringValue(parseString());
+				return contexts.peek();
 			case '[':
-				contexts.push(START_ARRAY);
-				return START_ARRAY;
+				handler.beginArray();
+				return contexts.push(ARRAY);
 			case ']':
+				handler.endArray();
 				contexts.pop();
-				return END_ARRAY;
+				return contexts.peek();
 			default:
 				if (Character.isDigit(c) || c == '-') {
 					// it may be a number
-					value = parseNumber(c);
-					type = NUMBER_TYPE;
-					return VALUE;
-				} else if (Character.isLetter(c)){
+					handler.numberValue(parseNumber(c));
+					return contexts.peek();
+				} else if (Character.isLetter(c)) {
 					// keyword
-					value = parseIdentifier(c);
+					String value = parseIdentifier(c);
 					if (TRUE.equalsIgnoreCase(value) || FALSE.equalsIgnoreCase(value)) {
-						type = BOOLEAN_TYPE;
+						handler.booleanValue(Boolean.parseBoolean(value));
 					} else if (NULL.equalsIgnoreCase(value)) {
-						value = null;
-						type = NULL_TYPE;
+						handler.nullValue();
 					} else {
-						type = UNKNOWN_TYPE;
+						handler.value(value);
 					}
-					return VALUE;
+					return contexts.peek();
 				}
 			}
 		}
@@ -152,10 +138,10 @@ public class JSONStreamReader implements JSON{
 				return sb.toString();
 			case '}':
 			case ']':
-				cursor --;
+				cursor--;
 				return sb.toString();
 			}
-			if(Character.isWhitespace(c)) {
+			if (Character.isWhitespace(c)) {
 				return sb.toString();
 			}
 			sb.append(c);
@@ -169,19 +155,19 @@ public class JSONStreamReader implements JSON{
 		while ((c = eat()) != -1) {
 			switch (c) {
 			case '}':
-				if (objects.isEmpty()) {
-					currentToken = END_DOCUMENT;
-					return END_DOCUMENT;
+				contexts.pop();
+				if (contexts.isEmpty()) {
+					handler.endDocument();
+					return EOF;
 				} else {
-					name = objects.pop();
-					contexts.pop();
-					return END_OBJECT;
+					handler.endObject();
+					return contexts.peek();
 				}
 			case '"':
-				name = parseString();
+				handler.member(parseString());
 				break;
 			case ':':
-				return MEMBER;
+				return VALUE;
 			}
 		}
 		return -1;
@@ -231,59 +217,8 @@ public class JSONStreamReader implements JSON{
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.kawane.filebox.boost.JSONReader#getName()
-	 */
-	public String getName() {
-		return name;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.kawane.filebox.boost.JSONReader#getValueType()
-	 */
-	public int getValueType() {
-		return type;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.kawane.filebox.boost.JSONReader#getValue()
-	 */
-	public String getValue() {
-		return value;
-	}
-
-	public boolean getBoolean() {
-		return Boolean.valueOf(value);
-	}
-
-	public double getDouble() {
-		return Double.valueOf(value);
-	}
-
-	public float getFloat() {
-		return Float.valueOf(value);
-	}
-
-	public int getInteger() {
-		return Integer.valueOf(value);
-	}
-
-	public long getLong() {
-		return Long.valueOf(value);
-	}
-	/* (non-Javadoc)
-	 * @see org.kawane.filebox.boost.JSONReader#getContext()
-	 */
-	public int getContext() {
-		return contexts.peek();
-	}
-
-	/* (non-Javadoc)
-	 * @see org.kawane.filebox.boost.JSONReader#close()
-	 */
 	public void close() throws IOException {
 		in.close();
 	}
-
 
 }

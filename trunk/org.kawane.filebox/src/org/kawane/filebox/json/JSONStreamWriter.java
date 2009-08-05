@@ -8,7 +8,7 @@ import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.Stack;
 
-public class JSONStreamWriter {
+public class JSONStreamWriter implements JSONHandler {
 
 	private PrintWriter writer;
 
@@ -103,7 +103,7 @@ public class JSONStreamWriter {
 		firstArrayValue = false;
 	}
 
-	public void writeMember(String s) {
+	public void member(String s) {
 		if (firstMember) {
 			firstMember = false;
 		} else {
@@ -117,41 +117,40 @@ public class JSONStreamWriter {
 
 	}
 
-	public void writeBoolean(boolean bool) {
-		writeValue(String.valueOf(bool));
+	public void booleanValue(boolean bool) {
+		value(String.valueOf(bool));
 	}
 
-	public void writeDouble(double d) {
-		writeValue(String.valueOf(d));
+	public void doubleValue(double d) {
+		value(String.valueOf(d));
 	}
 
-
-	public void writeFloat(float f) {
-		writeValue(String.valueOf(f));
-	}
-
-
-	public void writeInteger(int i) {
-		writeValue(String.valueOf(i));
+	public void floatValue(float f) {
+		value(String.valueOf(f));
 	}
 
 
-	public void writeLong(long i) {
-		writeValue(String.valueOf(i));
+	public void integerValue(int i) {
+		value(String.valueOf(i));
 	}
 
 
-	public void writeString(String s) {
+	public void longValue(long i) {
+		value(String.valueOf(i));
+	}
+
+
+	public void stringValue(String s) {
 		print("\"");
-		writeValue(s);
+		value(s);
 		print("\"");
 	}
 
-	public void writeNull() {
-		writeValue("null");
+	public void nullValue() {
+		value("null");
 	}
 
-	public void writeValue(String value) {
+	public void value(String value) {
 		writeComma();
 		print(value);
 	}
@@ -165,7 +164,15 @@ public class JSONStreamWriter {
 			}
 		}
 	}
-	
+
+	public void numberValue(String value) {
+		value(value);
+	}
+
+	public void flush() {
+		writer.flush();
+	}
+
 	public void close() throws IOException {
 		writer.close();
 	}
