@@ -90,7 +90,7 @@ public class HttpServer implements Runnable {
 				}
 			}
 			HttpResponse response = new HttpResponse();
-			if  ( service != null && filebox != null ) {
+			if  ( service != null /*&& filebox != null*/ ) {
 				service.handleRequest(filebox, request, response);
 			} else {
 				response.setCode(Http.CODE_FORBIDDEN);

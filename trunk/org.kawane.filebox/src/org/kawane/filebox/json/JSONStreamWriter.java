@@ -1,13 +1,14 @@
 package org.kawane.filebox.json;
 
 import java.io.BufferedWriter;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.Stack;
 
-public class JSONStreamWriter implements JSONWriter {
+public class JSONStreamWriter {
 
 	private PrintWriter writer;
 
@@ -24,10 +25,11 @@ public class JSONStreamWriter implements JSONWriter {
 	static final private int ARRAY = 1;
 
 	public JSONStreamWriter(Writer writer) {
-		this.writer = new PrintWriter(new BufferedWriter(writer), true);
+		this.writer = new PrintWriter(new BufferedWriter(writer));
 	}
+
 	public JSONStreamWriter(OutputStream stream) {
-		this.writer = new PrintWriter(new BufferedWriter(new OutputStreamWriter(stream)), true);
+		this.writer = new PrintWriter(new BufferedWriter(new OutputStreamWriter(stream)));
 	}
 
 	private void printIndent() {
@@ -59,7 +61,6 @@ public class JSONStreamWriter implements JSONWriter {
 		lastChar = '\n';
 	}
 
-	@Override
 	public void beginDocument() {
 		context.push(OBJECT);
 		print("{");
@@ -67,12 +68,10 @@ public class JSONStreamWriter implements JSONWriter {
 		firstMember = true;
 	}
 
-	@Override
 	public void endDocument() {
 		endObject();
 	}
 
-	@Override
 	public void beginObject() {
 		writeComma();
 		context.push(OBJECT);
@@ -81,7 +80,6 @@ public class JSONStreamWriter implements JSONWriter {
 		firstMember = true;
 	}
 
-	@Override
 	public void endObject() {
 		context.pop();
 		indent--;
@@ -91,7 +89,6 @@ public class JSONStreamWriter implements JSONWriter {
 		firstArrayValue = false;
 	}
 
-	@Override
 	public void beginArray() {
 		writeComma();
 		context.push(ARRAY);
@@ -99,7 +96,6 @@ public class JSONStreamWriter implements JSONWriter {
 		firstArrayValue = true;
 	}
 
-	@Override
 	public void endArray() {
 		context.pop();
 		print("]");
@@ -107,7 +103,6 @@ public class JSONStreamWriter implements JSONWriter {
 		firstArrayValue = false;
 	}
 
-	@Override
 	public void writeMember(String s) {
 		if (firstMember) {
 			firstMember = false;
@@ -122,32 +117,30 @@ public class JSONStreamWriter implements JSONWriter {
 
 	}
 
-	@Override
 	public void writeBoolean(boolean bool) {
 		writeValue(String.valueOf(bool));
 	}
 
-	@Override
 	public void writeDouble(double d) {
 		writeValue(String.valueOf(d));
 	}
 
-	@Override
+
 	public void writeFloat(float f) {
 		writeValue(String.valueOf(f));
 	}
 
-	@Override
+
 	public void writeInteger(int i) {
 		writeValue(String.valueOf(i));
 	}
 
-	@Override
+
 	public void writeLong(long i) {
 		writeValue(String.valueOf(i));
 	}
 
-	@Override
+
 	public void writeString(String s) {
 		print("\"");
 		writeValue(s);
@@ -172,4 +165,9 @@ public class JSONStreamWriter implements JSONWriter {
 			}
 		}
 	}
+	
+	public void close() throws IOException {
+		writer.close();
+	}
+
 }

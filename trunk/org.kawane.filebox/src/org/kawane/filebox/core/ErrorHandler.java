@@ -35,7 +35,7 @@ public interface ErrorHandler {
 				throw new RuntimeException(message);
 			}
 		};
-		@Override
+		
 		public void handleError(int type, Exception e) {
 			e.printStackTrace();
 			switch (type) {

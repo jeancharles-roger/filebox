@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.Stack;
 
-public class JSONStreamReader implements JSONConstants, JSONReader{
+public class JSONStreamReader implements JSON{
 
 	public static int defaultCharBufferSize = 8192;
 
@@ -38,16 +38,21 @@ public class JSONStreamReader implements JSONConstants, JSONReader{
 		buf = new char[bufferSize];
 	}
 
-	static public JSONReader create(Reader reader) {
-		return new JSONStreamReader(reader);
-	}
-
 	private char eat() throws IOException {
 		if(cursor == -1 || cursor >= length) {
-				length = in.read(buf);
-				cursor = 0;
-				if(length == -1 || length == 0) {
+			length = in.read(buf);
+			cursor = 0;
+			while( length == 0 ) {
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
 					return (char)-1;
+				}
+				
+				length = in.read(buf);
+			}
+			if(length == -1 /*|| length == 0*/) {
+				return (char)-1;
 			}
 		}
 		return buf[cursor++];
@@ -61,26 +66,26 @@ public class JSONStreamReader implements JSONConstants, JSONReader{
 		value = null;
 		type = -1;
 		switch (currentToken) {
-		case JSON_START:
+		case START:
 			token = parseDocument();
 			break;
-		case JSON_START_DOCUMENT:
-		case JSON_START_OBJECT:
+		case START_DOCUMENT:
+		case START_OBJECT:
 			token = parseMember();
 			break;
-		case JSON_MEMBER:
-		case JSON_START_ARRAY:
+		case MEMBER:
+		case START_ARRAY:
 			token = parseValue();
 			break;
-		case JSON_END_OBJECT:
-		case JSON_END_ARRAY:
-		case JSON_VALUE:
+		case END_OBJECT:
+		case END_ARRAY:
+		case VALUE:
 			switch (contexts.peek()) {
-			case JSON_START_OBJECT:
-			case JSON_START_DOCUMENT:
+			case START_OBJECT:
+			case START_DOCUMENT:
 				token = parseMember();
 				break;
-			case JSON_START_ARRAY:
+			case START_ARRAY:
 				token = parseValue();
 				break;
 			}
@@ -94,8 +99,8 @@ public class JSONStreamReader implements JSONConstants, JSONReader{
 		char c;
 		while ((c = eat()) != -1) {
 			if (c == '{') {
-				contexts.push(JSON_START_DOCUMENT);
-				return JSON_START_DOCUMENT;
+				contexts.push(START_DOCUMENT);
+				return START_DOCUMENT;
 			}
 		}
 		return -1;
@@ -107,36 +112,36 @@ public class JSONStreamReader implements JSONConstants, JSONReader{
 			switch (c) {
 			case '{':
 				objects.push(name);
-				contexts.push(JSON_START_OBJECT);
-				return JSON_START_OBJECT;
+				contexts.push(START_OBJECT);
+				return START_OBJECT;
 			case '"':
 				value = parseString();
-				type = JSON_STRING_TYPE;
-				return JSON_VALUE;
+				type = STRING_TYPE;
+				return VALUE;
 			case '[':
-				contexts.push(JSON_START_ARRAY);
-				return JSON_START_ARRAY;
+				contexts.push(START_ARRAY);
+				return START_ARRAY;
 			case ']':
 				contexts.pop();
-				return JSON_END_ARRAY;
+				return END_ARRAY;
 			default:
 				if (Character.isDigit(c) || c == '-') {
 					// it may be a number
 					value = parseNumber(c);
-					type = JSON_NUMBER_TYPE;
-					return JSON_VALUE;
+					type = NUMBER_TYPE;
+					return VALUE;
 				} else if (Character.isLetter(c)){
 					// keyword
 					value = parseIdentifier(c);
 					if (TRUE.equalsIgnoreCase(value) || FALSE.equalsIgnoreCase(value)) {
-						type = JSON_BOOLEAN_TYPE;
+						type = BOOLEAN_TYPE;
 					} else if (NULL.equalsIgnoreCase(value)) {
 						value = null;
-						type = JSON_NULL_TYPE;
+						type = NULL_TYPE;
 					} else {
-						type = JSON_UNKNOWN_TYPE;
+						type = UNKNOWN_TYPE;
 					}
-					return JSON_VALUE;
+					return VALUE;
 				}
 			}
 		}
@@ -173,18 +178,18 @@ public class JSONStreamReader implements JSONConstants, JSONReader{
 			switch (c) {
 			case '}':
 				if (objects.isEmpty()) {
-					currentToken = JSON_END_DOCUMENT;
-					return JSON_END_DOCUMENT;
+					currentToken = END_DOCUMENT;
+					return END_DOCUMENT;
 				} else {
 					name = objects.pop();
 					contexts.pop();
-					return JSON_END_OBJECT;
+					return END_OBJECT;
 				}
 			case '"':
 				name = parseString();
 				break;
 			case ':':
-				return JSON_MEMBER;
+				return MEMBER;
 			}
 		}
 		return -1;
@@ -254,23 +259,23 @@ public class JSONStreamReader implements JSONConstants, JSONReader{
 	public String getValue() {
 		return value;
 	}
-	@Override
+
 	public boolean getBoolean() {
 		return Boolean.valueOf(value);
 	}
-	@Override
+
 	public double getDouble() {
 		return Double.valueOf(value);
 	}
-	@Override
+
 	public float getFloat() {
 		return Float.valueOf(value);
 	}
-	@Override
+
 	public int getInteger() {
 		return Integer.valueOf(value);
 	}
-	@Override
+
 	public long getLong() {
 		return Long.valueOf(value);
 	}
