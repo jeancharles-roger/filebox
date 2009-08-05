@@ -7,23 +7,26 @@ import java.io.PrintWriter;
 public class TestJSON {
 
 	public static void main(String[] args) {
-		int ntimes = 10;
+		int ntimes = 1;
 		for (int i = 0; i < ntimes; i++) {
-			System.out.println("time: "+ perf(1000 ));
+			System.out.println("time: "+ perf2(1));
+		}
+		for (int i = 0; i < ntimes; i++) {
+			System.out.println("time: "+ perf1(1));
 		}
 	}
 
-	private static int perf(int ntimes) {
+	private static int perf1(int ntimes) {
 		int time = 0;
 		for (int i = 0; i < ntimes; i++) {
 			PrintWriter writer = new PrintWriter(System.out);
-			time += parseAndDisplay(writer);
+			time += parseAndDisplay1(writer);
 			writer.flush();
 		}
 		return time;
 	}
 
-	private static long parseAndDisplay(PrintWriter writer) {
+	private static long parseAndDisplay1(PrintWriter writer) {
 		long time = System.currentTimeMillis();
 		File folder = new File("jsonTests");
 		for (File file : folder.listFiles()) {
@@ -53,21 +56,21 @@ public class TestJSON {
 							out.endObject();
 							break;
 						case JSON.MEMBER:
-							out.writeMember(reader.getName());
+							out.member(reader.getName());
 							break;
 						case JSON.VALUE:
 							switch (reader.getValueType()) {
 							case JSON.STRING_TYPE:
-								out.writeString(reader.getValue());
+								out.stringValue(reader.getValue());
 								break;
 							case JSON.BOOLEAN_TYPE:
-								out.writeBoolean(reader.getBoolean());
+								out.booleanValue(reader.getBoolean());
 								break;
 							case JSON.NULL_TYPE:
-								out.writeNull();
+								out.nullValue();
 								break;
 							case JSON.NUMBER_TYPE:
-								out.writeValue(reader.getValue());
+								out.numberValue(reader.getValue());
 								break;
 							}
 							break;
@@ -77,6 +80,36 @@ public class TestJSON {
 						token = reader.next();
 					}
 					reader.close();
+					out.flush();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+
+			}
+		}
+		return System.currentTimeMillis() - time;
+	}
+	private static int perf2(int ntimes) {
+		int time = 0;
+		for (int i = 0; i < ntimes; i++) {
+			PrintWriter writer = new PrintWriter(System.out);
+			time += parseAndDisplay2(writer);
+			writer.flush();
+		}
+		return time;
+	}
+
+	private static long parseAndDisplay2(PrintWriter writer) {
+		long time = System.currentTimeMillis();
+		File folder = new File("jsonTests");
+		for (File file : folder.listFiles()) {
+			if (file.isFile() && file.getName().endsWith(".json")) {
+				try {
+					JSONParser reader = new JSONParser(new FileReader(file));
+					final JSONStreamWriter out = new JSONStreamWriter(writer);
+					reader.parse(out);
+					reader.close();
+					out.flush();
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
