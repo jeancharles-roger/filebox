@@ -134,6 +134,17 @@ public class JSONStreamWriter implements JSONHandler {
 		value(String.valueOf(i));
 	}
 
+	public void byteValue(byte b) {
+		value(String.valueOf(b));
+	}
+
+	public void charValue(char b) {
+		value(String.valueOf((int)b));
+	}
+
+	public void shortValue(short b) {
+		value(String.valueOf(b));
+	}
 
 	public void longValue(long i) {
 		value(String.valueOf(i));

@@ -3,23 +3,22 @@ package org.kawane.filebox.json;
 import java.io.File;
 import java.io.FileReader;
 import java.io.PrintWriter;
+import java.io.StringWriter;
 
 public class TestJSON {
 
 	public static void main(String[] args) {
-		int ntimes = 1;
+		int ntimes = 10;
 		for (int i = 0; i < ntimes; i++) {
-			System.out.println("time: "+ perf2(1));
-		}
-		for (int i = 0; i < ntimes; i++) {
-			System.out.println("time: "+ perf1(1));
+			System.out.println("time1: "+ perf1(1000));
+			System.out.println("time2: "+ perf2(1000));
 		}
 	}
 
 	private static int perf1(int ntimes) {
 		int time = 0;
 		for (int i = 0; i < ntimes; i++) {
-			PrintWriter writer = new PrintWriter(System.out);
+			PrintWriter writer = new PrintWriter(new StringWriter());
 			time += parseAndDisplay1(writer);
 			writer.flush();
 		}
@@ -92,7 +91,7 @@ public class TestJSON {
 	private static int perf2(int ntimes) {
 		int time = 0;
 		for (int i = 0; i < ntimes; i++) {
-			PrintWriter writer = new PrintWriter(System.out);
+			PrintWriter writer = new PrintWriter(new StringWriter());
 			time += parseAndDisplay2(writer);
 			writer.flush();
 		}
