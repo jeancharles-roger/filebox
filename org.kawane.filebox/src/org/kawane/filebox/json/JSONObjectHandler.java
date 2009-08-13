@@ -3,6 +3,8 @@ package org.kawane.filebox.json;
 import java.io.StringReader;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -24,12 +26,16 @@ public class JSONObjectHandler implements JSONHandler {
 	public void beginObject() {
 		// create instance
 		Field field = fields.peek();
-		Class<?> type = field.getType();
-		if(Collection.class.isAssignableFrom(type)) {
-			// TODO
-
+		Type type = field.getGenericType();
+		if(type instanceof ParameterizedType) {
+			if(Collection.class.isAssignableFrom((Class<?>)((ParameterizedType) type).getRawType())) {
+				Type parameterizedType = ((ParameterizedType) type).getActualTypeArguments()[0];
+				createInstance((Class<?>)parameterizedType);
+			} else {
+				createInstance((Class<?>)((ParameterizedType) type).getRawType());
+			}
 		} else {
-			createInstance(type);
+			createInstance((Class<?>)type);
 		}
 	}
 
@@ -347,7 +353,7 @@ public class JSONObjectHandler implements JSONHandler {
 		String coucou;
 		int[] i;
 		int[][] ii;
-		Titi[] titis;
+		List<Titi> titis = new ArrayList<Titi>();
 	}
 
 	static class Titi {
