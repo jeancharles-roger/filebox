@@ -1,0 +1,29 @@
+
+<div id="snippets">
+	<div id="snippets_template">
+		<h3><a href="#">${name}</a></h3>
+		<div>
+			<p>
+			${description}
+			</p>
+			<p>
+			${category}
+			</p>
+			<p>
+			${code}
+			</p>
+		</div>
+	</div>
+</div>
+<script type="text/javascript">
+<!--
+	$.get("/snippet", function(data){
+		data = JSON.parse(data);
+		for(elt in data.list) {
+			$("#snippets").replaceWith(template($("#snippets_template"), data.list[elt]));
+		}
+	});
+
+
+//-->
+</script>

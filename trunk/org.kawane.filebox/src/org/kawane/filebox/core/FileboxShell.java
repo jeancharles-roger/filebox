@@ -20,6 +20,7 @@ import org.kawane.filebox.core.network.NetworkService;
 import org.kawane.filebox.ui.FileboxMainComposite;
 import org.kawane.filebox.ui.MenuManager;
 import org.kawane.filebox.ui.Resources;
+import org.kawane.filebox.webpage.HomePage;
 
 public class FileboxShell  {
 
@@ -28,13 +29,13 @@ public class FileboxShell  {
 	protected static final String CONFIG_FILENAME = "filebox.properties";
 
 	protected File configurationFile;
-	
+
 	/** Shared resources instances. */
 	protected Resources resources;
 
 	private Display display;
 
-	
+
 	public Display getDisplay() {
 		return display;
 	}
@@ -46,27 +47,28 @@ public class FileboxShell  {
 	private void initFileboxCore() {
 		configurationFile = new File(CONFIG_FILENAME);
 		Globals.setPreferences(new Preferences(configurationFile));
-		
+
 		Globals.setLocalFilebox(new Filebox());
-	
+
 		Globals.setFileboxRegistry(new FileboxRegistry());
-		
+
 		ServiceDiscovery serviceDiscovery = new JmDNSServiceDiscovery();
 		serviceDiscovery.start();
 		Globals.setServiceDiscovery(serviceDiscovery);
-		
-		
+
+
 		Map<String, NetworkService> networkServices = new HashMap<String, NetworkService>();
 		Globals.setNetworkServices(networkServices);
+		networkServices.put("/", new HomePage(new File("homePage")));
 		networkServices.put("filebox", new FileboxService());
-		
+
 		Globals.setHttpServer(new HttpServer());
 	}
 
 	public void start() {
 
 		initFileboxCore();
-		
+
 		Globals.setFileboxShell(this);
 
 		display = Display.getDefault();
@@ -90,12 +92,12 @@ public class FileboxShell  {
 		});
 
 		MenuManager menuManager = new MenuManager();
-		
+
 		menuManager.createMenuBar(shell);
 		menuManager.createSystemTray(shell);
 
 		new FileboxMainComposite(shell, SWT.NONE);
-		
+
 		shell.open();
 		while (!shell.isDisposed()) {
 			try {
@@ -118,20 +120,20 @@ public class FileboxShell  {
 	 * @see org.kawane.filebox.ui.internal.UIFileboxApplication#stop()
 	 */
 	public void stop() {
-		
+
 		HttpServer server = Globals.getHttpServer();
 		server.stop();
 
 		ServiceDiscovery serviceDiscovery = Globals.getServiceDiscovery();
 		serviceDiscovery.disconnect(null);
 		serviceDiscovery.stop();
-		
+
 		if (display != null && !display.isDisposed()) {
 			display.dispose();
 		}
 	}
 
-	
+
 	public static void main(String[] args) {
 		FileboxShell application = new FileboxShell();
 		application.start();

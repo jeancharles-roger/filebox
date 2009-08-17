@@ -9,8 +9,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Stack;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import static org.kawane.filebox.json.JSONUtil.*;
 
 public class JSONObjectHandler implements JSONHandler {
+
+	private static Logger logger = Logger.getLogger(JSONObjectHandler.class.getName());
 
 	private Stack<Object> objects = new Stack<Object>();
 
@@ -27,15 +33,15 @@ public class JSONObjectHandler implements JSONHandler {
 		// create instance
 		Field field = fields.peek();
 		Type type = field.getGenericType();
-		if(type instanceof ParameterizedType) {
-			if(Collection.class.isAssignableFrom((Class<?>)((ParameterizedType) type).getRawType())) {
+		if (type instanceof ParameterizedType) {
+			if (Collection.class.isAssignableFrom((Class<?>) ((ParameterizedType) type).getRawType())) {
 				Type parameterizedType = ((ParameterizedType) type).getActualTypeArguments()[0];
-				createInstance((Class<?>)parameterizedType);
+				createInstance((Class<?>) parameterizedType);
 			} else {
-				createInstance((Class<?>)((ParameterizedType) type).getRawType());
+				createInstance((Class<?>) ((ParameterizedType) type).getRawType());
 			}
 		} else {
-			createInstance((Class<?>)type);
+			createInstance((Class<?>) type);
 		}
 	}
 
@@ -46,9 +52,9 @@ public class JSONObjectHandler implements JSONHandler {
 			try {
 				objects.push(type.newInstance());
 			} catch (InstantiationException e) {
-				e.printStackTrace();
+				logger.log(Level.SEVERE, "An Error Occured", e);
 			} catch (IllegalAccessException e) {
-				e.printStackTrace();
+				logger.log(Level.SEVERE, "An Error Occured", e);
 			}
 		}
 	}
@@ -64,7 +70,6 @@ public class JSONObjectHandler implements JSONHandler {
 
 		Field field = fields.peek();
 		Class<?> type = field.getType();
-		try {
 			if (o instanceof List) {
 				if (type.isArray()) {
 					((List) o).add(getValueArray(list, getRecComponentType(type.getComponentType())));
@@ -73,16 +78,11 @@ public class JSONObjectHandler implements JSONHandler {
 				}
 			} else if (type.isArray()) {
 				fields.pop();
-				field.set(o, getValueArray(list, type.getComponentType()));
+				set(o, field, getValueArray(list, type.getComponentType()));
 			} else if (Collection.class.isAssignableFrom(type)) {
 				fields.pop();
-				((Collection) field.get(o)).addAll(list);
+				((Collection) get(o, field)).addAll(list);
 			}
-		} catch (IllegalArgumentException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-		}
 	}
 
 	@SuppressWarnings("unchecked")
@@ -161,17 +161,11 @@ public class JSONObjectHandler implements JSONHandler {
 		Object object = objects.pop();
 		Object o = objects.peek();
 		Field field = fields.peek();
-		try {
-			if (o instanceof List) {
-				((List) o).add(object);
-			} else {
-				fields.pop();
-				field.set(o, object);
-			}
-		} catch (IllegalArgumentException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
+		if (o instanceof List) {
+			((List) o).add(object);
+		} else {
+			fields.pop();
+			set(o, field, object);
 		}
 	}
 
@@ -182,22 +176,16 @@ public class JSONObjectHandler implements JSONHandler {
 			Field field = clazz.getDeclaredField(name);
 			fields.push(field);
 		} catch (SecurityException e) {
-			e.printStackTrace();
+			logger.log(Level.SEVERE, "An Error Occured", e);
 		} catch (NoSuchFieldException e) {
-			e.printStackTrace();
+			logger.log(Level.SEVERE, "An Error Occured", e);
 		}
 	}
 
 	public void nullValue() {
 		Object o = objects.peek();
 		Field field = fields.pop();
-		try {
-			field.set(o, null);
-		} catch (IllegalArgumentException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-		}
+		set(o, field, null);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -224,37 +212,33 @@ public class JSONObjectHandler implements JSONHandler {
 			} else {
 				fields.pop();
 				if (Integer.TYPE == type) {
-					field.setInt(o, Integer.parseInt(value));
+					setInt(o, field, Integer.parseInt(value));
 				} else if (Long.TYPE == type) {
-					field.setLong(o, Long.parseLong(value));
+					setLong(o, field, Long.parseLong(value));
 				} else if (Byte.TYPE == type) {
-					field.setByte(o, Byte.parseByte(value));
+					setByte(o, field, Byte.parseByte(value));
 				} else if (Short.TYPE == type) {
-					field.setShort(o, Short.parseShort(value));
+					setShort(o, field, Short.parseShort(value));
 				} else if (Double.TYPE == type) {
-					field.setDouble(o, Double.parseDouble(value));
+					setDouble(o, field, Double.parseDouble(value));
 				} else if (Float.TYPE == type) {
-					field.setFloat(o, Float.parseFloat(value));
+					setFloat(o, field, Float.parseFloat(value));
 				} else if (Integer.class == type) {
-					field.set(o, Integer.valueOf(value));
+					set(o, field, Integer.valueOf(value));
 				} else if (Long.class == type) {
-					field.set(o, Long.valueOf(value));
+					set(o, field, Long.valueOf(value));
 				} else if (Byte.class == type) {
-					field.set(o, Byte.valueOf(value));
+					set(o, field, Byte.valueOf(value));
 				} else if (Short.class == type) {
-					field.set(o, Short.valueOf(value));
+					set(o, field, Short.valueOf(value));
 				} else if (Double.class == type) {
-					field.set(o, Double.valueOf(value));
+					set(o, field, Double.valueOf(value));
 				} else if (Float.class == type) {
-					field.set(o, Float.valueOf(value));
+					set(o, field, Float.valueOf(value));
 				}
 			}
 		} catch (NumberFormatException e) {
-			e.printStackTrace();
-		} catch (IllegalArgumentException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
+			logger.log(Level.SEVERE, "An Error Occured", e);
 		}
 	}
 
@@ -276,22 +260,10 @@ public class JSONObjectHandler implements JSONHandler {
 		} else if (Enum.class.isAssignableFrom(type)) {
 			fields.pop();
 			v = Enum.valueOf(type, value);
-			try {
-				field.set(o, v);
-			} catch (IllegalArgumentException e) {
-				e.printStackTrace();
-			} catch (IllegalAccessException e) {
-				e.printStackTrace();
-			}
+			set(o, field, v);
 		} else {
 			fields.pop();
-			try {
-				field.set(o, v);
-			} catch (IllegalArgumentException e) {
-				e.printStackTrace();
-			} catch (IllegalAccessException e) {
-				e.printStackTrace();
-			}
+			set(o, field, v);
 		}
 	}
 
@@ -300,17 +272,11 @@ public class JSONObjectHandler implements JSONHandler {
 		Object o = objects.peek();
 		Field field = fields.peek();
 		Class type = field.getType();
-		try {
-			if (o instanceof List) {
-				((List) o).add(bool);
-			} else if (Boolean.TYPE == type || Boolean.class == type) {
-				fields.pop();
-				field.setBoolean(o, bool);
-			}
-		} catch (IllegalArgumentException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
+		if (o instanceof List) {
+			((List) o).add(bool);
+		} else if (Boolean.TYPE == type || Boolean.class == type) {
+			fields.pop();
+			setBoolean(o, field, bool);
 		}
 
 	}
@@ -320,23 +286,18 @@ public class JSONObjectHandler implements JSONHandler {
 		Object o = objects.peek();
 		Field field = fields.peek();
 		Class type = field.getType();
-		try {
-			if (o instanceof List) {
-				((List) o).add(value);
-			} else if (Boolean.TYPE == type || Boolean.class == type) {
-				fields.pop();
-				field.setBoolean(o, Boolean.parseBoolean(value));
-			} else {
-				fields.pop();
-				field.set(o, value);
-			}
-		} catch (IllegalArgumentException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
+		if (o instanceof List) {
+			((List) o).add(value);
+		} else if (Boolean.TYPE == type || Boolean.class == type) {
+			fields.pop();
+			setBoolean(o, field, Boolean.parseBoolean(value));
+		} else {
+			fields.pop();
+			set(o, field, value);
 		}
-
 	}
+
+
 
 	static final String test = "{ \"coucou\": \"coucou\", \"i\": [0, 1, 2],\"ii\": [[3, 4, 5], [6, 7, 8]], \"titis\": [{"
 			+ "	\"coucou\": \"coucou\", 	\"i\": [0, 1, 2], 	\"ii\": [[3, 4, 5], [6, 7, 8]] } , { 	\"coucou\": \"coucou\","

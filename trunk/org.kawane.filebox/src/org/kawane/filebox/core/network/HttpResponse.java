@@ -13,17 +13,17 @@ public class HttpResponse {
 	private String http = Http.HTTP_1_1;
 	private int code = Http.CODE_OK;
 	private String text = Http.TEXT_OK;
-	
+
 	private final Map<String, String> header = new HashMap<String, String>();
 	private InputStream contents;
-	
-	public static HttpResponse read(InputStream stream) throws Exception { 
-		
+
+	public static HttpResponse read(InputStream stream) throws Exception {
+
 		String http = Http.HTTP_0_9;
 		int code;
 		String text;
 		Map<String, String> header = new HashMap<String, String>();
-		
+
 		// first line contains 'method url version'
 		String [] commands = Http.readLine(stream).split(" ");
 		if ( commands.length >= 3 ) {
@@ -33,7 +33,7 @@ public class HttpResponse {
 		} else {
 			return null;
 		}
-		
+
 		String line = Http.readLine(stream);
 		while (line != null && line.length() > 0 ) {
 			String [] info = line.split(":");
@@ -45,24 +45,24 @@ public class HttpResponse {
 		return new HttpResponse(http, code, text, header, line == null ? null : stream);
 	}
 
-	
+
 	public HttpResponse() {
 		this(Http.HTTP_1_1, Http.CODE_OK, Http.TEXT_OK);
 	}
-	
+
 	public HttpResponse(String http, int code, String text) {
 		this(http, code, text, null, null);
 	}
-	
+
 	public HttpResponse(String http, int code, String text, InputStream contents) {
 		this(http, code, text, null, contents);
 	}
-	
+
 	public HttpResponse(String http, int code, String text, Map<String, String> header,	InputStream contents) {
 		this.http = http;
 		this.code = code;
 		this.text = text;
-		this.header.put(Http.HEADER_CONTENTTYPE, Http.TEXT_HTML);
+		this.header.put(Http.HEADER_CONTENT_TYPE, Http.TEXT_HTML);
 		this.header.put(Http.HEADER_SERVER, Http.SERVER_FILEBOX_1_0);
 		if ( header != null) this.header.putAll(header);
 		this.contents = contents;
@@ -99,7 +99,7 @@ public class HttpResponse {
 	public void setContents(InputStream contents) {
 		this.contents = contents;
 	}
-	
+
 	public void write(OutputStream stream) throws Exception {
 		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(stream));
 		writer.append(prepareHeader());
@@ -107,12 +107,12 @@ public class HttpResponse {
 			byte [] buffer = new byte[1024];
 			int read = contents.read(buffer);
 			while (read >= 0 ) {
-				stream.write(buffer);
+				stream.write(buffer, 0, read);
 				read = contents.read(buffer);
 			}
 		}
 	}
-	
+
 	private String prepareHeader() {
 		StringBuilder response = new StringBuilder();
 		response.append(http);
@@ -130,10 +130,10 @@ public class HttpResponse {
 		response.append(Http.NL);
 		return response.toString();
 	}
-	
+
 	@Override
 	public String toString() {
 		return prepareHeader();
 	}
-	
+
 }

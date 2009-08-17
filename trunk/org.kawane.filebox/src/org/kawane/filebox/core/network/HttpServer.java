@@ -8,10 +8,12 @@ package org.kawane.filebox.core.network;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-import org.kawane.filebox.core.DistantFilebox;
 import org.kawane.filebox.core.Globals;
 import org.kawane.filebox.core.Preferences;
 
@@ -21,9 +23,11 @@ import org.kawane.filebox.core.Preferences;
  */
 public class HttpServer implements Runnable {
 
+	private static Logger logger = Logger.getLogger(HttpServer.class.getName());
+
 	private static final int THREADS_POOL_SIZE = 3;
 
-//	private Filebox filebox = Globals.getLocalFilebox();
+	//	private Filebox filebox = Globals.getLocalFilebox();
 	private Preferences preferences = Globals.getPreferences();
 
 	private ServerSocket serverSocket;
@@ -38,11 +42,13 @@ public class HttpServer implements Runnable {
 			serverSocket.setSoTimeout(250);
 		} catch (IOException e) {
 			// TOD check errors
+			logger.log(Level.SEVERE, "An Error Occured when initializing server", e);
 		}
 	}
 
-	public synchronized boolean isRunning() { return running; }
-
+	public synchronized boolean isRunning() {
+		return running;
+	}
 
 	public void start() {
 		initializeServer();
@@ -59,14 +65,16 @@ public class HttpServer implements Runnable {
 		while (isRunning()) {
 			try {
 				final Socket socket = serverSocket.accept();
-				System.out.println("Accepted socket: " + socket);
+				logger.finest("Accepted socket: " + socket);
 				executors.execute(new Runnable() {
 					public void run() {
 						handleSocket(socket);
 					}
 				});
-			} catch (IOException e) {
+			} catch (SocketTimeoutException e) {
 				// do nothing
+			} catch (IOException e) {
+				logger.log(Level.SEVERE, "An Error Occured", e);
 			}
 		}
 	}
@@ -79,19 +87,22 @@ public class HttpServer implements Runnable {
 		try {
 			HttpRequest request = HttpRequest.read(socket.getInputStream());
 			NetworkService service = null;
-			DistantFilebox filebox = null;
-			if ( request != null ) {
-				String [] fragments = request.getUrl().split("/");
-				if ( fragments.length > 0 ) {
+			if (request != null) {
+				String[] fragments = request.getUrl().split("/");
+				if (fragments.length > 0) {
 					int i = 0;
-					while ( i < fragments.length  && fragments[i].length() == 0) i++;
+					while (i < fragments.length && fragments[i].length() == 0)
+						i++;
 					service = Globals.getNetworkServices().get(fragments[i++]);
-					if ( i < fragments.length ) filebox = Globals.getFileboxRegistry().getFilebox(fragments[i]);
+				}
+				if (service == null) {
+					// get default service
+					service = Globals.getNetworkServices().get("/");
 				}
 			}
 			HttpResponse response = new HttpResponse();
-			if  ( service != null /*&& filebox != null*/ ) {
-				service.handleRequest(filebox, request, response);
+			if (service != null) {
+				service.handleRequest(request, response);
 			} else {
 				response.setCode(Http.CODE_FORBIDDEN);
 				response.setText(Http.TEXT_FORBIDDEN);
@@ -99,14 +110,12 @@ public class HttpServer implements Runnable {
 			response.write(socket.getOutputStream());
 
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.log(Level.SEVERE, "An Error Occured", e);
 		}
 		try {
 			socket.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.log(Level.SEVERE, "An Error Occured", e);
 		}
 	}
 }

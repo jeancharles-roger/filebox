@@ -161,6 +161,10 @@ public class JSONStreamWriter implements JSONHandler {
 		value("null");
 	}
 
+	public void writeJSON(String value) {
+		value(value);
+	}
+
 	public void value(String value) {
 		writeComma();
 		print(value);
