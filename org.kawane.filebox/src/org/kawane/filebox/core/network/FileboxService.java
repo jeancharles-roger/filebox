@@ -9,7 +9,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStreamReader;
 import java.net.Socket;
 
-import org.kawane.filebox.core.DistantFilebox;
 import org.kawane.filebox.json.JSON;
 import org.kawane.filebox.json.JSONStreamReader;
 import org.kawane.filebox.json.JSONStreamWriter;
@@ -20,7 +19,7 @@ import org.kawane.filebox.json.JSONStreamWriter;
  */
 public class FileboxService implements NetworkService {
 
-	public void handleRequest(DistantFilebox source, HttpRequest request, HttpResponse response) {
+	public void handleRequest(HttpRequest request, HttpResponse response) {
 //		JBoost boost = new JBoost("filebox", 1);
 //		boost.initializeReading(request.getContents());
 //		String readString = boost.readString();

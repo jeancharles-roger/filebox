@@ -1,0 +1,7 @@
+{
+	"name": "JSONParser",
+	"category": "java/parser",
+	"language": "java",
+	"description": "parser JSON écrit en Java",
+	"code": "public class JSONParser {\n      static public void main(String[] args) {\n              System.out.println(\"Parser JSON\");\n      }\n}"
+}

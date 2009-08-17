@@ -1,0 +1,41 @@
+<form name="post_snippet" method="post" action="/snippet" onsubmit="return submitForm(document['post_snippet']);">
+
+<table>
+	<tr>
+		<td>Name</td>
+	</tr>
+	<tr>
+		<td><input type="text" name="name" /></td>
+	</tr>
+	<tr>
+		<td>Category</td>
+	</tr>
+	<tr>
+		<td><input type="text" name="category" /></td>
+	</tr>
+	<tr>
+		<td>Language</td>
+	</tr>
+	<tr>
+		<td><select name="language">
+			<option value="java">Java</option>
+			<option value="shell">Shell</option>
+		</select></td>
+	</tr>
+	<tr>
+		<td>Description</td>
+	</tr>
+	<tr>
+		<td><input type="text" name="description" /></td>
+	</tr>
+	<tr>
+		<td>Your snippet</td>
+	</tr>
+	<tr>
+		<td><textarea name="code" rows="16" cols="100"></textarea></td>
+	</tr>
+	<tr>
+		<td><input type="submit" value="Create"/></td>
+	</tr>
+</table>
+</form>

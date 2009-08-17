@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import static org.kawane.filebox.json.JSONUtil.*;
 
 public class JSONObjectStream {
 
@@ -51,7 +52,7 @@ public class JSONObjectStream {
 		out.flush();
 	}
 
-	private void serializeMembers(Object o, JSONStreamWriter out) throws Exception {
+	private void serializeMembers(Object o, JSONStreamWriter out) {
 		Class<?> clazz = o.getClass();
 		List<Field> fields = new ArrayList<Field>();
 		collectObjectFields(clazz, fields);
@@ -60,36 +61,36 @@ public class JSONObjectStream {
 			int type = serialisationType(field.getType());
 			switch (type) {
 			case PRIMITIVE_BOOLEAN:
-				out.booleanValue(field.getBoolean(o));
+				out.booleanValue(getBoolean(o, field));
 				break;
 			case PRIMITIVE_BYTE:
-				out.byteValue(field.getByte(o));
+				out.byteValue(getByte(o, field));
 				break;
 			case PRIMITIVE_CHAR:
-				out.charValue(field.getChar(o));
+				out.charValue(getChar(o, field));
 				break;
 			case PRIMITIVE_DOUBLE:
-				out.doubleValue(field.getDouble(o));
+				out.doubleValue(getDouble(o, field));
 				break;
 			case PRIMITIVE_FLOAT:
-				out.floatValue(field.getFloat(o));
+				out.floatValue(getFloat(o, field));
 				break;
 			case PRIMITIVE_INTEGER:
-				out.integerValue(field.getInt(o));
+				out.integerValue(getInt(o, field));
 				break;
 			case PRIMITIVE_LONG:
-				out.longValue(field.getLong(o));
+				out.longValue(getLong(o, field));
 				break;
 			case PRIMITIVE_SHORT:
-				out.shortValue(field.getShort(o));
+				out.shortValue(getShort(o, field));
 				break;
 			default:
-				serializeValue(field.get(o), type, field.getType(), out);
+				serializeValue(get(o, field), type, field.getType(), out);
 			}
 		}
 	}
 
-	private void serializeCollection(Collection<?> list, JSONStreamWriter out) throws Exception {
+	private void serializeCollection(Collection<?> list, JSONStreamWriter out) {
 		out.beginArray();
 		for (Object object : list) {
 			serializeValue(object, serialisationType(object.getClass()), object.getClass(), out);
@@ -97,7 +98,7 @@ public class JSONObjectStream {
 		out.endArray();
 	}
 
-	private void serializeValue(Object value, int type, Class<?> clazz, JSONStreamWriter out) throws Exception {
+	private void serializeValue(Object value, int type, Class<?> clazz, JSONStreamWriter out)  {
 		if (value == null) {
 			out.nullValue();
 		} else {
@@ -139,7 +140,7 @@ public class JSONObjectStream {
 		}
 	}
 
-	private void serializeArray(Object value, Class<?> clazz, JSONStreamWriter out) throws Exception {
+	private void serializeArray(Object value, Class<?> clazz, JSONStreamWriter out) {
 		int type = serialisationType(clazz);
 		out.beginArray();
 		switch (type) {
@@ -278,20 +279,20 @@ public class JSONObjectStream {
 	static class Toto {
 		String coucou = "coucou";
 		int[] i = { 0, 1, 2 };
-		int[][] ii = { {3, 4, 5}, {6, 7, 8}};
-		Titi [] titis = {new Titi(),new Titi()};
+		int[][] ii = { { 3, 4, 5 }, { 6, 7, 8 } };
+		Titi[] titis = { new Titi(), new Titi() };
 	}
 
 	static class Titi {
 		String coucou = "coucou";
 		int[] i = { 0, 1, 2 };
-		int[][] ii = { {3, 4, 5}, {6, 7, 8}};
+		int[][] ii = { { 3, 4, 5 }, { 6, 7, 8 } };
 	}
 
 	public static void main(String[] args) {
 		JSONObjectStream jsonObject = new JSONObjectStream();
 		try {
-			jsonObject.serialize(new OutputStreamWriter(System.out),new Toto());
+			jsonObject.serialize(new OutputStreamWriter(System.out), new Toto());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
