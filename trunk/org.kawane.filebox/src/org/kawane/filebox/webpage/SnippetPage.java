@@ -2,9 +2,9 @@ package org.kawane.filebox.webpage;
 
 import java.io.File;
 
-import org.kawane.filebox.core.network.HttpRequest;
-import org.kawane.filebox.core.network.HttpResponse;
-import org.kawane.filebox.core.network.NetworkService;
+import org.kawane.filebox.network.http.HttpRequest;
+import org.kawane.filebox.network.http.HttpResponse;
+import org.kawane.filebox.network.http.NetworkService;
 import org.kawane.filebox.webpage.jsonrpc.JSONRPC;
 
 public class SnippetPage implements NetworkService {

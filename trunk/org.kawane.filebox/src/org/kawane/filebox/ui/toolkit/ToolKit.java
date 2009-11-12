@@ -1,6 +1,10 @@
 package org.kawane.filebox.ui.toolkit;
 
+import java.io.File;
+
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -9,6 +13,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
@@ -159,7 +164,30 @@ public class ToolKit {
 		}
 		return result[0];
 	}
-	
+	public Text fileField(final Composite parent, String label, String value) {
+		Label labl = new Label(parent, SWT.NONE);
+		labl.setBackground(parent.getBackground());
+		labl.setText(label);
+		final Text text = new Text(parent, flatStyle | SWT.BORDER | SWT.SINGLE);
+		text.setText(value);
+		text.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		Button browse = new Button(parent, SWT.BORDER);
+		browse.setText("Browse...");
+		browse.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseUp(MouseEvent e) {
+				DirectoryDialog fileDialog = new DirectoryDialog(parent.getShell(), SWT.OPEN);
+				if(new File(text.getText()).exists()) {
+					fileDialog.setFilterPath(text.getText());
+				}
+				String result = fileDialog.open();
+				if(result != null) {
+					text.setText(result);
+				}
+			}
+		});
+		return text;
+	}
 	
 	
 	public static void main(String [] args) {
