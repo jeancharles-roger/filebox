@@ -1,8 +1,8 @@
 package org.kawane.filebox.core;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -14,15 +14,14 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.kawane.filebox.core.discovery.JmDNSServiceDiscovery;
 import org.kawane.filebox.core.discovery.ServiceDiscovery;
-import org.kawane.filebox.core.network.FileboxService;
-import org.kawane.filebox.core.network.HttpServer;
-import org.kawane.filebox.core.network.NetworkService;
+import org.kawane.filebox.network.http.HttpServer;
+import org.kawane.filebox.network.http.services.FileService;
 import org.kawane.filebox.ui.FileboxMainComposite;
 import org.kawane.filebox.ui.MenuManager;
 import org.kawane.filebox.ui.Resources;
 import org.kawane.filebox.webpage.HomePage;
 
-public class FileboxShell  {
+public class FileboxShell implements PropertyChangeListener {
 
 	private static Logger logger = Logger.getLogger(FileboxShell.class.getName());
 
@@ -35,7 +34,6 @@ public class FileboxShell  {
 
 	private Display display;
 
-
 	public Display getDisplay() {
 		return display;
 	}
@@ -46,7 +44,8 @@ public class FileboxShell  {
 
 	private void initFileboxCore() {
 		configurationFile = new File(CONFIG_FILENAME);
-		Globals.setPreferences(new Preferences(configurationFile));
+		Preferences preferences = new Preferences(configurationFile);
+		Globals.setPreferences(preferences);
 
 		Globals.setLocalFilebox(new Filebox());
 
@@ -56,13 +55,26 @@ public class FileboxShell  {
 		serviceDiscovery.start();
 		Globals.setServiceDiscovery(serviceDiscovery);
 
+		HttpServer server = new HttpServer(preferences.getPort());
+		server.setService("/", new HomePage(new File("homePage")));
+		server.setService("/files", new FileService(new File(preferences.getPublicDir())));
+		
+		Globals.setHttpServer(server);
+		preferences.addPropertyChangeListener(this);
+	}
 
-		Map<String, NetworkService> networkServices = new HashMap<String, NetworkService>();
-		Globals.setNetworkServices(networkServices);
-		networkServices.put("/", new HomePage(new File("homePage")));
-		networkServices.put("filebox", new FileboxService());
-
-		Globals.setHttpServer(new HttpServer());
+	@Override
+	public void propertyChange(PropertyChangeEvent event) {
+		if (Preferences.PORT.equals(event.getPropertyName())) {
+			HttpServer server = Globals.getHttpServer();
+			server.setPort(Integer.valueOf((String) event.getNewValue()));
+			if (server.isRunning()) {
+				server.stop();
+				server.start();
+			}
+		} else if (Preferences.PUBLIC_FILE_DIR.equals(event.getPropertyName())) {
+			Globals.getHttpServer().setService("/files", new FileService(new File((String) event.getNewValue())));
+		}
 	}
 
 	public void start() {
@@ -116,7 +128,9 @@ public class FileboxShell  {
 		logger.log(Level.FINE, "Stop file box ui");
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.kawane.filebox.ui.internal.UIFileboxApplication#stop()
 	 */
 	public void stop() {
@@ -132,7 +146,6 @@ public class FileboxShell  {
 			display.dispose();
 		}
 	}
-
 
 	public static void main(String[] args) {
 		FileboxShell application = new FileboxShell();

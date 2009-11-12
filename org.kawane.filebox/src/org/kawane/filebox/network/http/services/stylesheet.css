@@ -1,0 +1,48 @@
+BODY { 
+	margin: 0; 
+	padding: 0;
+	background-color: #555555;
+	border-width: 0;
+	
+}
+
+.header {
+	margin: 0;
+	padding: 0;
+	background-color: white;
+}
+
+.content {
+	
+}
+
+table {
+	margin-left: 20px;
+}
+
+hr {
+	margin: 0;
+}
+
+table.files {
+	margin: 20px;
+	border-spacing: 0 1;
+	border-collapse: collapse;
+}
+
+.line a {
+	color: white;
+}
+
+.line {
+	color: white;
+	background-color: #555555;
+}
+
+tr.line:HOVER {
+	background-color: #777777;
+}
+
+tr.line td+td+td {
+	text-align: right;
+}

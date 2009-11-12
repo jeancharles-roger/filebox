@@ -16,14 +16,16 @@ import java.util.logging.Logger;
 
 /**
  * @author Jean-Charles Roger
- *
+ * 
  */
 public class Preferences implements Observable {
 
 	public static final String NAME = "filebox.name";
 	public static final String PORT = "filebox.port";
+	public static final String PUBLIC_FILE_DIR = "filebox.public.directory";
 
 	protected static final int DEFAULT_PORT = 9999;
+	protected static final String DEFAULT_PUBLIC_FILE_DIR = System.getProperty("user.home");
 
 	private static Logger logger = Logger.getLogger(Preferences.class.getName());
 
@@ -63,7 +65,7 @@ public class Preferences implements Observable {
 					configuration.clear();
 					configuration.load(new FileInputStream(getConfigurationFile()));
 				} catch (IOException e) {
-					logger.log(Level.SEVERE, "Can't load preferences (I/O error: " + e.getMessage() +").");
+					logger.log(Level.SEVERE, "Can't load preferences (I/O error: " + e.getMessage() + ").");
 				}
 			}
 			configurationLastLoadDate = new Date();
@@ -79,7 +81,7 @@ public class Preferences implements Observable {
 		try {
 			configuration.store(new FileOutputStream(getConfigurationFile()), "Saved by FileBox");
 		} catch (IOException e) {
-			logger.log(Level.SEVERE,"Can't save preferences (I/O error: " + e.getMessage() +").");
+			logger.log(Level.SEVERE, "Can't save preferences (I/O error: " + e.getMessage() + ").");
 		}
 	}
 
@@ -87,7 +89,7 @@ public class Preferences implements Observable {
 	 * <p>
 	 * Get one property's value. It reloads the configuration file if needed.
 	 * </p>
-	 *
+	 * 
 	 * @param name
 	 *            properties name.
 	 * @return the value or null if it doesn't exists.
@@ -102,7 +104,7 @@ public class Preferences implements Observable {
 	 * <p>
 	 * Set one property value. It saves the configuration file after.
 	 * </p>
-	 *
+	 * 
 	 * @param name
 	 *            properties name.
 	 * @param value
@@ -116,10 +118,9 @@ public class Preferences implements Observable {
 		obs.firePropertyChange(this, name, oldValue, value);
 	}
 
-
 	public String getName() {
 		String name = getProperty(NAME);
-		if ( name == null || name.length() == 0  ) {
+		if (name == null || name.length() == 0) {
 			name = "Me";
 		}
 		return name;
@@ -129,13 +130,26 @@ public class Preferences implements Observable {
 		setProperty(NAME, value);
 	}
 
+	public String getPublicDir() {
+		String value = getProperty(PUBLIC_FILE_DIR);
+		if (value == null) {
+			value = DEFAULT_PUBLIC_FILE_DIR;
+			setPublicDir(value);
+		}
+		return value;
+	}
+
+	public void setPublicDir(String value) {
+		setProperty(PUBLIC_FILE_DIR, value);
+	}
 
 	public int getPort() {
 		String stringValue = getProperty(PORT);
 		int value = DEFAULT_PORT;
 		try {
 			value = Integer.valueOf(stringValue);
-		} catch( NumberFormatException e)  { /* do nothing */ }
+		} catch (NumberFormatException e) { /* do nothing */
+		}
 		return value;
 	}
 

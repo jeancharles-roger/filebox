@@ -231,6 +231,7 @@ public class MenuManager {
 					Shell dialog = tk.dialogShell(application.getActiveShell(), "Preferences");
 					Text nameText = tk.textField(dialog, "Name:", Globals.getPreferences().getName() );
 					Text portText = tk.textField(dialog, "Port:", Integer.toString(Globals.getPreferences().getPort()) );
+					Text publicDirText = tk.fileField(dialog, "Public directory:", Globals.getPreferences().getPublicDir());
 					Button[] buttons = tk.buttons(dialog, "Ok", "Cancel");
 					dialog.setDefaultButton(buttons[0]);
 					tk.computeSizes(dialog, 300);
@@ -241,6 +242,7 @@ public class MenuManager {
 						try {
 							Globals.getPreferences().setPort(Integer.valueOf(portText.getText()));
 						} catch (NumberFormatException e) { /* do nothing */ }
+						Globals.getPreferences().setPublicDir(publicDirText.getText());
 						Globals.getPreferences().saveProperties();
 					}
 					dialog.dispose();
