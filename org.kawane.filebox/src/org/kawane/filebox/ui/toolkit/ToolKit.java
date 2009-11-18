@@ -15,6 +15,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
@@ -164,23 +165,42 @@ public class ToolKit {
 		}
 		return result[0];
 	}
+	
+	
+	public Text folderField(final Composite parent, String label, String value) {
+		return internalFileField(parent, label, value, true);
+	}
+	
 	public Text fileField(final Composite parent, String label, String value) {
+		return internalFileField(parent, label, value, false);
+	}
+	
+	private Text internalFileField(final Composite parent, final String label, final String value, final boolean folder) {
 		Label labl = new Label(parent, SWT.NONE);
 		labl.setBackground(parent.getBackground());
 		labl.setText(label);
 		final Text text = new Text(parent, flatStyle | SWT.BORDER | SWT.SINGLE);
 		text.setText(value);
 		text.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		Button browse = new Button(parent, SWT.BORDER);
-		browse.setText("Browse...");
+		Button browse = new Button(parent, SWT.PUSH);
+		browse.setText("Browse\u2026");
 		browse.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseUp(MouseEvent e) {
-				DirectoryDialog fileDialog = new DirectoryDialog(parent.getShell(), SWT.OPEN);
-				if(new File(text.getText()).exists()) {
-					fileDialog.setFilterPath(text.getText());
+				String result = null;
+				if ( folder ) {
+					DirectoryDialog fileDialog = new DirectoryDialog(parent.getShell(), SWT.OPEN);
+					if(new File(text.getText()).exists()) {
+						fileDialog.setFilterPath(text.getText());
+					}
+					result = fileDialog.open();
+				} else {
+					FileDialog fileDialog = new FileDialog(parent.getShell(), SWT.OPEN);
+					if(new File(text.getText()).exists()) {
+						fileDialog.setFilterPath(text.getText());
+					}
+					result = fileDialog.open();
 				}
-				String result = fileDialog.open();
 				if(result != null) {
 					text.setText(result);
 				}
