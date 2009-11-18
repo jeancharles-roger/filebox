@@ -15,8 +15,9 @@ import org.eclipse.swt.events.MenuAdapter;
 import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
@@ -276,9 +277,12 @@ public class MenuManager {
 				
 				@Override
 				public int run() {
-					Shell dialog = tk.dialogShell(application.getActiveShell(), "Brower");
+					Shell dialog = new Shell(Display.getCurrent(), SWT.DIALOG_TRIM |SWT.RESIZE);
+					dialog.setText( "Browser");
+					dialog.setImage(application.getActiveShell().getImage());
+					dialog.setLayout(new FillLayout());
+					
 					Browser browser = new Browser(dialog, SWT.NONE);
-					browser.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
 
 					DistantFilebox selectedFilebox = application.getMainComposite().getSelectedFilebox();
 					StringBuilder url = new StringBuilder();
