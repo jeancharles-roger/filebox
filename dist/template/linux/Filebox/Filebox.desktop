@@ -1,0 +1,9 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=Filebox
+Type=Application
+Comment=
+Exec=filebox.sh
+Path=.
+Icon=filebox.png
+Categories=Application;Network;Sharing;

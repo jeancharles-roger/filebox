@@ -17,22 +17,18 @@
 		</jar>
 	</target>
 	
-	<target name="build.linux">
-		<pde.exportPlugins destination="${destination}" exportSource="false" plugins="${bundles}" exportType="directory" useJARFormat="true" />
-		<copy todir="${destination}/plugins">
-			<fileset dir="${platform_dir}">
-				<include name="*.jar" />
-				<exclude name="*macosx*.jar"/>
-				<exclude name="*win32*.jar"/>
-			</fileset>
-		</copy>
+	<target name="build.linux" depends="jar">
 		<copy todir="${destination}">
 			<fileset dir="${template_dir}/linux">
 				<include name="**/*" />
 				<exclude name="**/.svn" />
 			</fileset>
 		</copy>
-		<chmod perm="+x" file="${destination}/filebox.sh"/>
+		<copy file="${destination}/jars/Filebox.jar" todir="${destination}/Filebox/jars"/>
+		<copy file="jars/org.eclipse.swt.gtk.linux.x86_3.4.1.v3449c.jar" tofile="${destination}/Filebox/jars/swt.jar"/>
+		<copy file="jars/jmdns.jar" todir="${destination}/Filebox/jars"/>
+		<chmod perm="+x" file="${destination}/Filebox/filebox.sh"/>
+		<tar basedir="${destination}/Filebox" destfile="${destination}/filebox-linux.tar.gz" />
 		<eclipse.refreshLocal resource="dist" />
 	</target>
 
@@ -44,9 +40,9 @@
 				<exclude name="**/.svn" />
 			</fileset>
 		</copy>
-		<copy file="${destination}/jars/Filebox.jar" tofile="${destination}/Filebox.app/Contents/MacOS/jars/Filebox.jar"/>
+		<copy file="${destination}/jars/Filebox.jar" todir="${destination}/Filebox.app/Contents/MacOS/jars"/>
 		<copy file="jars/org.eclipse.swt.cocoa.macosx_3.5.0.v3550b.jar" tofile="${destination}/Filebox.app/Contents/MacOS/jars/swt.jar"/>
-		<copy file="jars/jmdns.jar" tofile="${destination}/Filebox.app/Contents/MacOS/jars/jmdns.jar"/>
+		<copy file="jars/jmdns.jar" todir="${destination}/Filebox.app/Contents/MacOS/jars"/>
 		<chmod perm="+x" file="${destination}/Filebox.app/Contents/MacOS/filebox"/>
 		<eclipse.refreshLocal resource="dist" />
 	</target>
