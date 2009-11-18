@@ -136,7 +136,7 @@ public class FileboxMainComposite extends Composite {
 		contactsLabel.setText("Contacts" + ":");
 
 		// contacts table
-		contactsTable = new Table(this,  SWT.MULTI | SWT.VIRTUAL | SWT.BORDER);
+		contactsTable = new Table(this,  SWT.MULTI | SWT.VIRTUAL | SWT.BORDER | SWT.FULL_SELECTION);
 		contactsTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		contactsTable.setLinesVisible(true);
 		statusColumn = new TableColumn(contactsTable, SWT.CENTER);
@@ -166,6 +166,13 @@ public class FileboxMainComposite extends Composite {
 		Globals.getLocalFilebox().removePropertyChangeListener(propertiesListener);
 		Globals.getFileboxRegistry().removePropertyChangeListener(propertiesListener);
 	
+	}
+	
+	public DistantFilebox getSelectedFilebox() {
+		int index = contactsTable.getSelectionIndex();
+		FileboxRegistry registry = Globals.getFileboxRegistry();
+		if ( index < 0 || index > (registry.getFileboxesCount() - 1) ) return null;
+		return Globals.getFileboxRegistry().getFilebox(index);
 	}
 	
 }

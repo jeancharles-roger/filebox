@@ -10,10 +10,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.events.MenuAdapter;
 import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
@@ -23,6 +25,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tray;
 import org.eclipse.swt.widgets.TrayItem;
+import org.kawane.filebox.core.DistantFilebox;
 import org.kawane.filebox.core.FileboxShell;
 import org.kawane.filebox.core.Globals;
 import org.kawane.filebox.ui.toolkit.ToolKit;
@@ -56,6 +59,9 @@ public class MenuManager {
 	/** FileBox menu action list */
 	protected List<IAction> fileBoxActions = null;
 
+	/** Tools menu action list */
+	protected List<IAction> toolsActions = null;
+	
 	private FileboxShell application;
 
 	public MenuManager() {
@@ -84,6 +90,7 @@ public class MenuManager {
 		menuBar = new Menu(shell, SWT.BAR);
 		shell.setMenuBar(menuBar);
 		createMenu(shell, menuBar, "FileBox", getFileBoxActions(shell));
+		createMenu(shell, menuBar, "Tools", getToolsActions(shell));
 	}
 
 	/** Creates the system tray (if available) */
@@ -254,6 +261,39 @@ public class MenuManager {
 
 		}
 		return fileBoxActions;
+	}
+
+	public List<IAction> getToolsActions(final Shell shell) {
+		if ( toolsActions == null ) {
+			toolsActions = new ArrayList<IAction>();
+
+			toolsActions.add(new IAction.Stub("Open Browser\u2026") {
+				
+				@Override
+				public int getVisibility() {
+					return application.getMainComposite().getSelectedFilebox() == null ? VISIBILITY_DISABLE : VISIBILITY_ENABLE;
+				}
+				
+				@Override
+				public int run() {
+					Shell dialog = tk.dialogShell(application.getActiveShell(), "Brower");
+					Browser browser = new Browser(dialog, SWT.NONE);
+					browser.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
+
+					DistantFilebox selectedFilebox = application.getMainComposite().getSelectedFilebox();
+					StringBuilder url = new StringBuilder();
+					url.append("http://");
+					url.append(selectedFilebox.getHost());
+					url.append(":");
+					url.append(selectedFilebox.getPort());
+					browser.setUrl(url.toString());
+					
+					dialog.open();
+					return STATUS_OK;
+				}
+			});
+		}
+		return toolsActions;
 	}
 
 	public List<IAction> getSystemTrayActions(final Shell shell) {
