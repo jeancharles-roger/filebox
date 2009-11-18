@@ -32,6 +32,8 @@ public class FileboxShell implements PropertyChangeListener {
 	/** Shared resources instances. */
 	protected Resources resources;
 
+	protected FileboxMainComposite mainComposite;
+	
 	private Display display;
 
 	public Display getDisplay() {
@@ -42,6 +44,10 @@ public class FileboxShell implements PropertyChangeListener {
 		return display.getActiveShell();
 	}
 
+	public FileboxMainComposite getMainComposite() {
+		return mainComposite;
+	}
+	
 	private void initFileboxCore() {
 		configurationFile = new File(CONFIG_FILENAME);
 		Preferences preferences = new Preferences(configurationFile);
@@ -63,7 +69,6 @@ public class FileboxShell implements PropertyChangeListener {
 		preferences.addPropertyChangeListener(this);
 	}
 
-	@Override
 	public void propertyChange(PropertyChangeEvent event) {
 		if (Preferences.PORT.equals(event.getPropertyName())) {
 			HttpServer server = Globals.getHttpServer();
@@ -108,7 +113,7 @@ public class FileboxShell implements PropertyChangeListener {
 		menuManager.createMenuBar(shell);
 		menuManager.createSystemTray(shell);
 
-		new FileboxMainComposite(shell, SWT.NONE);
+		mainComposite = new FileboxMainComposite(shell, SWT.NONE);
 
 		shell.open();
 		while (!shell.isDisposed()) {
