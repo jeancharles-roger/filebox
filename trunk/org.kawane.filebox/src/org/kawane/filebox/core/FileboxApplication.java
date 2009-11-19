@@ -136,6 +136,8 @@ public class FileboxApplication implements PropertyChangeListener {
 		serviceDiscovery.disconnect(null);
 		serviceDiscovery.stop();
 
+		
+		System.exit(0);
 	}
 
 	public static void main(String[] args) {
