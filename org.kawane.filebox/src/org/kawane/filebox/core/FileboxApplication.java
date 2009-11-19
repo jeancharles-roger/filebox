@@ -6,24 +6,20 @@ import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.kawane.filebox.core.discovery.JmDNSServiceDiscovery;
 import org.kawane.filebox.core.discovery.ServiceDiscovery;
 import org.kawane.filebox.network.http.HttpServer;
 import org.kawane.filebox.network.http.services.FileService;
-import org.kawane.filebox.ui.FileboxMainComposite;
+import org.kawane.filebox.ui.ContactShellController;
 import org.kawane.filebox.ui.MenuManager;
 import org.kawane.filebox.ui.Resources;
 import org.kawane.filebox.webpage.HomePage;
 
-public class FileboxShell implements PropertyChangeListener {
+public class FileboxApplication implements PropertyChangeListener {
 
-	private static Logger logger = Logger.getLogger(FileboxShell.class.getName());
+	private static Logger logger = Logger.getLogger(FileboxApplication.class.getName());
 
 	protected static final String CONFIG_FILENAME = "filebox.properties";
 
@@ -32,10 +28,10 @@ public class FileboxShell implements PropertyChangeListener {
 	/** Shared resources instances. */
 	protected Resources resources;
 
-	protected FileboxMainComposite mainComposite;
 	
 	private Display display;
-
+	private ContactShellController contactController;
+	
 	public Display getDisplay() {
 		return display;
 	}
@@ -43,11 +39,11 @@ public class FileboxShell implements PropertyChangeListener {
 	public Shell getActiveShell() {
 		return display.getActiveShell();
 	}
-
-	public FileboxMainComposite getMainComposite() {
-		return mainComposite;
-	}
 	
+	public ContactShellController getContactController() {
+		return contactController;
+	}
+
 	private void initFileboxCore() {
 		configurationFile = new File(CONFIG_FILENAME);
 		Preferences preferences = new Preferences(configurationFile);
@@ -92,28 +88,13 @@ public class FileboxShell implements PropertyChangeListener {
 		logger.log(Level.FINE, "Start file box ui");
 		resources = Resources.getInstance();
 
-		// our first window
-		final Shell shell = new Shell(display);
-		shell.setImage(resources.getImage("filebox-icon-256x256.png"));
-		shell.setLayout(new FillLayout());
-		shell.setSize(300, 300);
-		shell.setText("FileBox");
-		shell.addListener(SWT.Close, new Listener() {
-			public void handleEvent(Event event) {
-				boolean visible = !shell.isVisible();
-				shell.setVisible(visible);
-
-				// do not quit the application when closing the shell
-				event.doit = false;
-			}
-		});
-
+		contactController = new ContactShellController(display, Globals.getLocalFilebox(), Globals.getFileboxRegistry());
+		Shell shell = contactController.createShell();
+		
 		MenuManager menuManager = new MenuManager();
 
 		menuManager.createMenuBar(shell);
 		menuManager.createSystemTray(shell);
-
-		mainComposite = new FileboxMainComposite(shell, SWT.NONE);
 
 		shell.open();
 		while (!shell.isDisposed()) {
@@ -153,7 +134,7 @@ public class FileboxShell implements PropertyChangeListener {
 	}
 
 	public static void main(String[] args) {
-		FileboxShell application = new FileboxShell();
+		FileboxApplication application = new FileboxApplication();
 		application.start();
 	}
 }

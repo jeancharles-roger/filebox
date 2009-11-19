@@ -27,7 +27,7 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tray;
 import org.eclipse.swt.widgets.TrayItem;
 import org.kawane.filebox.core.DistantFilebox;
-import org.kawane.filebox.core.FileboxShell;
+import org.kawane.filebox.core.FileboxApplication;
 import org.kawane.filebox.core.Globals;
 import org.kawane.filebox.ui.toolkit.ToolKit;
 
@@ -63,13 +63,13 @@ public class MenuManager {
 	/** Tools menu action list */
 	protected List<IAction> toolsActions = null;
 	
-	private FileboxShell application;
+	private FileboxApplication application;
 
 	public MenuManager() {
 		setApplication(Globals.getFileboxShell());
 	}
 	
-	public void setApplication(FileboxShell application) {
+	public void setApplication(FileboxApplication application) {
 		this.application = application;
 	}
 
@@ -272,7 +272,7 @@ public class MenuManager {
 				
 				@Override
 				public int getVisibility() {
-					return application.getMainComposite().getSelectedFilebox() == null ? VISIBILITY_DISABLE : VISIBILITY_ENABLE;
+					return application.getContactController().getSelectedFilebox() == null ? VISIBILITY_DISABLE : VISIBILITY_ENABLE;
 				}
 				
 				@Override
@@ -284,7 +284,7 @@ public class MenuManager {
 					
 					Browser browser = new Browser(dialog, SWT.NONE);
 
-					DistantFilebox selectedFilebox = application.getMainComposite().getSelectedFilebox();
+					DistantFilebox selectedFilebox = application.getContactController().getSelectedFilebox();
 					StringBuilder url = new StringBuilder();
 					url.append("http://");
 					url.append(selectedFilebox.getHost());
