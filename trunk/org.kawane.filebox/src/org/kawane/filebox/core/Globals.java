@@ -61,12 +61,12 @@ public class Globals {
 		return get(FILEBOX_REGISTRY_ID, FileboxRegistry.class);
 	}
 	
-	protected static void setFileboxShell(FileboxShell fileboxShell) {
-		set(FILEBOX_SHELL_ID, FileboxShell.class, fileboxShell);
+	protected static void setFileboxShell(FileboxApplication fileboxShell) {
+		set(FILEBOX_SHELL_ID, FileboxApplication.class, fileboxShell);
 	}
 	
-	public static FileboxShell getFileboxShell() {
-		return get(FILEBOX_SHELL_ID, FileboxShell.class);
+	public static FileboxApplication getFileboxShell() {
+		return get(FILEBOX_SHELL_ID, FileboxApplication.class);
 	}
 	
 	protected static void setServiceDiscovery(ServiceDiscovery fileboxShell) {
