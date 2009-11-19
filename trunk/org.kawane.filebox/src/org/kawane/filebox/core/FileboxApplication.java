@@ -49,8 +49,9 @@ public class FileboxApplication implements PropertyChangeListener {
 		Preferences preferences = new Preferences(configurationFile);
 		Globals.setPreferences(preferences);
 
-		Globals.setLocalFilebox(new Filebox());
-
+		Filebox filebox = new Filebox();
+		Globals.setLocalFilebox(filebox);
+		
 		Globals.setFileboxRegistry(new FileboxRegistry());
 
 		ServiceDiscovery serviceDiscovery = new JmDNSServiceDiscovery();
@@ -63,6 +64,8 @@ public class FileboxApplication implements PropertyChangeListener {
 		
 		Globals.setHttpServer(server);
 		preferences.addPropertyChangeListener(this);
+		
+		filebox.connect();
 	}
 
 	public void propertyChange(PropertyChangeEvent event) {
@@ -90,6 +93,7 @@ public class FileboxApplication implements PropertyChangeListener {
 
 		contactController = new ContactShellController(display, Globals.getLocalFilebox(), Globals.getFileboxRegistry());
 		Shell shell = contactController.createShell();
+		contactController.refreshUI();
 		
 		MenuManager menuManager = new MenuManager();
 
@@ -121,6 +125,10 @@ public class FileboxApplication implements PropertyChangeListener {
 	 */
 	public void stop() {
 
+		if (display != null && !display.isDisposed()) {
+			display.dispose();
+		}
+
 		HttpServer server = Globals.getHttpServer();
 		server.stop();
 
@@ -128,9 +136,6 @@ public class FileboxApplication implements PropertyChangeListener {
 		serviceDiscovery.disconnect(null);
 		serviceDiscovery.stop();
 
-		if (display != null && !display.isDisposed()) {
-			display.dispose();
-		}
 	}
 
 	public static void main(String[] args) {
