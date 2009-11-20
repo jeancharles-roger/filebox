@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="FileBox" default="build.macosx">
+<project name="FileBox" default="build.macosx64">
 	<property file="build.properties" />
 	<delete dir="${destination}" />
 	<mkdir dir="${destination}" />
@@ -33,7 +33,7 @@
 	</target>
 
 	
-	<target name="build.macosx" depends="jar">
+	<target name="build.macosx32" depends="jar">
 		<copy todir="${destination}">
 			<fileset dir="${template_dir}/macosx">
 				<include name="**/*" />
@@ -42,6 +42,20 @@
 		</copy>
 		<copy file="${destination}/jars/Filebox.jar" todir="${destination}/Filebox.app/Contents/MacOS/jars"/>
 		<copy file="jars/org.eclipse.swt.cocoa.macosx_3.5.0.v3550b.jar" tofile="${destination}/Filebox.app/Contents/MacOS/jars/swt.jar"/>
+		<copy file="jars/jmdns.jar" todir="${destination}/Filebox.app/Contents/MacOS/jars"/>
+		<chmod perm="+x" file="${destination}/Filebox.app/Contents/MacOS/filebox"/>
+		<eclipse.refreshLocal resource="dist" />
+	</target>
+
+	<target name="build.macosx64" depends="jar">
+		<copy todir="${destination}">
+			<fileset dir="${template_dir}/macosx">
+				<include name="**/*" />
+				<exclude name="**/.svn" />
+			</fileset>
+		</copy>
+		<copy file="${destination}/jars/Filebox.jar" todir="${destination}/Filebox.app/Contents/MacOS/jars"/>
+		<copy file="jars/org.eclipse.swt.cocoa.macosx.x86_64_3.5.1.v3555a.jar" tofile="${destination}/Filebox.app/Contents/MacOS/jars/swt.jar"/>
 		<copy file="jars/jmdns.jar" todir="${destination}/Filebox.app/Contents/MacOS/jars"/>
 		<chmod perm="+x" file="${destination}/Filebox.app/Contents/MacOS/filebox"/>
 		<eclipse.refreshLocal resource="dist" />

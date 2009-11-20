@@ -1,3 +1,3 @@
 Manifest-Version: 1.0
-Main-Class: org.kawane.filebox.core.FileboxShell
+Main-Class: org.kawane.filebox.core.FileboxApplication
 Class-Path: swt.jar jmdns.jar 
