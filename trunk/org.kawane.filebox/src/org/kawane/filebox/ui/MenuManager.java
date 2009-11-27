@@ -29,6 +29,8 @@ import org.eclipse.swt.widgets.TrayItem;
 import org.kawane.filebox.core.DistantFilebox;
 import org.kawane.filebox.core.FileboxApplication;
 import org.kawane.filebox.core.Globals;
+import org.kawane.filebox.core.discovery.JmDNSServiceDiscovery;
+import org.kawane.filebox.core.discovery.ServiceDiscovery;
 import org.kawane.filebox.ui.toolkit.ToolKit;
 
 /**
@@ -268,6 +270,16 @@ public class MenuManager {
 		if ( toolsActions == null ) {
 			toolsActions = new ArrayList<IAction>();
 
+			toolsActions.add(new IAction.Stub("Print services\u2026") {
+				@Override
+				public int run() {
+					ServiceDiscovery serviceDiscovery = Globals.getServiceDiscovery();
+					if(serviceDiscovery instanceof JmDNSServiceDiscovery) {
+						((JmDNSServiceDiscovery) serviceDiscovery).printServices();
+					}
+					return STATUS_OK;
+				}
+			});
 			toolsActions.add(new IAction.Stub("Open Browser\u2026") {
 				
 				@Override

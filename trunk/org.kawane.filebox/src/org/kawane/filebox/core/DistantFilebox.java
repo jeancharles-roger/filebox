@@ -45,14 +45,39 @@ final public class DistantFilebox {
 		builder.append(getPort());
 		return  builder.toString();
 	}
-	
-	public boolean equals(Object obj) {
-		if ( obj instanceof DistantFilebox ) {
-			DistantFilebox fd = (DistantFilebox) obj;
-			return 	(name == null ? fd.name == null : name.equals(fd.name)) &&
-					(host == null ? fd.host == null : host.equals(fd.host)) &&
-					port == fd.port;
-		}
-		return false;
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((host == null) ? 0 : host.hashCode());
+		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		result = prime * result + port;
+		return result;
 	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		DistantFilebox other = (DistantFilebox) obj;
+		if (host == null) {
+			if (other.host != null)
+				return false;
+		} else if (!host.equals(other.host))
+			return false;
+		if (name == null) {
+			if (other.name != null)
+				return false;
+		} else if (!name.equals(other.name))
+			return false;
+		if (port != other.port)
+			return false;
+		return true;
+	}
+
 }
