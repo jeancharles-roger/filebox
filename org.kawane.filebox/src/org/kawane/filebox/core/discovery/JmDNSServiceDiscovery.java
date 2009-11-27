@@ -80,7 +80,13 @@ public class JmDNSServiceDiscovery implements ServiceListener, ServiceDiscovery,
 	public void start() {
 		try {
 			dns = JmDNS.create();
+			dns.addServiceListener(FILEBOX_TYPE, JmDNSServiceDiscovery.this);
+			dns.registerServiceType(FILEBOX_TYPE);
 			dns.addServiceTypeListener(JmDNSServiceDiscovery.this);
+			ServiceInfo[] serviceInfos = dns.list(FILEBOX_TYPE);
+			for (ServiceInfo serviceInfo : serviceInfos) {
+				serviceAdded(serviceInfo.getType(), serviceInfo.getName(), serviceInfo);
+			}
 		} catch (Throwable e) {
 			logger.log(Level.SEVERE, "An Error Occured", e);
 		}
@@ -98,27 +104,32 @@ public class JmDNSServiceDiscovery implements ServiceListener, ServiceDiscovery,
 
 	public void serviceTypeAdded(ServiceEvent event) {
 		if (event.getType().equals(FILEBOX_TYPE)) {
+			dns.removeServiceListener(FILEBOX_TYPE, JmDNSServiceDiscovery.this);
 			dns.addServiceListener(FILEBOX_TYPE, JmDNSServiceDiscovery.this);
 		}
 	}
 
 	public void serviceAdded(final ServiceEvent event) {
-		if (event.getInfo() == null) {
+		serviceAdded(event.getType(), event.getName(), event.getInfo());
+	}
+
+	private void serviceAdded(final String type, final String name, final ServiceInfo info) {
+		if (info == null) {
 			Thread thread = new Thread(new Runnable() {
 				public void run() {
-					ServiceInfo info = dns.getServiceInfo(event.getType(), event.getName());
+					ServiceInfo info = dns.getServiceInfo(type, name);
 					while (info == null) {
-						dns.requestServiceInfo(event.getType(), event.getName());
-						info = dns.getServiceInfo(event.getType(), event.getName());
+						dns.requestServiceInfo(type, name);
+						info = dns.getServiceInfo(type, name);
 					}
-					Globals.getFileboxRegistry().registerFilebox(event.getName(), info.getHostAddress(), info.getPort());
+					Globals.getFileboxRegistry().registerFilebox(name, info.getHostAddress(), info.getPort());
 				}
 			});
 			// this thread forces to resolve the service.
 			thread.start();
 		} else {
 			// register the service now
-			Globals.getFileboxRegistry().registerFilebox(event.getName(), event.getInfo().getHostAddress(), event.getInfo().getPort());
+			Globals.getFileboxRegistry().registerFilebox(name, info.getHostAddress(), info.getPort());
 		}
 	}
 
@@ -129,5 +140,14 @@ public class JmDNSServiceDiscovery implements ServiceListener, ServiceDiscovery,
 
 	public void serviceResolved(ServiceEvent event) {
 		// do nothing
+		
+	}
+
+	public void printServices() {
+		dns.printServices();
+//		ServiceInfo[] serviceInfos = dns.list(FILEBOX_TYPE);
+//		for (ServiceInfo serviceInfo : serviceInfos) {
+//			serviceAdded(serviceInfo.getType(), serviceInfo.getName(), serviceInfo);
+//		}
 	}
 }
