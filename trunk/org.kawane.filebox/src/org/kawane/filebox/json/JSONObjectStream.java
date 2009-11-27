@@ -1,5 +1,15 @@
 package org.kawane.filebox.json;
 
+import static org.kawane.filebox.json.JSONUtil.get;
+import static org.kawane.filebox.json.JSONUtil.getBoolean;
+import static org.kawane.filebox.json.JSONUtil.getByte;
+import static org.kawane.filebox.json.JSONUtil.getChar;
+import static org.kawane.filebox.json.JSONUtil.getDouble;
+import static org.kawane.filebox.json.JSONUtil.getFloat;
+import static org.kawane.filebox.json.JSONUtil.getInt;
+import static org.kawane.filebox.json.JSONUtil.getLong;
+import static org.kawane.filebox.json.JSONUtil.getShort;
+
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
@@ -10,7 +20,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import static org.kawane.filebox.json.JSONUtil.*;
 
 public class JSONObjectStream {
 

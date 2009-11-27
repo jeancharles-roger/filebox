@@ -1,5 +1,15 @@
 package org.kawane.filebox.json;
 
+import static org.kawane.filebox.json.JSONUtil.get;
+import static org.kawane.filebox.json.JSONUtil.set;
+import static org.kawane.filebox.json.JSONUtil.setBoolean;
+import static org.kawane.filebox.json.JSONUtil.setByte;
+import static org.kawane.filebox.json.JSONUtil.setDouble;
+import static org.kawane.filebox.json.JSONUtil.setFloat;
+import static org.kawane.filebox.json.JSONUtil.setInt;
+import static org.kawane.filebox.json.JSONUtil.setLong;
+import static org.kawane.filebox.json.JSONUtil.setShort;
+
 import java.io.StringReader;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
@@ -11,8 +21,6 @@ import java.util.List;
 import java.util.Stack;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import static org.kawane.filebox.json.JSONUtil.*;
 
 public class JSONObjectHandler implements JSONHandler {
 
