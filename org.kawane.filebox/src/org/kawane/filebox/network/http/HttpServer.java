@@ -8,6 +8,7 @@ package org.kawane.filebox.network.http;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,8 +31,8 @@ public class HttpServer implements Runnable {
 
 	private Map<String, NetworkService> networksServices = new HashMap<String, NetworkService>();
 	private ServerSocket serverSocket;
-	private ExecutorService executors = Executors.newFixedThreadPool(THREADS_POOL_SIZE);
-	private Thread internalThread = new Thread(this, "HttpServer");
+	private ExecutorService executors;
+	private Thread internalThread;
 
 	private boolean running = false;
 
@@ -48,13 +49,22 @@ public class HttpServer implements Runnable {
 		this.port = port;
 	}
 
-	protected void initializeServer() {
+	private void openSocket() {
 		try {
 			serverSocket = new ServerSocket(port);
 			serverSocket.setSoTimeout(250);
 		} catch (IOException e) {
-			// TOD check errors
+			// TODO check errors
 			logger.log(Level.SEVERE, "An Error Occured when initializing server", e);
+		}
+	}
+
+	private void closeSocket() {
+		try {
+			serverSocket.close();
+		} catch (IOException e) {
+			// TODO check errors
+			logger.log(Level.SEVERE, "An Error Occured when closing server", e);
 		}
 	}
 
@@ -63,16 +73,21 @@ public class HttpServer implements Runnable {
 	}
 
 	public void start() {
-		initializeServer();
+		openSocket();
+		executors = Executors.newFixedThreadPool(THREADS_POOL_SIZE);
+		internalThread = new Thread(this, "HttpServer");
+
 		running = true;
 		internalThread.start();
 	}
 
 	public synchronized void stop() {
 		running = false;
+		closeSocket();
 		executors.shutdown();
+		executors = null;
 	}
-	
+
 	public void setService(String fragment, NetworkService service) {
 		networksServices.put(fragment, service);
 	}
@@ -91,6 +106,8 @@ public class HttpServer implements Runnable {
 						handleSocket(socket);
 					}
 				});
+			} catch (SocketException e) {
+				// do nothing
 			} catch (SocketTimeoutException e) {
 				// do nothing
 			} catch (IOException e) {

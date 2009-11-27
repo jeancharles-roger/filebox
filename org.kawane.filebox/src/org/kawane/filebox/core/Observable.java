@@ -23,10 +23,12 @@ public interface Observable {
 		}
 
 		public void fireIndexedPropertyChange(Object source, String propertyName, int index, Object oldValue, Object newValue) {
+			if ( oldValue == newValue ) return;
 			propertyChangeSupport.firePropertyChange(new IndexedPropertyChangeEvent(source, propertyName, oldValue, newValue, index));
 		}
 
 		public void firePropertyChange(Object source, String propertyName, Object oldValue, Object newValue) {
+			if ( oldValue == newValue ) return;
 			propertyChangeSupport.firePropertyChange(new PropertyChangeEvent(source, propertyName, oldValue, newValue));
 		}
 	}
