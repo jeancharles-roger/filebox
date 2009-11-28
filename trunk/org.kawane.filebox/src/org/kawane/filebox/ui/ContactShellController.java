@@ -84,7 +84,6 @@ public class ContactShellController {
 		}
 	};
 
-
 	private PropertyChangeListener propertiesListener = new PropertyChangeListener() {
 		public void propertyChange(final PropertyChangeEvent evt) {
 			shell.getDisplay().asyncExec(new Runnable(){
@@ -141,6 +140,7 @@ public class ContactShellController {
 		statusCombo = new Combo(meComposite, SWT.READ_ONLY);
 		statusCombo.setLayoutData(new GridData(SWT.END, SWT.CENTER, true, false));
 		statusCombo.setItems( new String[] { "On line", "Off line" } );
+		statusCombo.select(1);
 		statusCombo.addListener(SWT.Selection, statusComboListener);
 
 		// a separator
@@ -172,7 +172,10 @@ public class ContactShellController {
 	public void refreshUI() {
 		meLabel.setText(filebox.getName());
 		meLabel.getParent().layout();
-		statusCombo.select(filebox.isConnected() ? 0 : 1);
+		statusCombo.setEnabled(filebox.getState() != Filebox.PENDING);
+		if ( filebox.getState() != Filebox.PENDING )  {
+			statusCombo.select(filebox.getState() - 1);
+		}
 		meComposite.layout();
 		
 		contactsTable.clearAll();
@@ -181,6 +184,8 @@ public class ContactShellController {
 	
 	public boolean updateModel(Event event) {
 		if ( statusCombo == event.widget ) {
+			if ( statusCombo.getSelectionIndex()+1 == filebox.getState() ) return false;
+			
 			if ( statusCombo.getSelectionIndex() == 0 ) {
 				filebox.connect();
 			} else {

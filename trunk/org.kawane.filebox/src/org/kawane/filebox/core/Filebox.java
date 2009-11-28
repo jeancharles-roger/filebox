@@ -10,7 +10,12 @@ public class Filebox implements  Observable {
 	public static final String NAME = "name";
 	public static final String HOST = "host";
 	public static final String PORT = "port";
+	public static final String STATE = "state";
 	public static final String PROPERTIES = "properties";
+
+	public static final int PENDING = 0;
+	public static final int CONNECTED = 1;
+	public static final int DISCONNECTED = 2;
 
 	final protected Observable.Stub obs = new Observable.Stub();
 
@@ -20,7 +25,8 @@ public class Filebox implements  Observable {
 	protected String host;
 	protected int port;
 
-	protected boolean connected = false;
+	
+	protected int state = DISCONNECTED;
 
 	public Filebox() {
 		String preferencesName = preferences.getName();
@@ -63,12 +69,13 @@ public class Filebox implements  Observable {
 
 	/** connects this to fileboxes network */
 	public void connect() {
-		if ( connected ) return;
+		if ( getState() != DISCONNECTED ) return;
+		setState(PENDING);
 		Globals.getHttpServer().start();
 		Globals.getServiceDiscovery().connect(getName(), getPort(), new ConnectionListener () {
 			public void connected(ServiceDiscovery serviceDiscovery) {
-				connected = true;
 				setHost(serviceDiscovery.getHostname());
+				setState(CONNECTED);
 			}
 			public void disconnected(ServiceDiscovery serviceDiscovery) {}
 		});
@@ -77,20 +84,27 @@ public class Filebox implements  Observable {
 
 	/** disconnects this from fileboxes network */
 	public void disconnect() {
-		if ( !connected ) return;
+		if ( getState() != CONNECTED ) return;
+		setState(PENDING);
 		Globals.getHttpServer().stop();
 		Globals.getServiceDiscovery().disconnect(new ConnectionListener() {
 			public void connected(ServiceDiscovery serviceDiscovery) {}
 			public void disconnected(ServiceDiscovery serviceDiscovery) {
 				setHost("localhost");
-				connected = false;
+				setState(DISCONNECTED);
 			}
 		});
 	}
+	
+	private void setState(int state) {
+		int oldValue = this.state;
+		this.state = state;
+		obs.firePropertyChange(this, STATE, oldValue, state);
+	}
 
-	/** @return true if the filebox is connected. */
-	public boolean isConnected() {
-		return connected;
+	/** @return the filebox state, PENDING, CONNECTED, DISCONNECTED. */
+	public int getState() {
+		return state;
 	}
 
 	public void addPropertyChangeListener(PropertyChangeListener listener) {
