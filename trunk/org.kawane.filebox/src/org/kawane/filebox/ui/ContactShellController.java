@@ -4,12 +4,14 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
@@ -50,6 +52,8 @@ public class ContactShellController {
 	/** Shared resources instances. */
 	private Resources resources = Resources.getInstance();
 
+	private Composite contactComposite;
+	
 	private Composite meComposite;
 	private Label meLabel;
 	private Combo statusCombo;
@@ -83,6 +87,9 @@ public class ContactShellController {
 			}
 		}
 	};
+	
+	private Group fileComposite;
+	private Table fileTable;
 
 	private PropertyChangeListener propertiesListener = new PropertyChangeListener() {
 		public void propertyChange(final PropertyChangeEvent evt) {
@@ -126,8 +133,11 @@ public class ContactShellController {
 		shell.addListener(SWT.Close, shellListener);
 		shell.addListener(SWT.Dispose, shellListener);
 		
-		
-		meComposite = new Composite(shell, SWT.NONE);
+		contactComposite = new Composite(shell, SWT.NONE);
+		contactComposite.setLayout(new GridLayout(1,false));
+		contactComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+
+		meComposite = new Composite(contactComposite, SWT.NONE);
 		meComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 		meComposite.setLayout(new GridLayout(2,false));
 
@@ -144,16 +154,16 @@ public class ContactShellController {
 		statusCombo.addListener(SWT.Selection, statusComboListener);
 
 		// a separator
-		Label separator = new Label(shell, SWT.SEPARATOR | SWT.HORIZONTAL);
+		Label separator = new Label(contactComposite, SWT.SEPARATOR | SWT.HORIZONTAL);
 		separator.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 
 		// contacts label
-		Label contactsLabel = new Label(shell, SWT.NONE);
+		Label contactsLabel = new Label(contactComposite, SWT.NONE);
 		contactsLabel.setLayoutData(new GridData(SWT.LEFT, SWT.FILL, false, false));
 		contactsLabel.setText("Contacts" + ":");
 
 		// contacts table
-		contactsTable = new Table(shell,  SWT.MULTI | SWT.VIRTUAL | SWT.BORDER | SWT.FULL_SELECTION);
+		contactsTable = new Table(contactComposite,  SWT.MULTI | SWT.VIRTUAL | SWT.BORDER | SWT.FULL_SELECTION);
 		contactsTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		contactsTable.setLinesVisible(true);
 		statusColumn = new TableColumn(contactsTable, SWT.CENTER);
@@ -169,12 +179,48 @@ public class ContactShellController {
 		return shell;
 	}
 	
+	private boolean isFileTableVisible() {
+		return fileComposite != null && !fileComposite.isDisposed();
+	}
+	
+	private void showFileTable() {
+		if ( isFileTableVisible() ) return;
+		
+		fileComposite = new Group(shell, SWT.NONE);
+		fileComposite.setLayout(new FillLayout());
+		fileComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		fileComposite.setText("Files");
+
+		fileTable = new Table(fileComposite, SWT.NONE);
+	
+		shell.setLayout(new GridLayout(2, true));
+		shell.layout();
+		
+		shell.setSize(shell.getSize().x * 2, shell.getSize().y);
+	}
+	
+	private void hideFileTable() {
+		if ( !isFileTableVisible() ) return;
+		fileComposite.dispose();
+		fileComposite = null;
+		fileTable = null;
+		shell.setLayout(new GridLayout(1, false));
+		shell.layout();
+
+		shell.setSize(shell.getSize().x / 2, shell.getSize().y);
+	}
+	
 	public void refreshUI() {
 		meLabel.setText(filebox.getName());
 		meLabel.getParent().layout();
 		statusCombo.setEnabled(filebox.getState() != Filebox.PENDING);
 		if ( filebox.getState() != Filebox.PENDING )  {
 			statusCombo.select(filebox.getState() - 1);
+			if ( filebox.getState() == Filebox.CONNECTED ) {
+				showFileTable();
+			} else {
+				hideFileTable();
+			}
 		}
 		meComposite.layout();
 		
