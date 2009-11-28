@@ -270,16 +270,6 @@ public class MenuManager {
 		if ( toolsActions == null ) {
 			toolsActions = new ArrayList<IAction>();
 
-			toolsActions.add(new IAction.Stub("Print services\u2026") {
-				@Override
-				public int run() {
-					ServiceDiscovery serviceDiscovery = Globals.getServiceDiscovery();
-					if(serviceDiscovery instanceof JmDNSServiceDiscovery) {
-						((JmDNSServiceDiscovery) serviceDiscovery).printServices();
-					}
-					return STATUS_OK;
-				}
-			});
 			toolsActions.add(new IAction.Stub("Open Browser\u2026") {
 				
 				@Override
