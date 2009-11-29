@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.Stack;
 
-public class JSONStreamReader implements JSON{
+public class JSONStreamReader implements JSON {
 
 	public static int defaultCharBufferSize = 8192;
 
@@ -231,23 +231,14 @@ public class JSONStreamReader implements JSON{
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.kawane.filebox.boost.JSONReader#getName()
-	 */
 	public String getName() {
 		return name;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.kawane.filebox.boost.JSONReader#getValueType()
-	 */
 	public int getValueType() {
 		return type;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.kawane.filebox.boost.JSONReader#getValue()
-	 */
 	public String getValue() {
 		return value;
 	}
@@ -271,16 +262,11 @@ public class JSONStreamReader implements JSON{
 	public long getLong() {
 		return Long.valueOf(value);
 	}
-	/* (non-Javadoc)
-	 * @see org.kawane.filebox.boost.JSONReader#getContext()
-	 */
+
 	public int getContext() {
 		return contexts.peek();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.kawane.filebox.boost.JSONReader#close()
-	 */
 	public void close() throws IOException {
 		in.close();
 	}

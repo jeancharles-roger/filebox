@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -25,6 +24,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
+import org.kawane.filebox.Resources;
 import org.kawane.filebox.core.DistantFilebox;
 import org.kawane.filebox.core.Filebox;
 import org.kawane.filebox.core.FileboxRegistry;
@@ -32,6 +32,18 @@ import org.kawane.filebox.json.JSON;
 import org.kawane.filebox.json.JSONStreamReader;
 
 public class ContactShellController {
+
+	private static class FileDescriptor {
+		final char type;
+		final String name;
+		final long size;
+		
+		FileDescriptor(char type, String name, long size) {
+			this.type = type;
+			this.name = name;
+			this.size = size;
+		}
+	}
 	
 	private final Filebox filebox;
 	private final FileboxRegistry registry;
@@ -72,9 +84,9 @@ public class ContactShellController {
 	};
 
 	private Table contactsTable;
-	private TableColumn statusColumn;
-	private TableColumn nameColumn;
-	private TableColumn hostColumn;
+	private TableColumn statusFileboxColumn;
+	private TableColumn nameFileboxColumn;
+	private TableColumn hostFileboxColumn;
 	private Listener contactsTableListener = new Listener() {
 		public void handleEvent(Event e) {
 			
@@ -124,6 +136,9 @@ public class ContactShellController {
 	};
 	private Label pathLabel;
 	private Table filesTable;
+	private TableColumn iconFileColumn;
+	private TableColumn nameFileColumn;
+
 	private Listener filesTableListener = new Listener() {
 		public void handleEvent(Event e) {
 			
@@ -131,7 +146,14 @@ public class ContactShellController {
 			case SWT.SetData:
 				TableItem item = (TableItem)e.item;
 				int index = filesTable.indexOf(item);
-				item.setText(fileList.get(index));
+				FileDescriptor fileDescriptor = fileList.get(index);
+				if ( fileDescriptor.type == 'd' ) {
+					item.setImage(0, resources.getImage("folder.png"));
+				}
+				item.setText(1, fileDescriptor.name);
+				break;
+			case SWT.Resize:
+				resizeFilesTable();
 				break;
 			case SWT.MouseDoubleClick:
 				updateModel(e);
@@ -146,7 +168,7 @@ public class ContactShellController {
 
 	
 	private final HashMap<DistantFilebox, String> fileboxPathes = new HashMap<DistantFilebox, String>();
-	private final List<String> fileList = new ArrayList<String>();
+	private final List<FileDescriptor> fileList = new ArrayList<FileDescriptor>();
 	
 	private PropertyChangeListener propertiesListener = new PropertyChangeListener() {
 		public void propertyChange(final PropertyChangeEvent evt) {
@@ -174,9 +196,9 @@ public class ContactShellController {
 		final int margin = 10;
 		int width = contactsTable.getSize().x - margin - statusSize;
 		int hostSize = (int) (hostRatio * width);
-		statusColumn.setWidth( statusSize );
-		nameColumn.setWidth( width - hostSize - statusSize);
-		hostColumn.setWidth(hostSize);
+		statusFileboxColumn.setWidth( statusSize );
+		nameFileboxColumn.setWidth( width - hostSize - statusSize);
+		hostFileboxColumn.setWidth(hostSize);
 	}
 
 	
@@ -223,9 +245,9 @@ public class ContactShellController {
 		contactsTable = new Table(contactComposite,  SWT.MULTI | SWT.VIRTUAL | SWT.BORDER | SWT.FULL_SELECTION);
 		contactsTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		contactsTable.setLinesVisible(true);
-		statusColumn = new TableColumn(contactsTable, SWT.CENTER);
-		nameColumn = new TableColumn(contactsTable, SWT.NONE);
-		hostColumn = new TableColumn(contactsTable, SWT.RIGHT);
+		statusFileboxColumn = new TableColumn(contactsTable, SWT.CENTER);
+		nameFileboxColumn = new TableColumn(contactsTable, SWT.NONE);
+		hostFileboxColumn = new TableColumn(contactsTable, SWT.RIGHT);
 		contactsTable.addListener(SWT.SetData, contactsTableListener);
 		contactsTable.addListener(SWT.Resize, contactsTableListener);
 		contactsTable.addListener(SWT.Selection, contactsTableListener);
@@ -246,7 +268,14 @@ public class ContactShellController {
 		if ( isFileTableVisible() ) return;
 		
 		filesComposite = new Group(shell, SWT.NONE);
-		filesComposite.setLayout(new GridLayout(1, false));
+		GridLayout gridLayout = new GridLayout(1, false);
+		gridLayout.marginWidth = 0;
+		gridLayout.marginHeight = 0;
+		gridLayout.marginTop = 0;
+		gridLayout.marginBottom = 0;
+		gridLayout.marginLeft = 0;
+		gridLayout.marginRight = 0;
+		filesComposite.setLayout(gridLayout);
 		filesComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		filesComposite.setText("Files");
 
@@ -258,23 +287,36 @@ public class ContactShellController {
 		upButton.setText("Up");
 		upButton.addListener(SWT.Selection, upButtonListener);
 		upButton.addListener(SWT.Dispose, upButtonListener);
-		upButton.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false));
+		GridData gridData = new GridData(SWT.FILL, SWT.CENTER, false, false);
+		upButton.setLayoutData(gridData);
 		
 		pathLabel = new Label(pathComposite, SWT.NONE);
-		pathLabel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		pathLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		
-		
-		filesTable = new Table(filesComposite, SWT.VIRTUAL);
+		filesTable = new Table(filesComposite, SWT.VIRTUAL | SWT.BORDER | SWT.FULL_SELECTION);
 		filesTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		filesTable.addListener(SWT.SetData, filesTableListener);
 		filesTable.addListener(SWT.MouseDoubleClick, filesTableListener);
 		filesTable.addListener(SWT.Dispose, filesTableListener);
+		
+		iconFileColumn = new TableColumn(filesTable, SWT.NONE);
+		iconFileColumn.setWidth(20);
+
+		nameFileColumn = new TableColumn(filesTable, SWT.NONE);
+		nameFileColumn.setWidth(100);
+		
 		shell.setLayout(new GridLayout(2, true));
 		shell.layout();
 		
 		shell.setSize(shell.getSize().x * 2, shell.getSize().y);
 	}
 	
+	private void resizeFilesTable() {
+		iconFileColumn.setWidth(20);
+		nameFileColumn.setWidth(filesTable.getSize().x - 20);
+	}
+
+
 	private void hideFileTable() {
 		if ( !isFileTableVisible() ) return;
 		filesComposite.dispose();
@@ -307,14 +349,25 @@ public class ContactShellController {
 				URL url = new URL(request.toString());
 				InputStream stream = url.openStream();
 				JSONStreamReader reader = new JSONStreamReader(new InputStreamReader(stream));
+				char type = 1;
+				String name = null;
+				long size = 0;
 				int token = reader.next();
 				while ( token > 0 ) {
 					switch (token) {
 					case JSON.MEMBER:
-						if ( reader.getName().equals("path") ) {
+						if ( reader.getName().equals("type") ) {
 							token = reader.next();
-							String value = reader.getValue();
-							fileList.add(value);
+							type = (char) reader.getInteger();
+							
+						} else if ( reader.getName().equals("name") ) {
+							token = reader.next();
+							name = reader.getValue();
+							
+						} else if ( reader.getName().equals("size") ) {
+							token = reader.next();
+							size = reader.getLong();
+							fileList.add(new FileDescriptor(type, name, size));
 						}
 					}
 					token = reader.next();
@@ -384,14 +437,21 @@ public class ContactShellController {
 		}
 		
 		if ( filesTable == event.widget ) {
-			DistantFilebox selectedFilebox = getSelectedFilebox();
-			String path = fileboxPathes.get(selectedFilebox);
-			if ( path == null ) path = "/";
-			String file = fileList.get(filesTable.getSelectionIndex());
-			fileboxPathes.put(selectedFilebox, path + file + "/");
-			fillFiles();
-			refreshUI();
-			return true;
+			switch (event.type) {
+			case SWT.MouseDoubleClick:
+				FileDescriptor file = fileList.get(filesTable.getSelectionIndex());
+				if ( file.type == 'd' ) {
+					DistantFilebox selectedFilebox = getSelectedFilebox();
+					String path = fileboxPathes.get(selectedFilebox);
+					if ( path == null ) path = "/";
+					fileboxPathes.put(selectedFilebox, path + file.name + "/");
+					fillFiles();
+					refreshUI();
+					return true;
+				} else {
+					return false;
+				}
+			}
 		}
 		return false;
 	}
