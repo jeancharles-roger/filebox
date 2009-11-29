@@ -45,6 +45,7 @@ public class Http {
 	public static final String SERVER_FILEBOX_1_0 = "Filebox /1.0";
 	// MIME TYPE
 	public static final String TEXT_HTML = "text/html";
+	public static final String TEXT_JSON = "text/json";
 	public static final String TEXT_CSS = "text/css";
 	public static final String TEXT_PLAIN = "text/plain";
 	public static final String TEXT_BOOST = "text/boost";

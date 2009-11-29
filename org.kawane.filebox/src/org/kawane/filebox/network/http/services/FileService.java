@@ -32,11 +32,13 @@ public class FileService implements NetworkService {
 	private MimeTypeDatabase mimeTypeDatabase;
 
 	private HTMLFileList htmlFileList;
+	private JSonFileList jsonFileList;
 
 	public FileService(File homeDir) {
 		this.homeDir = homeDir;
 		this.mimeTypeDatabase = new MimeTypeDatabase();
 		htmlFileList = new HTMLFileList(mimeTypeDatabase);
+		jsonFileList = new JSonFileList();
 	}
 
 	public void handleRequest(HttpRequest request, HttpResponse response) {
@@ -362,6 +364,12 @@ public class FileService implements NetworkService {
 		File file = new File(homeDir, url);
 		String[] icons = request.getParameter("icon");
 		String[] styleSheets = request.getParameter("stylesheet");
+		String[] formatParameter = request.getParameter("format");
+		String format = "html";
+		if ( formatParameter != null && formatParameter.length > 0 ) {
+			format = formatParameter[0];
+		}
+		
 		if (icons != null && icons.length > 0) {
 			InputStream iconContent = mimeTypeDatabase.getIconContent(icons[0]);
 			if (iconContent != null) {
@@ -387,8 +395,14 @@ public class FileService implements NetworkService {
 		if (file.isDirectory()) {
 			try {
 				byte[] bytes;
-				bytes = htmlFileList.generate(file, request).getBytes("utf-8");
-				response.getHeader().put(Http.HEADER_CONTENT_TYPE, Http.TEXT_HTML);
+				if ( "json".equals(format) ) {
+					bytes = jsonFileList.generate(file, request).getBytes("utf-8");
+					response.getHeader().put(Http.HEADER_CONTENT_TYPE, Http.TEXT_JSON);
+					
+				} else {
+					bytes = htmlFileList.generate(file, request).getBytes("utf-8");
+					response.getHeader().put(Http.HEADER_CONTENT_TYPE, Http.TEXT_HTML);
+				}
 				response.getHeader().put(Http.HEADER_CONTENT_LENGTH, String.valueOf(bytes.length));
 				response.setCode(Http.CODE_OK);
 				response.setContents(new ByteArrayInputStream(bytes));
