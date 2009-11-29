@@ -2,11 +2,18 @@ package org.kawane.filebox.ui;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
@@ -21,7 +28,8 @@ import org.eclipse.swt.widgets.TableItem;
 import org.kawane.filebox.core.DistantFilebox;
 import org.kawane.filebox.core.Filebox;
 import org.kawane.filebox.core.FileboxRegistry;
-import org.kawane.filebox.core.Globals;
+import org.kawane.filebox.json.JSON;
+import org.kawane.filebox.json.JSONStreamReader;
 
 public class ContactShellController {
 	
@@ -69,28 +77,77 @@ public class ContactShellController {
 	private TableColumn hostColumn;
 	private Listener contactsTableListener = new Listener() {
 		public void handleEvent(Event e) {
-			if ( e.type == SWT.SetData ) {
-					TableItem item = (TableItem)e.item;
-					int index = contactsTable.indexOf(item);
-					DistantFilebox distantFilebox = Globals.getFileboxRegistry().getFilebox(index);
-					item.setData(distantFilebox);
-					//item.setImage(0, resources.getImage(distantFilebox.isConnected() ? "connected.png" : "disconnected.png"));
-					item.setImage(0, resources.getImage("connected.png"));
-					item.setText(1, distantFilebox.getName());
-					item.setText(2, distantFilebox.getHost());
-				return;
-			}
-
-			if ( e.type == SWT.Resize ) {
+			
+			switch (e.type) {
+			case SWT.SetData:
+				TableItem item = (TableItem)e.item;
+				int index = contactsTable.indexOf(item);
+				if ( registry.getFileboxesCount() < index ) break;
+				
+				DistantFilebox distantFilebox = registry.getFilebox(index);
+				item.setData(distantFilebox);
+				//item.setImage(0, resources.getImage(distantFilebox.isConnected() ? "connected.png" : "disconnected.png"));
+				item.setImage(0, resources.getImage("connected.png"));
+				item.setText(1, distantFilebox.getName());
+				item.setText(2, distantFilebox.getHost());
+				break;
+			case SWT.Resize:
 				resizeContactTable();
-				return;
+				break;
+			case SWT.Selection:
+				updateModel(e);
+				break;
+			case SWT.Dispose:
+				e.widget.removeListener(SWT.SetData, this);
+				e.widget.removeListener(SWT.Resize, this);
+				e.widget.removeListener(SWT.Selection, this);
+				e.widget.removeListener(SWT.Dispose, this);
 			}
 		}
 	};
 	
-	private Group fileComposite;
-	private Table fileTable;
+	private Group filesComposite;
+	private Composite pathComposite;
+	private Button upButton;
+	private Listener upButtonListener = new Listener() {
+		public void handleEvent(Event e) {
+			switch (e.type) {
+			case SWT.Selection:
+				updateModel(e);
+				break;
+			case SWT.Dispose:
+				e.widget.removeListener(SWT.Selection, this);
+				e.widget.removeListener(SWT.Dispose, this);
+				break;
+			}
+		}
+	};
+	private Label pathLabel;
+	private Table filesTable;
+	private Listener filesTableListener = new Listener() {
+		public void handleEvent(Event e) {
+			
+			switch (e.type) {
+			case SWT.SetData:
+				TableItem item = (TableItem)e.item;
+				int index = filesTable.indexOf(item);
+				item.setText(fileList.get(index));
+				break;
+			case SWT.MouseDoubleClick:
+				updateModel(e);
+				break;
+			case SWT.Dispose:
+				e.widget.removeListener(SWT.SetData, this);
+				e.widget.removeListener(SWT.Dispose, this);
+				break;
+			}
+		}
+	};
 
+	
+	private final HashMap<DistantFilebox, String> fileboxPathes = new HashMap<DistantFilebox, String>();
+	private final List<String> fileList = new ArrayList<String>();
+	
 	private PropertyChangeListener propertiesListener = new PropertyChangeListener() {
 		public void propertyChange(final PropertyChangeEvent evt) {
 			shell.getDisplay().asyncExec(new Runnable(){
@@ -171,6 +228,8 @@ public class ContactShellController {
 		hostColumn = new TableColumn(contactsTable, SWT.RIGHT);
 		contactsTable.addListener(SWT.SetData, contactsTableListener);
 		contactsTable.addListener(SWT.Resize, contactsTableListener);
+		contactsTable.addListener(SWT.Selection, contactsTableListener);
+		contactsTable.addListener(SWT.Dispose, contactsTableListener);
 		contactsTable.setItemCount(0);
 		resizeContactTable();
 		
@@ -180,19 +239,36 @@ public class ContactShellController {
 	}
 	
 	private boolean isFileTableVisible() {
-		return fileComposite != null && !fileComposite.isDisposed();
+		return filesComposite != null && !filesComposite.isDisposed();
 	}
 	
 	private void showFileTable() {
 		if ( isFileTableVisible() ) return;
 		
-		fileComposite = new Group(shell, SWT.NONE);
-		fileComposite.setLayout(new FillLayout());
-		fileComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-		fileComposite.setText("Files");
+		filesComposite = new Group(shell, SWT.NONE);
+		filesComposite.setLayout(new GridLayout(1, false));
+		filesComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		filesComposite.setText("Files");
 
-		fileTable = new Table(fileComposite, SWT.NONE);
-	
+		pathComposite = new Composite(filesComposite, SWT.NONE);
+		pathComposite.setLayout(new GridLayout(2, false));
+		pathComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		
+		upButton = new Button(pathComposite, SWT.PUSH);
+		upButton.setText("Up");
+		upButton.addListener(SWT.Selection, upButtonListener);
+		upButton.addListener(SWT.Dispose, upButtonListener);
+		upButton.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false));
+		
+		pathLabel = new Label(pathComposite, SWT.NONE);
+		pathLabel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		
+		
+		filesTable = new Table(filesComposite, SWT.VIRTUAL);
+		filesTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		filesTable.addListener(SWT.SetData, filesTableListener);
+		filesTable.addListener(SWT.MouseDoubleClick, filesTableListener);
+		filesTable.addListener(SWT.Dispose, filesTableListener);
 		shell.setLayout(new GridLayout(2, true));
 		shell.layout();
 		
@@ -201,13 +277,52 @@ public class ContactShellController {
 	
 	private void hideFileTable() {
 		if ( !isFileTableVisible() ) return;
-		fileComposite.dispose();
-		fileComposite = null;
-		fileTable = null;
+		filesComposite.dispose();
+		filesComposite = null;
+		filesTable = null;
 		shell.setLayout(new GridLayout(1, false));
 		shell.layout();
 
 		shell.setSize(shell.getSize().x / 2, shell.getSize().y);
+	}
+	
+	private void fillFiles() {
+		DistantFilebox selected = getSelectedFilebox();
+		String path = fileboxPathes.get(selected);
+		if ( path == null ) path = "/";
+		
+		fileList.clear();
+		
+		if ( selected != null ) {
+			StringBuffer request = new StringBuffer();
+			request.append("http://");
+			request.append(selected.getHost());
+			request.append(":");
+			request.append(selected.getPort());
+			request.append("/files");
+			request.append(path);
+			request.append("?format=json");
+			
+			try { 
+				URL url = new URL(request.toString());
+				InputStream stream = url.openStream();
+				JSONStreamReader reader = new JSONStreamReader(new InputStreamReader(stream));
+				int token = reader.next();
+				while ( token > 0 ) {
+					switch (token) {
+					case JSON.MEMBER:
+						if ( reader.getName().equals("path") ) {
+							token = reader.next();
+							String value = reader.getValue();
+							fileList.add(value);
+						}
+					}
+					token = reader.next();
+				}
+			} catch (Exception e) {
+				// TODO handle errors.
+			}
+		}
 	}
 	
 	public void refreshUI() {
@@ -226,6 +341,15 @@ public class ContactShellController {
 		
 		contactsTable.clearAll();
 		contactsTable.setItemCount(registry.getFileboxesCount());
+		
+		if ( isFileTableVisible() ) {
+			String path = fileboxPathes.get(getSelectedFilebox());
+			if ( path == null ) path = "/";
+			pathLabel.setText(path);
+			
+			filesTable.clearAll();
+			filesTable.setItemCount(fileList.size());
+		}
 	}
 	
 	public boolean updateModel(Event event) {
@@ -237,6 +361,36 @@ public class ContactShellController {
 			} else {
 				filebox.disconnect();
 			}
+			return true;
+		}
+		
+		if ( contactsTable == event.widget ) {
+			fillFiles();
+			refreshUI();
+			return true;
+		}
+
+		if ( upButton == event.widget) {
+			DistantFilebox selectedFilebox = getSelectedFilebox();
+			String path = fileboxPathes.get(selectedFilebox);
+			if ( path == null || path.equals("/") ) return false;
+			
+			int index = path.substring(0, path.length() - 1).lastIndexOf('/');
+			path = path.substring(0, index +1 );
+			fileboxPathes.put(selectedFilebox, path);
+			fillFiles();
+			refreshUI();
+			return true;
+		}
+		
+		if ( filesTable == event.widget ) {
+			DistantFilebox selectedFilebox = getSelectedFilebox();
+			String path = fileboxPathes.get(selectedFilebox);
+			if ( path == null ) path = "/";
+			String file = fileList.get(filesTable.getSelectionIndex());
+			fileboxPathes.put(selectedFilebox, path + file + "/");
+			fillFiles();
+			refreshUI();
 			return true;
 		}
 		return false;
