@@ -26,11 +26,10 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tray;
 import org.eclipse.swt.widgets.TrayItem;
+import org.kawane.filebox.Resources;
 import org.kawane.filebox.core.DistantFilebox;
 import org.kawane.filebox.core.FileboxApplication;
 import org.kawane.filebox.core.Globals;
-import org.kawane.filebox.core.discovery.JmDNSServiceDiscovery;
-import org.kawane.filebox.core.discovery.ServiceDiscovery;
 import org.kawane.filebox.ui.toolkit.ToolKit;
 
 /**

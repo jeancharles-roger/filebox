@@ -27,15 +27,15 @@ public class JSonFileList {
 			if (child.isHidden()) continue;
 
 			writer.member("type");
-			if ( file.isDirectory() ) {
+			if ( child.isDirectory() ) {
 				writer.charValue('d');
-			} else if ( file.isFile() ) {
+			} else if ( child.isFile() ) {
 				writer.charValue('f');
 			} else {
 				writer.charValue('u');
 			}
 			
-			writer.member("path");
+			writer.member("name");
 			writer.value(child.getName());
 			
 			writer.member("size");

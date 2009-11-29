@@ -8,13 +8,13 @@ import java.util.logging.Logger;
 
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
+import org.kawane.filebox.Resources;
 import org.kawane.filebox.core.discovery.JmDNSServiceDiscovery;
 import org.kawane.filebox.core.discovery.ServiceDiscovery;
 import org.kawane.filebox.network.http.HttpServer;
 import org.kawane.filebox.network.http.services.FileService;
 import org.kawane.filebox.ui.ContactShellController;
 import org.kawane.filebox.ui.MenuManager;
-import org.kawane.filebox.ui.Resources;
 import org.kawane.filebox.webpage.HomePage;
 
 public class FileboxApplication implements PropertyChangeListener {

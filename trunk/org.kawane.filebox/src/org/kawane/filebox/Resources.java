@@ -3,11 +3,13 @@
  * LGPL License.
  */
 
-package org.kawane.filebox.ui;
+package org.kawane.filebox;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import org.eclipse.swt.SWTException;
 import org.eclipse.swt.graphics.Device;
@@ -21,16 +23,22 @@ import org.eclipse.swt.widgets.Display;
 public class Resources {
 
 	protected final static String NO_IMAGE = "missing.gif";
-	protected final static String IMAGE_BASEDIR = "images/";
+	protected final static String IMAGE_BASEDIR = "ui/images/";
+	protected final static String MIME_BASEDIR = "mime/icons/";
 	
 	final protected Device device;
 	private boolean disposed = false;
+	
+	private final List<String> imageDirectories = new ArrayList<String>();
 	
 	/** Stores all images that have already been loaded. */
 	private final HashMap<String, Image> imageCache = new HashMap<String, Image>();
 	
 	private Resources(Device device) {
 		this.device = device;
+		
+		imageDirectories.add(IMAGE_BASEDIR);
+		imageDirectories.add(MIME_BASEDIR);
 		
 		loadImage(NO_IMAGE);
 	}
@@ -45,8 +53,16 @@ public class Resources {
 		return image;
 	}
 	
-	protected Image loadImage(String imageName) {
-		InputStream stream = getClass().getResourceAsStream (IMAGE_BASEDIR + imageName);
+	private Image loadImage(String imageName) {
+		for ( String baseDirectory : imageDirectories ) {
+			Image image = loadImage(baseDirectory, imageName);
+			if (image != null ) return image;
+		}
+		return null;
+	}
+	
+	private Image loadImage(String baseDir, String imageName) {
+		InputStream stream = getClass().getResourceAsStream (baseDir + imageName);
 		if (stream == null) return null;
 		Image image = null;
 		try {
