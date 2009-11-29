@@ -5,6 +5,7 @@ import java.beans.PropertyChangeListener;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -30,16 +31,19 @@ import org.kawane.filebox.core.Filebox;
 import org.kawane.filebox.core.FileboxRegistry;
 import org.kawane.filebox.json.JSON;
 import org.kawane.filebox.json.JSONStreamReader;
+import org.kawane.filebox.mime.MimeTypeDatabase;
 
 public class ContactShellController {
 
 	private static class FileDescriptor {
-		final char type;
+		final boolean directory;
+		final String mime;
 		final String name;
 		final long size;
 		
-		FileDescriptor(char type, String name, long size) {
-			this.type = type;
+		FileDescriptor(boolean directory, String mime, String name, long size) {
+			this.directory = directory;
+			this.mime = mime;
 			this.name = name;
 			this.size = size;
 		}
@@ -47,6 +51,8 @@ public class ContactShellController {
 	
 	private final Filebox filebox;
 	private final FileboxRegistry registry;
+	private final MimeTypeDatabase mimeTypeDatabase = new MimeTypeDatabase();
+	private DecimalFormat numberFormat = new DecimalFormat("0.###");
 
 	private final Display display;
 	
@@ -138,6 +144,7 @@ public class ContactShellController {
 	private Table filesTable;
 	private TableColumn iconFileColumn;
 	private TableColumn nameFileColumn;
+	private TableColumn sizeFileColumn;
 
 	private Listener filesTableListener = new Listener() {
 		public void handleEvent(Event e) {
@@ -147,10 +154,13 @@ public class ContactShellController {
 				TableItem item = (TableItem)e.item;
 				int index = filesTable.indexOf(item);
 				FileDescriptor fileDescriptor = fileList.get(index);
-				if ( fileDescriptor.type == 'd' ) {
-					item.setImage(0, resources.getImage("folder.png"));
+				String icon = "folder.png";
+				if ( !fileDescriptor.directory ) {
+					icon = mimeTypeDatabase.searchIconByMime(fileDescriptor.mime);
 				}
+				item.setImage(0, resources.getImage(icon));
 				item.setText(1, fileDescriptor.name);
+				item.setText(2, displaySize(fileDescriptor.size));
 				break;
 			case SWT.Resize:
 				resizeFilesTable();
@@ -296,6 +306,7 @@ public class ContactShellController {
 		filesTable = new Table(filesComposite, SWT.VIRTUAL | SWT.BORDER | SWT.FULL_SELECTION);
 		filesTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		filesTable.addListener(SWT.SetData, filesTableListener);
+		filesTable.addListener(SWT.Resize, filesTableListener);
 		filesTable.addListener(SWT.MouseDoubleClick, filesTableListener);
 		filesTable.addListener(SWT.Dispose, filesTableListener);
 		
@@ -305,6 +316,8 @@ public class ContactShellController {
 		nameFileColumn = new TableColumn(filesTable, SWT.NONE);
 		nameFileColumn.setWidth(100);
 		
+		sizeFileColumn = new TableColumn(filesTable, SWT.NONE);
+		
 		shell.setLayout(new GridLayout(2, true));
 		shell.layout();
 		
@@ -313,7 +326,8 @@ public class ContactShellController {
 	
 	private void resizeFilesTable() {
 		iconFileColumn.setWidth(20);
-		nameFileColumn.setWidth(filesTable.getSize().x - 20);
+		sizeFileColumn.setWidth(100);
+		nameFileColumn.setWidth(filesTable.getSize().x - 125);
 	}
 
 
@@ -349,16 +363,22 @@ public class ContactShellController {
 				URL url = new URL(request.toString());
 				InputStream stream = url.openStream();
 				JSONStreamReader reader = new JSONStreamReader(new InputStreamReader(stream));
-				char type = 1;
+				boolean directory = false;
+				String type = null;
 				String name = null;
 				long size = 0;
 				int token = reader.next();
 				while ( token > 0 ) {
 					switch (token) {
 					case JSON.MEMBER:
-						if ( reader.getName().equals("type") ) {
+						
+						if ( reader.getName().equals("directory") ) {
 							token = reader.next();
-							type = (char) reader.getInteger();
+							directory = reader.getBoolean();
+							
+						} else if ( reader.getName().equals("mime") ) {
+							token = reader.next();
+							type = reader.getValue();
 							
 						} else if ( reader.getName().equals("name") ) {
 							token = reader.next();
@@ -367,7 +387,7 @@ public class ContactShellController {
 						} else if ( reader.getName().equals("size") ) {
 							token = reader.next();
 							size = reader.getLong();
-							fileList.add(new FileDescriptor(type, name, size));
+							fileList.add(new FileDescriptor(directory, type, name, size));
 						}
 					}
 					token = reader.next();
@@ -377,6 +397,25 @@ public class ContactShellController {
 			}
 		}
 	}
+	
+	private String displaySize(long length) {
+		String unit = " B";
+		double l = length;
+		if (l >= 1024) {
+			unit = " KB";
+			l = l / 1024;
+		}
+		if (l >= 1024) {
+			unit = " MB";
+			l = l / 1024;
+		}
+		if (l >= 1024) {
+			unit = " GB";
+			l = l / 1024;
+		}
+		return numberFormat.format(l) + unit;
+	}
+
 	
 	public void refreshUI() {
 		meLabel.setText(filebox.getName());
@@ -440,7 +479,7 @@ public class ContactShellController {
 			switch (event.type) {
 			case SWT.MouseDoubleClick:
 				FileDescriptor file = fileList.get(filesTable.getSelectionIndex());
-				if ( file.type == 'd' ) {
+				if ( file.directory ) {
 					DistantFilebox selectedFilebox = getSelectedFilebox();
 					String path = fileboxPathes.get(selectedFilebox);
 					if ( path == null ) path = "/";

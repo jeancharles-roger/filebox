@@ -38,7 +38,7 @@ public class FileService implements NetworkService {
 		this.homeDir = homeDir;
 		this.mimeTypeDatabase = new MimeTypeDatabase();
 		htmlFileList = new HTMLFileList(mimeTypeDatabase);
-		jsonFileList = new JSonFileList();
+		jsonFileList = new JSonFileList(mimeTypeDatabase);
 	}
 
 	public void handleRequest(HttpRequest request, HttpResponse response) {

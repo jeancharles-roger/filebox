@@ -12,12 +12,19 @@ import java.util.Comparator;
 import java.util.List;
 
 import org.kawane.filebox.json.JSONStreamWriter;
+import org.kawane.filebox.mime.MimeTypeDatabase;
 import org.kawane.filebox.network.http.HttpRequest;
 
 public class JSonFileList {
 
 	private static final Charset utf8Charset = Charset.forName("UTF-8");
 	
+	private final MimeTypeDatabase mimeTypeDatabase;
+
+	public JSonFileList(MimeTypeDatabase mimeTypeDatabase) {
+		this.mimeTypeDatabase = mimeTypeDatabase;
+	}
+
 	public String generate(File file, HttpRequest request) {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		JSONStreamWriter writer = new JSONStreamWriter(stream);
@@ -26,14 +33,11 @@ public class JSonFileList {
 		for (File child : order(file.listFiles())) {
 			if (child.isHidden()) continue;
 
-			writer.member("type");
-			if ( child.isDirectory() ) {
-				writer.charValue('d');
-			} else if ( child.isFile() ) {
-				writer.charValue('f');
-			} else {
-				writer.charValue('u');
-			}
+			writer.member("directory");
+			writer.booleanValue(child.isDirectory());
+			
+			writer.member("mime");
+			writer.value(mimeTypeDatabase.searchMimeType(child));
 			
 			writer.member("name");
 			writer.value(child.getName());
