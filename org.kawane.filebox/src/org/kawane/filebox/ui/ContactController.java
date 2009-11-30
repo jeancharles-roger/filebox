@@ -33,7 +33,7 @@ import org.kawane.filebox.json.JSON;
 import org.kawane.filebox.json.JSONStreamReader;
 import org.kawane.filebox.mime.MimeTypeDatabase;
 
-public class ContactShellController {
+public class ContactController {
 
 	private static class FileDescriptor {
 		final boolean directory;
@@ -190,7 +190,7 @@ public class ContactShellController {
 		}
 	};
 	
-	public ContactShellController(Display display, Filebox filebox, FileboxRegistry registry) {
+	public ContactController(Display display, Filebox filebox, FileboxRegistry registry) {
 		this.display = display;
 		this.filebox = filebox;
 		this.registry = registry;

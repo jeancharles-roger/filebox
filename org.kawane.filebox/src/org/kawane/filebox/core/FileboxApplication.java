@@ -13,7 +13,7 @@ import org.kawane.filebox.core.discovery.JmDNSServiceDiscovery;
 import org.kawane.filebox.core.discovery.ServiceDiscovery;
 import org.kawane.filebox.network.http.HttpServer;
 import org.kawane.filebox.network.http.services.FileService;
-import org.kawane.filebox.ui.ContactShellController;
+import org.kawane.filebox.ui.ContactController;
 import org.kawane.filebox.ui.MenuManager;
 import org.kawane.filebox.webpage.HomePage;
 
@@ -30,7 +30,7 @@ public class FileboxApplication implements PropertyChangeListener {
 
 	
 	private Display display;
-	private ContactShellController contactController;
+	private ContactController contactController;
 	
 	public Display getDisplay() {
 		return display;
@@ -40,7 +40,7 @@ public class FileboxApplication implements PropertyChangeListener {
 		return display.getActiveShell();
 	}
 	
-	public ContactShellController getContactController() {
+	public ContactController getContactController() {
 		return contactController;
 	}
 
@@ -91,7 +91,7 @@ public class FileboxApplication implements PropertyChangeListener {
 		logger.log(Level.FINE, "Start file box ui");
 		resources = Resources.getInstance();
 
-		contactController = new ContactShellController(display, Globals.getLocalFilebox(), Globals.getFileboxRegistry());
+		contactController = new ContactController(display, Globals.getLocalFilebox(), Globals.getFileboxRegistry());
 		Shell shell = contactController.createShell();
 		contactController.refreshUI();
 		
