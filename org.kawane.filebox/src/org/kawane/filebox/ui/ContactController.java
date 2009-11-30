@@ -371,7 +371,6 @@ public class ContactController {
 				while ( token > 0 ) {
 					switch (token) {
 					case JSON.MEMBER:
-						
 						if ( reader.getName().equals("directory") ) {
 							token = reader.next();
 							directory = reader.getBoolean();
@@ -387,8 +386,11 @@ public class ContactController {
 						} else if ( reader.getName().equals("size") ) {
 							token = reader.next();
 							size = reader.getLong();
-							fileList.add(new FileDescriptor(directory, type, name, size));
 						}
+						break;
+					case JSON.END_OBJECT:
+						fileList.add(new FileDescriptor(directory, type, name, size));
+						break;
 					}
 					token = reader.next();
 				}

@@ -29,21 +29,26 @@ public class JSonFileList {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		JSONStreamWriter writer = new JSONStreamWriter(stream);
 		writer.beginDocument();
+		writer.member("files");
 		writer.beginArray();
 		for (File child : order(file.listFiles())) {
 			if (child.isHidden()) continue;
 
+			writer.beginObject();
+			
 			writer.member("directory");
 			writer.booleanValue(child.isDirectory());
 			
 			writer.member("mime");
-			writer.value(mimeTypeDatabase.searchMimeType(child));
+			writer.stringValue(mimeTypeDatabase.searchMimeType(child));
 			
 			writer.member("name");
-			writer.value(child.getName());
+			writer.stringValue(child.getName());
 			
 			writer.member("size");
 			writer.longValue(child.length());
+			
+			writer.endObject();
 		}
 		writer.endArray();
 		writer.endDocument();
