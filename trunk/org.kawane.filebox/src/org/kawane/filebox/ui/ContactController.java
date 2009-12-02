@@ -34,6 +34,7 @@ import org.kawane.filebox.core.Globals;
 import org.kawane.filebox.json.JSON;
 import org.kawane.filebox.json.JSONStreamReader;
 import org.kawane.filebox.mime.MimeTypeDatabase;
+import org.kawane.filebox.network.http.Http;
 import org.kawane.filebox.network.http.TransferManager;
 
 public class ContactController {
@@ -361,13 +362,13 @@ public class ContactController {
 			request.append(":");
 			request.append(selected.getPort());
 			request.append("/files");
-			request.append(path);
+			request.append(Http.encode(path));
 			request.append("?format=json");
 			
 			try { 
 				URL url = new URL(request.toString());
 				InputStream stream = url.openStream();
-				JSONStreamReader reader = new JSONStreamReader(new InputStreamReader(stream));
+				JSONStreamReader reader = new JSONStreamReader(new InputStreamReader(stream, "UTF-8"));
 				boolean directory = false;
 				String type = null;
 				String name = null;
@@ -376,6 +377,7 @@ public class ContactController {
 				while ( token > 0 ) {
 					switch (token) {
 					case JSON.MEMBER:
+						
 						if ( reader.getName().equals("directory") ) {
 							token = reader.next();
 							directory = reader.getBoolean();
@@ -394,9 +396,9 @@ public class ContactController {
 						}
 						break;
 					case JSON.END_OBJECT:
-						fileList.add(new FileDescriptor(directory, type, name, size));
+							fileList.add(new FileDescriptor(directory, type, name, size));
 						break;
-					}
+						}
 					token = reader.next();
 				}
 			} catch (Exception e) {
@@ -486,9 +488,9 @@ public class ContactController {
 			switch (event.type) {
 			case SWT.MouseDoubleClick:
 				FileDescriptor file = fileList.get(filesTable.getSelectionIndex());
-				DistantFilebox selectedFilebox = getSelectedFilebox();
-				String path = fileboxPathes.get(selectedFilebox);
-				if ( path == null ) path = "/";
+					DistantFilebox selectedFilebox = getSelectedFilebox();
+					String path = fileboxPathes.get(selectedFilebox);
+					if ( path == null ) path = "/";
 				String url = path + file.name;
 
 				if ( file.directory ) {
