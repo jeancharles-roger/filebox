@@ -12,9 +12,11 @@ import org.kawane.filebox.Resources;
 import org.kawane.filebox.core.discovery.JmDNSServiceDiscovery;
 import org.kawane.filebox.core.discovery.ServiceDiscovery;
 import org.kawane.filebox.network.http.HttpServer;
+import org.kawane.filebox.network.http.TransferManager;
 import org.kawane.filebox.network.http.services.FileService;
 import org.kawane.filebox.ui.ContactController;
 import org.kawane.filebox.ui.MenuManager;
+import org.kawane.filebox.ui.TransferController;
 import org.kawane.filebox.webpage.HomePage;
 
 public class FileboxApplication implements PropertyChangeListener {
@@ -27,10 +29,16 @@ public class FileboxApplication implements PropertyChangeListener {
 
 	/** Shared resources instances. */
 	protected Resources resources;
-
+	
+	private TransferManager transferManager;
 	
 	private Display display;
 	private ContactController contactController;
+	private Shell contactShell;
+	
+	private TransferController transferController;
+	private Shell transferShell;
+	
 	
 	public Display getDisplay() {
 		return display;
@@ -40,8 +48,20 @@ public class FileboxApplication implements PropertyChangeListener {
 		return display.getActiveShell();
 	}
 	
+	public Shell getContactShell() {
+		return contactShell;
+	}
+	
 	public ContactController getContactController() {
 		return contactController;
+	}
+	
+	public Shell getTransferShell() {
+		return transferShell;
+	}
+	
+	public TransferController getTransferController() {
+		return transferController;
 	}
 
 	private void initFileboxCore() {
@@ -54,6 +74,7 @@ public class FileboxApplication implements PropertyChangeListener {
 		
 		Globals.setFileboxRegistry(new FileboxRegistry());
 
+	
 		ServiceDiscovery serviceDiscovery = new JmDNSServiceDiscovery();
 		serviceDiscovery.start();
 		Globals.setServiceDiscovery(serviceDiscovery);
@@ -64,6 +85,9 @@ public class FileboxApplication implements PropertyChangeListener {
 		
 		Globals.setHttpServer(server);
 		preferences.addPropertyChangeListener(this);
+		
+		transferManager = new TransferManager();
+		transferManager.start();
 		
 		filebox.connect();
 	}
@@ -91,17 +115,24 @@ public class FileboxApplication implements PropertyChangeListener {
 		logger.log(Level.FINE, "Start file box ui");
 		resources = Resources.getInstance();
 
-		contactController = new ContactController(display, Globals.getLocalFilebox(), Globals.getFileboxRegistry());
-		Shell shell = contactController.createShell();
+		contactController = new ContactController(display, Globals.getLocalFilebox(), Globals.getFileboxRegistry(), transferManager);
+		contactShell = contactController.createShell();
 		contactController.refreshUI();
+
+		transferController = new TransferController(display, transferManager);
+		transferShell = transferController.createShell();
+		transferController.refreshUI();
 		
 		MenuManager menuManager = new MenuManager();
 
-		menuManager.createMenuBar(shell);
-		menuManager.createSystemTray(shell);
+		menuManager.createMenuBar(contactShell);
+		menuManager.createMenuBar(transferShell);
 
-		shell.open();
-		while (!shell.isDisposed()) {
+		menuManager.createSystemTray(contactShell);
+
+
+		contactShell.open();
+		while (!contactShell.isDisposed()) {
 			try {
 				if (!display.readAndDispatch()) {
 					display.sleep();
@@ -110,6 +141,7 @@ public class FileboxApplication implements PropertyChangeListener {
 				logger.log(Level.SEVERE, "Internal Error", e);
 			}
 		}
+		
 		if (!display.isDisposed()) {
 			display.dispose();
 		}
