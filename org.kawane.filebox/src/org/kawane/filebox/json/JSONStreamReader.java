@@ -2,13 +2,18 @@ package org.kawane.filebox.json;
 
 import java.io.EOFException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.charset.Charset;
 import java.util.Stack;
 
 public class JSONStreamReader implements JSON {
 
 	public static int defaultCharBufferSize = 8192;
 
+	static private Charset DEFAULT_ENCODING = Charset.forName("UTF-8");
+	
 	private Reader in;
 
 	private Stack<String> objects = new Stack<String>();
@@ -30,6 +35,14 @@ public class JSONStreamReader implements JSON {
 
 	private int length = 0;
 
+	public JSONStreamReader(InputStream in) {
+		this(new InputStreamReader(in, DEFAULT_ENCODING), defaultCharBufferSize);
+	}
+	
+	public JSONStreamReader(InputStream in, int bufferSize) {
+		this(new InputStreamReader(in, DEFAULT_ENCODING), bufferSize);
+	}
+	
 	public JSONStreamReader(Reader in) {
 		this(in, defaultCharBufferSize);
 	}
@@ -206,7 +219,7 @@ public class JSONStreamReader implements JSON {
 	private char parseSpecialChar() throws IOException, IllegalArgumentException {
 		char c = eat();
 		switch (c) {
-		case 'u':
+		case 'u': case'U':
 			// unicode four hex digit
 			char[] buf = new char[4];
 			for (int i = 0; i < 4; i++) {

@@ -2,7 +2,10 @@ package org.kawane.filebox.json;
 
 import java.io.EOFException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.charset.Charset;
 import java.util.Stack;
 
 public class JSONParser implements JSON {
@@ -12,6 +15,8 @@ public class JSONParser implements JSON {
 	public static final int OBJECT = 1;
 	public static final int ARRAY = 2;
 	public static final int VALUE = 3;
+	static private Charset DEFAULT_ENCODING = Charset.forName("UTF-8");
+
 
 	public static int defaultCharBufferSize = 8192;
 
@@ -28,6 +33,14 @@ public class JSONParser implements JSON {
 	private int length = 0;
 	private JSONHandler handler;
 
+	public JSONParser(InputStream in) {
+		this(new InputStreamReader(in, DEFAULT_ENCODING), defaultCharBufferSize);
+	}
+
+	public JSONParser(InputStream in, int bufferSize) {
+		this(new InputStreamReader(in, DEFAULT_ENCODING), bufferSize);
+	}
+	
 	public JSONParser(Reader in) {
 		this(in, defaultCharBufferSize);
 	}
