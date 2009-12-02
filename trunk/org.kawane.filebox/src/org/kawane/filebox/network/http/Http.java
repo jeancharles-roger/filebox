@@ -69,7 +69,7 @@ public class Http {
 		return builder.toString();
 	}
 
-	/** 
+	/**
 	 * code copyu from URI class
 	 */
 	public static String decode(String s) {
@@ -81,14 +81,31 @@ public class Http {
 		return s;
 	}
 
-	
 	public static String encode(String s) {
+		if (s == null) {
+			return null;
+		}
+		StringBuilder builder = new StringBuilder();
+		int i = 0;
+		int start = 0;
 		try {
-			return URLEncoder.encode(s,DEFAULT_ENCODING_NAME);
+			while (i < s.length()) {
+				char c = s.charAt(i++);
+				if (c == '/') {
+					if (start != i) {
+						builder.append(URLEncoder.encode(s.substring(start, i - 1), DEFAULT_ENCODING_NAME));
+					}
+					start = i;
+					builder.append(c);
+				}
+			}
+			if (start != i) {
+				builder.append(URLEncoder.encode(s.substring(start, i), DEFAULT_ENCODING_NAME));
+			}
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		}
-		return s;
-    }
+		return builder.toString();
+	}
 
 }

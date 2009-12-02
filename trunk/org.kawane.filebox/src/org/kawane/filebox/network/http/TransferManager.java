@@ -77,6 +77,7 @@ public class TransferManager implements Runnable, Observable {
 	
 	public void run() {
  		while (isStarted()) {
+ 			boolean allDone = true;
 			synchronized (this) {
 				try {
 					Iterator<Transfer> iterator = transferList.iterator();
@@ -84,11 +85,13 @@ public class TransferManager implements Runnable, Observable {
 						Transfer transfer = iterator.next();
 						switch ( transfer.getState() ) {
 						case Transfer.IDLE:
+							allDone = false;
 							transfer.start();
 							obs.firePropertyChange(this, "started", null, transfer);
 							break;
 							
 						case Transfer.STARTED:
+							allDone = false;
 							transfer.transfer(2048);
 							break;
 							
@@ -113,7 +116,7 @@ public class TransferManager implements Runnable, Observable {
 					logger.log(Level.SEVERE, "Exception thrown", e);
 				}
  			}
-			if ( transferList.isEmpty() ) {
+			if ( allDone ) {
 				try {
 					Thread.sleep(250);
 				} catch (InterruptedException e) {
