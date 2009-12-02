@@ -126,14 +126,36 @@ public class Transfer {
 	public TransferMonitor getMonitor() {
 		return monitor;
 	}
-	
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((filebox == null) ? 0 : filebox.hashCode());
+		result = prime * result + ((url == null) ? 0 : url.hashCode());
+		return result;
+	}
+
 	@Override
 	public boolean equals(Object obj) {
-		if ( obj instanceof Transfer) {
-			Transfer that = (Transfer) obj;
-			return 	filebox == null ? that.filebox == null : filebox.equals(that.filebox) &&
-					url == null ? that.url == null : url.equals(that.url);
-		}
-		return false;
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Transfer other = (Transfer) obj;
+		if (filebox == null) {
+			if (other.filebox != null)
+				return false;
+		} else if (!filebox.equals(other.filebox))
+			return false;
+		if (url == null) {
+			if (other.url != null)
+				return false;
+		} else if (!url.equals(other.url))
+			return false;
+		return true;
 	}
+	
 }
