@@ -64,6 +64,9 @@ public class MenuManager {
 	/** Tools menu action list */
 	protected List<IAction> toolsActions = null;
 	
+	/** Window menu action list */
+	protected List<IAction> windowActions = null;
+	
 	private FileboxApplication application;
 
 	public MenuManager() {
@@ -93,6 +96,7 @@ public class MenuManager {
 		shell.setMenuBar(menuBar);
 		createMenu(shell, menuBar, "FileBox", getFileBoxActions(shell));
 		createMenu(shell, menuBar, "Tools", getToolsActions(shell));
+		createMenu(shell, menuBar, "Window", getWindowActions(shell));
 	}
 
 	/** Creates the system tray (if available) */
@@ -299,6 +303,35 @@ public class MenuManager {
 			});
 		}
 		return toolsActions;
+	}
+	
+	
+	public List<IAction> getWindowActions(final Shell shell) {
+		if ( windowActions == null ) {
+			windowActions = new ArrayList<IAction>();
+			
+			windowActions.add(new IAction.Stub() {
+				
+				@Override
+				public String getLabel() {
+					StringBuilder builder = new StringBuilder();
+					builder.append(application.getTransferShell().isVisible() ? "Hide" : "Show");
+					builder.append(" Transfert Window");
+					return builder.toString();
+				}
+				
+				@Override
+				public int run() {
+					if ( application.getTransferShell().isVisible() ) {
+						application.getTransferShell().close();
+					} else {
+						application.getTransferShell().open();
+					}
+					return STATUS_OK;
+				}
+			});
+		}
+		return windowActions;
 	}
 
 	public List<IAction> getSystemTrayActions(final Shell shell) {
