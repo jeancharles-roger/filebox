@@ -27,6 +27,13 @@
 		</copy>
 		<copy file="jars/org.eclipse.swt.win32.win32.x86_3.5.1.v3555a.jar" tofile="${destination}/Filebox/jars/swt.jar"/>
 		<copy file="jars/jmdns.jar" todir="${destination}/Filebox/jars"/>
+		<copy todir="${destination}/Filebox/homePage">
+			<fileset dir="../org.kawane.filebox/homePage">
+				<include name="**/*" />
+				<exclude name="**/.svn" />
+			</fileset>
+		</copy>
+		
 		<chmod perm="+x" file="${destination}/Filebox/filebox.bat"/>
 		<zip basedir="${destination}/"  destfile="${destination}/filebox-win32.zip" />
 		<eclipse.refreshLocal resource="dist" />
@@ -41,6 +48,12 @@
 		</copy>
 		<copy file="jars/org.eclipse.swt.gtk.linux.x86_3.4.1.v3449c.jar" tofile="${destination}/Filebox/jars/swt.jar"/>
 		<copy file="jars/jmdns.jar" todir="${destination}/Filebox/jars"/>
+		<copy todir="${destination}/Filebox/homePage">
+			<fileset dir="../org.kawane.filebox/homePage">
+				<include name="**/*" />
+				<exclude name="**/.svn" />
+			</fileset>
+		</copy>
 		<chmod perm="+x" file="${destination}/Filebox/filebox.sh"/>
 		<tar basedir="${destination}" destfile="${destination}/filebox-linux.tar.gz" compression="gzip"/>
 		<eclipse.refreshLocal resource="dist" />
@@ -57,6 +70,13 @@
 		<copy file="${destination}/Filebox/jars/Filebox.jar" todir="${destination}/Filebox.app/Contents/MacOS/jars"/>
 		<copy file="jars/org.eclipse.swt.cocoa.macosx_3.5.0.v3550b.jar" tofile="${destination}/Filebox.app/Contents/MacOS/jars/swt.jar"/>
 		<copy file="jars/jmdns.jar" todir="${destination}/Filebox.app/Contents/MacOS/jars"/>
+		<copy todir="${destination}/Filebox.app/Contents/MacOS/homePage">
+			<fileset dir="../org.kawane.filebox/homePage">
+				<include name="**/*" />
+				<exclude name="**/.svn" />
+			</fileset>
+		</copy>
+		
 		<chmod perm="+x" file="${destination}/Filebox.app/Contents/MacOS/filebox"/>
 		<eclipse.refreshLocal resource="dist" />
 	</target>
