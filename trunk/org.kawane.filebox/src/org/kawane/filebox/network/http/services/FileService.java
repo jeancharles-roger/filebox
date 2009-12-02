@@ -42,6 +42,10 @@ public class FileService implements NetworkService {
 	}
 
 	public void handleRequest(HttpRequest request, HttpResponse response) {
+		if ( !homeDir.exists() ) {
+			response.setCode(Http.CODE_NOTFOUND);
+			return;
+		}
 		if (request.getMethod().equalsIgnoreCase(Http.METHOD_POST)) {
 			post(request, response);
 		} else if (request.getMethod().equalsIgnoreCase(Http.METHOD_GET)) {
