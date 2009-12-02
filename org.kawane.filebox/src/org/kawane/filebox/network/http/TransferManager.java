@@ -13,6 +13,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.kawane.filebox.core.DistantFilebox;
 import org.kawane.filebox.core.ErrorHandler;
@@ -24,15 +26,17 @@ import org.kawane.filebox.core.Observable;
  */
 public class TransferManager implements Runnable, Observable {
 
+	private static Logger logger = Logger.getLogger(HttpServer.class.getName());
+
 	private final Observable.Stub obs = new Observable.Stub();
-	private final Thread thread = new Thread(this);
+	private final Thread thread = new Thread(this, "Transfer Manager Thread");
 	private ErrorHandler errorHandler = ErrorHandler.Stub;
 
 	/** Stores all transfers */
 	private final List<Transfer> transferList = new ArrayList<Transfer>();
 	
 	/** Stores only done ones */
-	private final Set<Transfer> doneTransferSet = new HashSet<Transfer>();
+	private final Set<Transfer> stoppedTransferSet = new HashSet<Transfer>();
 	
 	private boolean started = false;
 
@@ -74,31 +78,41 @@ public class TransferManager implements Runnable, Observable {
 	public void run() {
  		while (isStarted()) {
 			synchronized (this) {
-				Iterator<Transfer> iterator = transferList.iterator();
-				while (iterator.hasNext()) {
-					Transfer transfer = iterator.next();
-					switch ( transfer.getState() ) {
-					case Transfer.IDLE:
-						transfer.start();
-						obs.firePropertyChange(this, "started", null, transfer);
-						break;
-						
-					case Transfer.STARTED:
-						transfer.transfer(2048);
-						break;
-						
-					case Transfer.DONE:
-						if ( !doneTransferSet.contains(transfer) ) {
-							// send property change when transfer is done
-							doneTransferSet.add(transfer);
-							obs.firePropertyChange(this, "done", null, transfer);
+				try {
+					Iterator<Transfer> iterator = transferList.iterator();
+					while (iterator.hasNext()) {
+						Transfer transfer = iterator.next();
+						switch ( transfer.getState() ) {
+						case Transfer.IDLE:
+							transfer.start();
+							obs.firePropertyChange(this, "started", null, transfer);
+							break;
+							
+						case Transfer.STARTED:
+							transfer.transfer(2048);
+							break;
+							
+						case Transfer.DONE:
+							if ( !stoppedTransferSet.contains(transfer) ) {
+								// send property change when transfer is done
+								stoppedTransferSet.add(transfer);
+								obs.firePropertyChange(this, "done", null, transfer);
+							}
+							break;
+						case Transfer.ERROR:
+							if ( !stoppedTransferSet.contains(transfer) ) {
+								// send property change when transfer is done
+								stoppedTransferSet.add(transfer);
+								obs.firePropertyChange(this, "error", null, transfer);
+							}
+							break;
+							
 						}
-						break;
-						
 					}
+				} catch (Throwable e ) {
+					logger.log(Level.SEVERE, "Exception thrown", e);
 				}
-			}
-
+ 			}
 			if ( transferList.isEmpty() ) {
 				try {
 					Thread.sleep(250);

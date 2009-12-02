@@ -75,7 +75,7 @@ public class HttpServer implements Runnable {
 	public void start() {
 		openSocket();
 		executors = Executors.newFixedThreadPool(THREADS_POOL_SIZE);
-		internalThread = new Thread(this, "HttpServer");
+		internalThread = new Thread(this, "HttpServer Thread");
 
 		running = true;
 		internalThread.start();
