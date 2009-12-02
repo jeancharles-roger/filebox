@@ -12,6 +12,14 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.DragSourceAdapter;
+import org.eclipse.swt.dnd.FileTransfer;
+import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.dnd.URLTransfer;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -22,6 +30,8 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
@@ -177,6 +187,8 @@ public class ContactController {
 				e.widget.removeListener(SWT.SetData, this);
 				e.widget.removeListener(SWT.Dispose, this);
 				break;
+			case SWT.MenuDetect:
+				createFileTableContextMenu(e);
 			}
 		}
 	};
@@ -200,6 +212,24 @@ public class ContactController {
 		this.filebox = filebox;
 		this.registry = registry;
 		this.transferManager = transferManager;
+	}
+
+	protected void createFileTableContextMenu(Event e) {
+		Menu menu = new Menu(e.display.getActiveShell());
+		MenuItem item = new MenuItem(menu, SWT.PUSH);
+		item.setText("Copy URL to Clipboard");
+		item.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				try {
+					Clipboard clipboard = new Clipboard(display);
+					String url = getSelectedFileURL();
+					clipboard.setContents(new Object[]{url,url}, new Transfer[]{URLTransfer.getInstance(), TextTransfer.getInstance()});
+				} catch (Throwable ex) {
+					ex.printStackTrace();
+				}
+			}
+		});
+		menu.setVisible(true);
 	}
 
 	public Shell getShell() {
@@ -315,6 +345,7 @@ public class ContactController {
 		filesTable.addListener(SWT.Resize, filesTableListener);
 		filesTable.addListener(SWT.MouseDoubleClick, filesTableListener);
 		filesTable.addListener(SWT.Dispose, filesTableListener);
+		filesTable.addListener(SWT.MenuDetect, filesTableListener);
 		
 		iconFileColumn = new TableColumn(filesTable, SWT.NONE);
 		iconFileColumn.setWidth(20);
@@ -362,7 +393,12 @@ public class ContactController {
 			request.append(":");
 			request.append(selected.getPort());
 			request.append("/files");
-			request.append(Http.encode(path));
+			if(path.isEmpty()) {
+				request.append("/");
+			} else {
+				path = Http.encode(path.trim());
+				request.append(path);
+			}
 			request.append("?format=json");
 			
 			try { 
@@ -507,6 +543,15 @@ public class ContactController {
 			}
 		}
 		return false;
+	}
+	
+	public String getSelectedFileURL() {
+		FileDescriptor file = fileList.get(filesTable.getSelectionIndex());
+		DistantFilebox selectedFilebox = getSelectedFilebox();
+		String path = fileboxPathes.get(selectedFilebox);
+		if ( path == null ) path = "/";
+		String url = Http.encode(path + file.name);
+		return "http://" + selectedFilebox.getHost() + ":" + selectedFilebox.getPort()+ "/files" + url;
 	}
 	
 	
