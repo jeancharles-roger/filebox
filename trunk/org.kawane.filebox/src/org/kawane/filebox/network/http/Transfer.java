@@ -73,7 +73,7 @@ public class Transfer {
 				// not implemented yet
 			} else {
 				Socket socket = new Socket(filebox.getHost(), filebox.getPort());
-				HttpRequest request = new HttpRequest(url);
+				HttpRequest request = new HttpRequest(Http.encode(url));
 				request.write(socket.getOutputStream());
 				HttpResponse response = HttpResponse.read(socket.getInputStream());
 				if ( response.getCode() != Http.CODE_OK ) {
