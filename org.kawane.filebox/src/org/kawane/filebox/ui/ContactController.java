@@ -2,6 +2,7 @@ package org.kawane.filebox.ui;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
@@ -29,9 +30,11 @@ import org.kawane.filebox.Resources;
 import org.kawane.filebox.core.DistantFilebox;
 import org.kawane.filebox.core.Filebox;
 import org.kawane.filebox.core.FileboxRegistry;
+import org.kawane.filebox.core.Globals;
 import org.kawane.filebox.json.JSON;
 import org.kawane.filebox.json.JSONStreamReader;
 import org.kawane.filebox.mime.MimeTypeDatabase;
+import org.kawane.filebox.network.http.TransferManager;
 
 public class ContactController {
 
@@ -51,6 +54,7 @@ public class ContactController {
 	
 	private final Filebox filebox;
 	private final FileboxRegistry registry;
+	private final TransferManager transferManager;
 	private final MimeTypeDatabase mimeTypeDatabase = new MimeTypeDatabase();
 	private DecimalFormat numberFormat = new DecimalFormat("0.###");
 
@@ -190,10 +194,11 @@ public class ContactController {
 		}
 	};
 	
-	public ContactController(Display display, Filebox filebox, FileboxRegistry registry) {
+	public ContactController(Display display, Filebox filebox, FileboxRegistry registry, TransferManager transferManager) {
 		this.display = display;
 		this.filebox = filebox;
 		this.registry = registry;
+		this.transferManager = transferManager;
 	}
 
 	public Shell getShell() {
@@ -481,15 +486,20 @@ public class ContactController {
 			switch (event.type) {
 			case SWT.MouseDoubleClick:
 				FileDescriptor file = fileList.get(filesTable.getSelectionIndex());
+				DistantFilebox selectedFilebox = getSelectedFilebox();
+				String path = fileboxPathes.get(selectedFilebox);
+				if ( path == null ) path = "/";
+				String url = path + file.name;
+
 				if ( file.directory ) {
-					DistantFilebox selectedFilebox = getSelectedFilebox();
-					String path = fileboxPathes.get(selectedFilebox);
-					if ( path == null ) path = "/";
-					fileboxPathes.put(selectedFilebox, path + file.name + "/");
+					fileboxPathes.put(selectedFilebox, url + "/");
 					fillFiles();
 					refreshUI();
 					return true;
 				} else {
+					File destinationFile = new File(Globals.getPreferences().getPublicDir(), file.name);
+					if ( !destinationFile.getParentFile().exists() ) destinationFile.getParentFile().mkdirs();
+					transferManager.startDownload(selectedFilebox, "/files" + url, destinationFile, null);
 					return false;
 				}
 			}
