@@ -25,7 +25,7 @@ public class Preferences implements Observable {
 	public static final String PUBLIC_FILE_DIR = "filebox.public.directory";
 
 	protected static final int DEFAULT_PORT = 9999;
-	protected static final String DEFAULT_PUBLIC_FILE_DIR = System.getProperty("user.home");
+	protected static final String DEFAULT_PUBLIC_FILE_DIR = System.getProperty("user.home") + "/Public";
 
 	private static Logger logger = Logger.getLogger(Preferences.class.getName());
 
