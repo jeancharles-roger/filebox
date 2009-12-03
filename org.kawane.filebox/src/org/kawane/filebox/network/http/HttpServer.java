@@ -6,6 +6,8 @@
 package org.kawane.filebox.network.http;
 
 import java.io.IOException;
+import java.net.Inet4Address;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
@@ -51,7 +53,9 @@ public class HttpServer implements Runnable {
 
 	private void openSocket() {
 		try {
-			serverSocket = new ServerSocket(port);
+			InetAddress localHost = Inet4Address.getLocalHost();
+			serverSocket = new ServerSocket(port, 50, localHost);
+//			serverSocket = new ServerSocket(port);
 //			serverSocket.setSoTimeout(250);
 		} catch (IOException e) {
 			// TODO check errors
