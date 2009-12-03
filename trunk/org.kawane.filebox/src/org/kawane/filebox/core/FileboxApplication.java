@@ -30,6 +30,7 @@ public class FileboxApplication implements PropertyChangeListener {
 	/** Shared resources instances. */
 	protected Resources resources;
 	
+	private Preferences preferences;
 	private TransferManager transferManager;
 	
 	private Display display;
@@ -64,12 +65,15 @@ public class FileboxApplication implements PropertyChangeListener {
 		return transferController;
 	}
 
+	public Preferences getPreferences() {
+		return preferences;
+	}
+	
 	private void initFileboxCore() {
 		configurationFile = new File(CONFIG_FILENAME);
-		Preferences preferences = new Preferences(configurationFile);
-		Globals.setPreferences(preferences);
+		preferences = new Preferences(configurationFile);
 
-		Filebox filebox = new Filebox();
+		Filebox filebox = new Filebox(preferences);
 		Globals.setLocalFilebox(filebox);
 		
 		Globals.setFileboxRegistry(new FileboxRegistry());
@@ -89,20 +93,24 @@ public class FileboxApplication implements PropertyChangeListener {
 		transferManager = new TransferManager();
 		transferManager.start();
 		
-		filebox.connect();
+		filebox.connect(null);
 	}
 
 	public void propertyChange(PropertyChangeEvent event) {
 		if (Preferences.PORT.equals(event.getPropertyName())) {
 			HttpServer server = Globals.getHttpServer();
-			server.setPort(Integer.valueOf((String) event.getNewValue()));
-			if (server.isRunning()) {
-				server.stop();
-				server.start();
-			}
+			server.setPort(preferences.getPort());
+			final Filebox localFilebox = Globals.getLocalFilebox();
+			localFilebox.setPort(preferences.getPort());
+			localFilebox.reconnect();
+		} else if (Preferences.NAME.equals(event.getPropertyName())) {
+			final Filebox localFilebox = Globals.getLocalFilebox();
+			localFilebox.setName(preferences.getName());
+			localFilebox.reconnect();
 		} else if (Preferences.PUBLIC_FILE_DIR.equals(event.getPropertyName())) {
 			Globals.getHttpServer().setService("/files", new FileService(new File((String) event.getNewValue())));
 		}
+
 	}
 
 	public void start() {
@@ -115,7 +123,7 @@ public class FileboxApplication implements PropertyChangeListener {
 		logger.log(Level.FINE, "Start file box ui");
 		resources = Resources.getInstance();
 
-		contactController = new ContactController(display, Globals.getLocalFilebox(), Globals.getFileboxRegistry(), transferManager);
+		contactController = new ContactController(display, Globals.getLocalFilebox(), Globals.getFileboxRegistry(), preferences, transferManager);
 		contactShell = contactController.createShell();
 		contactController.refreshUI();
 

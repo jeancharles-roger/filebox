@@ -37,14 +37,6 @@ public class Globals {
 		classSet.put(id, object);
 	}
 	
-	protected static void setPreferences(Preferences preferences) {
-		set(PREFERENCES_ID, Preferences.class, preferences);
-	}
-	
-	public static Preferences getPreferences() {
-		return get(PREFERENCES_ID, Preferences.class);
-	}
-	
 	protected static void setLocalFilebox(Filebox filebox) {
 		set(FILEBOX_ID, Filebox.class, filebox);
 	}

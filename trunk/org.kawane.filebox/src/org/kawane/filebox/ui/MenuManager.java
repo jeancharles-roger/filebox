@@ -30,6 +30,7 @@ import org.kawane.filebox.Resources;
 import org.kawane.filebox.core.DistantFilebox;
 import org.kawane.filebox.core.FileboxApplication;
 import org.kawane.filebox.core.Globals;
+import org.kawane.filebox.core.Preferences;
 import org.kawane.filebox.ui.toolkit.ToolKit;
 
 /**
@@ -241,22 +242,23 @@ public class MenuManager {
 			fileBoxActions.add(new IAction.Stub("Preferences") {
 				@Override
 				public int run() {
+					Preferences preferences = application.getPreferences();
 					Shell dialog = tk.dialogShell(application.getActiveShell(), "Preferences");
-					Text nameText = tk.textField(dialog, "Name:", Globals.getPreferences().getName() );
-					Text portText = tk.textField(dialog, "Port:", Integer.toString(Globals.getPreferences().getPort()) );
-					Text publicDirText = tk.fileField(dialog, "Public directory:", Globals.getPreferences().getPublicDir());
+					Text nameText = tk.textField(dialog, "Name:", preferences.getName() );
+					Text portText = tk.textField(dialog, "Port:", Integer.toString(preferences.getPort()) );
+					Text publicDirText = tk.fileField(dialog, "Public directory:", preferences.getPublicDir());
 					Button[] buttons = tk.buttons(dialog, "Ok", "Cancel");
 					dialog.setDefaultButton(buttons[0]);
 					tk.computeSizes(dialog, 300);
 					dialog.open();
 					int result = tk.waitSelectedButton(buttons);
 					if (result == 0) {
-						Globals.getPreferences().setName(nameText.getText());
+						preferences.setName(nameText.getText());
 						try {
-							Globals.getPreferences().setPort(Integer.valueOf(portText.getText()));
+							preferences.setPort(Integer.valueOf(portText.getText()));
 						} catch (NumberFormatException e) { /* do nothing */ }
-						Globals.getPreferences().setPublicDir(publicDirText.getText());
-						Globals.getPreferences().saveProperties();
+						preferences.setPublicDir(publicDirText.getText());
+						preferences.saveProperties();
 					}
 					dialog.dispose();
 					return result == 0 ? STATUS_OK : STATUS_CANCEL;

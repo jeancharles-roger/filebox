@@ -52,7 +52,7 @@ public class HttpServer implements Runnable {
 	private void openSocket() {
 		try {
 			serverSocket = new ServerSocket(port);
-			serverSocket.setSoTimeout(250);
+//			serverSocket.setSoTimeout(250);
 		} catch (IOException e) {
 			// TODO check errors
 			logger.log(Level.SEVERE, "An Error Occured when initializing server", e);
@@ -108,8 +108,10 @@ public class HttpServer implements Runnable {
 				});
 			} catch (SocketException e) {
 				// do nothing
+				e.printStackTrace();
 			} catch (SocketTimeoutException e) {
 				// do nothing
+				e.printStackTrace();
 			} catch (IOException e) {
 				logger.log(Level.SEVERE, "An Error Occured", e);
 			}
