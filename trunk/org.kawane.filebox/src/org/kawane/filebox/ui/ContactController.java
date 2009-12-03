@@ -399,7 +399,7 @@ public class ContactController {
 			
 			try { 
 				Socket socket = new Socket(selected.getHost(), selected.getPort());
-				HttpRequest request = new HttpRequest("/files" + Http.encode(path.trim()));
+				HttpRequest request = new HttpRequest("/files" + Http.encode(path.trim()) + "?format=json");
 				request.write(socket.getOutputStream());
 				HttpResponse response = HttpResponse.read(socket.getInputStream());
 				JSONStreamReader reader = new JSONStreamReader(new InputStreamReader(response.getContents(), "UTF-8"));
