@@ -19,8 +19,8 @@
 	</target>
 	
 	<target name="build.win32" depends="jar">
-		<copy todir="${destination}">
-			<fileset dir="${template_dir}/win32">
+		<copy todir="${destination}/Filebox">
+			<fileset dir="${template_dir}/win32/Filebox">
 				<include name="**/*" />
 				<exclude name="**/.svn" />
 			</fileset>
