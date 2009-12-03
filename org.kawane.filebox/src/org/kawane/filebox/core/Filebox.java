@@ -19,7 +19,6 @@ public class Filebox implements  Observable {
 
 	final protected Observable.Stub obs = new Observable.Stub();
 
-	final private Preferences preferences;
 
 	protected String name;
 	protected String host;
@@ -29,7 +28,6 @@ public class Filebox implements  Observable {
 	protected int state = DISCONNECTED;
 
 	public Filebox(Preferences preferences) {
-		this.preferences = preferences;
 		String preferencesName = preferences.getName();
 		this.name = preferencesName == null ? "Me" : preferencesName;
 
