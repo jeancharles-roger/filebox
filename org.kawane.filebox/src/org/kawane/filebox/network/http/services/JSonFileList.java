@@ -3,7 +3,7 @@ package org.kawane.filebox.network.http.services;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -17,8 +17,6 @@ import org.kawane.filebox.network.http.HttpRequest;
 
 public class JSonFileList {
 
-	private static final Charset utf8Charset = Charset.forName("UTF-8");
-	
 	private final MimeTypeDatabase mimeTypeDatabase;
 
 	public JSonFileList(MimeTypeDatabase mimeTypeDatabase) {
@@ -57,7 +55,11 @@ public class JSonFileList {
 		} catch (IOException e) {
 			// can't happen, there is no link to system.
 		}
-		return new String(stream.toByteArray(), utf8Charset);
+		try {
+			return new String(stream.toByteArray(), "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			return new String(stream.toByteArray());
+		}
 	}
 	
 	private Collection<File> order(File... files) {
