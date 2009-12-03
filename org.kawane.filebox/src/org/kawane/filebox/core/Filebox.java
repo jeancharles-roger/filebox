@@ -19,7 +19,7 @@ public class Filebox implements  Observable {
 
 	final protected Observable.Stub obs = new Observable.Stub();
 
-	final private Preferences preferences = Globals.getPreferences();
+	final private Preferences preferences;
 
 	protected String name;
 	protected String host;
@@ -28,7 +28,8 @@ public class Filebox implements  Observable {
 	
 	protected int state = DISCONNECTED;
 
-	public Filebox() {
+	public Filebox(Preferences preferences) {
+		this.preferences = preferences;
 		String preferencesName = preferences.getName();
 		this.name = preferencesName == null ? "Me" : preferencesName;
 
@@ -68,7 +69,7 @@ public class Filebox implements  Observable {
 	}
 
 	/** connects this to fileboxes network */
-	public void connect() {
+	public void connect(final ConnectionListener listener) {
 		if ( getState() != DISCONNECTED ) return;
 		setState(PENDING);
 		Globals.getHttpServer().start();
@@ -76,6 +77,9 @@ public class Filebox implements  Observable {
 			public void connected(ServiceDiscovery serviceDiscovery) {
 				setHost(serviceDiscovery.getHostname());
 				setState(CONNECTED);
+				if(listener != null){
+					listener.connected(serviceDiscovery);
+				}
 			}
 			public void disconnected(ServiceDiscovery serviceDiscovery) {}
 		});
@@ -83,7 +87,7 @@ public class Filebox implements  Observable {
 	}
 
 	/** disconnects this from fileboxes network */
-	public void disconnect() {
+	public void disconnect(final ConnectionListener listener) {
 		if ( getState() != CONNECTED ) return;
 		setState(PENDING);
 		Globals.getHttpServer().stop();
@@ -92,8 +96,24 @@ public class Filebox implements  Observable {
 			public void disconnected(ServiceDiscovery serviceDiscovery) {
 				setHost("localhost");
 				setState(DISCONNECTED);
+				if(listener != null){
+					listener.disconnected(serviceDiscovery);
+				}
 			}
 		});
+	}
+	
+	/** Disconnect and re-connect filebox */
+	public void reconnect() {
+		if (getState() == Filebox.CONNECTED) {
+			disconnect(new ConnectionListener() {
+				public void disconnected(ServiceDiscovery serviceDiscovery) {
+					connect(null);
+				}
+				public void connected(ServiceDiscovery serviceDiscovery) {
+				}
+			});
+		}
 	}
 	
 	private void setState(int state) {

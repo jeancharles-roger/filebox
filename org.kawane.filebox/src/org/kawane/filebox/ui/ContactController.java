@@ -3,9 +3,8 @@ package org.kawane.filebox.ui;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URL;
+import java.net.Socket;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,11 +37,13 @@ import org.kawane.filebox.Resources;
 import org.kawane.filebox.core.DistantFilebox;
 import org.kawane.filebox.core.Filebox;
 import org.kawane.filebox.core.FileboxRegistry;
-import org.kawane.filebox.core.Globals;
+import org.kawane.filebox.core.Preferences;
 import org.kawane.filebox.json.JSON;
 import org.kawane.filebox.json.JSONStreamReader;
 import org.kawane.filebox.mime.MimeTypeDatabase;
 import org.kawane.filebox.network.http.Http;
+import org.kawane.filebox.network.http.HttpRequest;
+import org.kawane.filebox.network.http.HttpResponse;
 import org.kawane.filebox.network.http.TransferManager;
 
 public class ContactController {
@@ -60,9 +61,10 @@ public class ContactController {
 			this.size = size;
 		}
 	}
-	
+
 	private final Filebox filebox;
 	private final FileboxRegistry registry;
+	private final Preferences preferences;
 	private final TransferManager transferManager;
 	private final MimeTypeDatabase mimeTypeDatabase = new MimeTypeDatabase();
 	private DecimalFormat numberFormat = new DecimalFormat("0.###");
@@ -205,10 +207,11 @@ public class ContactController {
 		}
 	};
 	
-	public ContactController(Display display, Filebox filebox, FileboxRegistry registry, TransferManager transferManager) {
+	public ContactController(Display display, Filebox filebox, FileboxRegistry registry, Preferences preferences, TransferManager transferManager) {
 		this.display = display;
 		this.filebox = filebox;
 		this.registry = registry;
+		this.preferences = preferences;
 		this.transferManager = transferManager;
 	}
 
@@ -385,24 +388,21 @@ public class ContactController {
 		fileList.clear();
 		
 		if ( selected != null ) {
-			StringBuffer request = new StringBuffer();
-			request.append("http://");
-			request.append(selected.getHost());
-			request.append(":");
-			request.append(selected.getPort());
-			request.append("/files");
-			if(path.length() == 0) {
-				request.append("/");
-			} else {
-				path = Http.encode(path.trim());
-				request.append(path);
-			}
-			request.append("?format=json");
+//			StringBuffer request = new StringBuffer();
+//			request.append("http://");
+//			request.append(selected.getHost());
+//			request.append(":");
+//			request.append(selected.getPort());
+//			request.append("/files");
+//			request.append(Http.encode(path.trim()));
+//			request.append("?format=json");
 			
 			try { 
-				URL url = new URL(request.toString());
-				InputStream stream = url.openStream();
-				JSONStreamReader reader = new JSONStreamReader(new InputStreamReader(stream, "UTF-8"));
+				Socket socket = new Socket(selected.getHost(), selected.getPort());
+				HttpRequest request = new HttpRequest("/files" + Http.encode(path.trim()));
+				request.write(socket.getOutputStream());
+				HttpResponse response = HttpResponse.read(socket.getInputStream());
+				JSONStreamReader reader = new JSONStreamReader(new InputStreamReader(response.getContents(), "UTF-8"));
 				boolean directory = false;
 				String type = null;
 				String name = null;
@@ -437,6 +437,7 @@ public class ContactController {
 				}
 			} catch (Exception e) {
 				// TODO handle errors.
+				e.printStackTrace();
 			}
 		}
 	}
@@ -492,9 +493,9 @@ public class ContactController {
 			if ( statusCombo.getSelectionIndex()+1 == filebox.getState() ) return false;
 			
 			if ( statusCombo.getSelectionIndex() == 0 ) {
-				filebox.connect();
+				filebox.connect(null);
 			} else {
-				filebox.disconnect();
+				filebox.disconnect(null);
 			}
 			return true;
 		}
@@ -533,7 +534,7 @@ public class ContactController {
 					refreshUI();
 					return true;
 				} else {
-					File destinationFile = new File(Globals.getPreferences().getPublicDir(), file.name);
+					File destinationFile = new File(preferences.getPublicDir(), file.name);
 					if ( !destinationFile.getParentFile().exists() ) destinationFile.getParentFile().mkdirs();
 					transferManager.startDownload(selectedFilebox, "/files" + url, destinationFile, null);
 					return false;
