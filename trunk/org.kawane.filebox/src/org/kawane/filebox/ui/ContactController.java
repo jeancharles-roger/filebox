@@ -13,8 +13,6 @@ import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.Clipboard;
-import org.eclipse.swt.dnd.DragSourceAdapter;
-import org.eclipse.swt.dnd.FileTransfer;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.dnd.URLTransfer;
@@ -393,7 +391,7 @@ public class ContactController {
 			request.append(":");
 			request.append(selected.getPort());
 			request.append("/files");
-			if(path.isEmpty()) {
+			if(path.length() == 0) {
 				request.append("/");
 			} else {
 				path = Http.encode(path.trim());
