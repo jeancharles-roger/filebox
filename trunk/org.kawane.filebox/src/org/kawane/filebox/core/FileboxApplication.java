@@ -16,7 +16,6 @@ import org.kawane.filebox.network.http.TransferManager;
 import org.kawane.filebox.network.http.services.FileService;
 import org.kawane.filebox.ui.ContactController;
 import org.kawane.filebox.ui.MenuManager;
-import org.kawane.filebox.ui.TransferController;
 import org.kawane.filebox.webpage.HomePage;
 
 public class FileboxApplication implements PropertyChangeListener {
@@ -37,10 +36,6 @@ public class FileboxApplication implements PropertyChangeListener {
 	private ContactController contactController;
 	private Shell contactShell;
 	
-	private TransferController transferController;
-	private Shell transferShell;
-	
-	
 	public Display getDisplay() {
 		return display;
 	}
@@ -57,14 +52,6 @@ public class FileboxApplication implements PropertyChangeListener {
 		return contactController;
 	}
 	
-	public Shell getTransferShell() {
-		return transferShell;
-	}
-	
-	public TransferController getTransferController() {
-		return transferController;
-	}
-
 	public Preferences getPreferences() {
 		return preferences;
 	}
@@ -127,15 +114,8 @@ public class FileboxApplication implements PropertyChangeListener {
 		contactShell = contactController.createShell();
 		contactController.refreshUI();
 
-		transferController = new TransferController(display, transferManager);
-		transferShell = transferController.createShell();
-		transferController.refreshUI();
-		
 		MenuManager menuManager = new MenuManager();
-
 		menuManager.createMenuBar(contactShell);
-		menuManager.createMenuBar(transferShell);
-
 		menuManager.createSystemTray(contactShell);
 
 

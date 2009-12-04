@@ -207,14 +207,18 @@ public class ContactController {
 		}
 	};
 	
+	private final TransferController transferController;
+	
 	public ContactController(Display display, Filebox filebox, FileboxRegistry registry, Preferences preferences, TransferManager transferManager) {
 		this.display = display;
 		this.filebox = filebox;
 		this.registry = registry;
 		this.preferences = preferences;
 		this.transferManager = transferManager;
+		this.transferController = new TransferController(display, transferManager);
 	}
 
+	// TODO move to menu manager
 	protected void createFileTableContextMenu(Event e) {
 		Menu menu = new Menu(e.display.getActiveShell());
 		MenuItem item = new MenuItem(menu, SWT.PUSH);
@@ -254,7 +258,7 @@ public class ContactController {
 		shell = new Shell(display);
 		shell.setLayout(new GridLayout(1,false));
 		shell.setImage(resources.getImage("filebox-icon-256x256.png"));
-		shell.setSize(300, 300);
+		shell.setSize(300, 500);
 		shell.setText("FileBox");
 		shell.addListener(SWT.Close, shellListener);
 		shell.addListener(SWT.Dispose, shellListener);
@@ -301,6 +305,10 @@ public class ContactController {
 		contactsTable.addListener(SWT.Dispose, contactsTableListener);
 		contactsTable.setItemCount(0);
 		resizeContactTable();
+		
+		Composite transferComposite = transferController.createComposite(contactComposite);
+		transferComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+	
 		
 		filebox.addPropertyChangeListener(propertiesListener);
 		registry.addPropertyChangeListener(propertiesListener);

@@ -5,10 +5,9 @@ import java.beans.PropertyChangeListener;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.kawane.filebox.network.http.Transfer;
@@ -19,23 +18,7 @@ public class TransferController {
 	private final TransferManager transferManager;
 	
 	private final Display display;
-	private Shell shell;
-	private Listener shellListener = new Listener() {
-		public void handleEvent(Event event) {
-			switch( event.type ) {
-			case SWT.Close:
-				boolean visible = !shell.isVisible();
-				shell.setVisible(visible);
-				
-				// do not quit the application when closing the shell
-				event.doit = false;
-				break;
-			case SWT.Dispose:
-				break;
-			}
-		}
-	};
-
+	private Composite composite;
 	private Table downloadTable;
 	
 	PropertyChangeListener transferManagerListener = new PropertyChangeListener() {
@@ -54,21 +37,17 @@ public class TransferController {
 		this.transferManager.addPropertyChangeListener(transferManagerListener);
 	}
 	
-	public Shell getShell() {
-		return shell;
+	public Composite getComposite() {
+		return composite;
 	}
 	
-	public Shell createShell() {
-		shell = new Shell(display);
-		shell.setLayout(new FillLayout());
-		shell.setSize(300, 200);
+	public Composite createComposite(Composite parent) {
+		composite = new Composite(parent, SWT.NONE);
+		composite.setLayout(new FillLayout());
 		
-		shell.addListener(SWT.Close, shellListener);
-		shell.addListener(SWT.Dispose, shellListener);
-	
-		downloadTable = new Table(shell, SWT.BORDER | SWT.FULL_SELECTION);
+		downloadTable = new Table(composite, SWT.BORDER | SWT.FULL_SELECTION);
 		downloadTable.setLinesVisible(true);
-		return shell;
+		return composite;
 	}
 	
 	public void refreshUI() {

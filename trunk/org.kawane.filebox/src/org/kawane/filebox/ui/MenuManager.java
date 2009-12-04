@@ -176,6 +176,12 @@ public class MenuManager {
 				}
 			}
 		}
+		
+		if ( menu.getItemCount() == 0 ) {
+			MenuItem menuItem = new MenuItem(menu, SWT.PUSH);
+			menuItem.setText("None");
+			menuItem.setEnabled(false);
+		}
 	}
 
 	protected void depopulateMenu(Menu menu) {
@@ -312,26 +318,26 @@ public class MenuManager {
 		if ( windowActions == null ) {
 			windowActions = new ArrayList<IAction>();
 			
-			windowActions.add(new IAction.Stub() {
-				
-				@Override
-				public String getLabel() {
-					StringBuilder builder = new StringBuilder();
-					builder.append(application.getTransferShell().isVisible() ? "Hide" : "Show");
-					builder.append(" Transfert Window");
-					return builder.toString();
-				}
-				
-				@Override
-				public int run() {
-					if ( application.getTransferShell().isVisible() ) {
-						application.getTransferShell().close();
-					} else {
-						application.getTransferShell().open();
-					}
-					return STATUS_OK;
-				}
-			});
+//			windowActions.add(new IAction.Stub() {
+//				
+//				@Override
+//				public String getLabel() {
+//					StringBuilder builder = new StringBuilder();
+//					builder.append(application.getTransferShell().isVisible() ? "Hide" : "Show");
+//					builder.append(" Transfert Window");
+//					return builder.toString();
+//				}
+//				
+//				@Override
+//				public int run() {
+//					if ( application.getTransferShell().isVisible() ) {
+//						application.getTransferShell().close();
+//					} else {
+//						application.getTransferShell().open();
+//					}
+//					return STATUS_OK;
+//				}
+//			});
 		}
 		return windowActions;
 	}
