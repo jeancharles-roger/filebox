@@ -5,7 +5,6 @@ import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.InputStreamReader;
 import java.net.Socket;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -67,7 +66,6 @@ public class ContactController {
 	private final Preferences preferences;
 	private final TransferManager transferManager;
 	private final MimeTypeDatabase mimeTypeDatabase = new MimeTypeDatabase();
-	private DecimalFormat numberFormat = new DecimalFormat("0.###");
 
 	private final Display display;
 	
@@ -175,7 +173,6 @@ public class ContactController {
 				}
 				item.setImage(0, resources.getImage(icon));
 				item.setText(1, fileDescriptor.name);
-				item.setText(2, displaySize(fileDescriptor.size));
 				break;
 			case SWT.Resize:
 				resizeFilesTable();
@@ -450,25 +447,6 @@ public class ContactController {
 		}
 	}
 	
-	private String displaySize(long length) {
-		String unit = " B";
-		double l = length;
-		if (l >= 1024) {
-			unit = " KB";
-			l = l / 1024;
-		}
-		if (l >= 1024) {
-			unit = " MB";
-			l = l / 1024;
-		}
-		if (l >= 1024) {
-			unit = " GB";
-			l = l / 1024;
-		}
-		return numberFormat.format(l) + unit;
-	}
-
-	
 	public void refreshUI() {
 		meLabel.setText(filebox.getName());
 		meLabel.getParent().layout();
@@ -544,7 +522,7 @@ public class ContactController {
 				} else {
 					File destinationFile = new File(preferences.getPublicDir(), file.name);
 					if ( !destinationFile.getParentFile().exists() ) destinationFile.getParentFile().mkdirs();
-					transferManager.startDownload(selectedFilebox, "/files" + url, destinationFile, null);
+					transferManager.startDownload(selectedFilebox, "/files" + url, destinationFile, transferController.getTransferMonitor());
 					return false;
 				}
 			}
