@@ -29,6 +29,8 @@ public class Transfer {
 	private final boolean upload;
 	private final TransferMonitor monitor;
 	
+	private int length;
+	private int done;
 	private int state = IDLE;
 	
 	private InputStream inputStream;
@@ -84,8 +86,10 @@ public class Transfer {
 				inputStream = new BufferedInputStream(response.getContents());
 				outputStream = new BufferedOutputStream(new FileOutputStream(file));
 				
+				String contentLength = response.getHeader().get(Http.HEADER_CONTENT_LENGTH);
+				length = contentLength == null ? -1 : Integer.parseInt(contentLength);
 				state = STARTED;
-				getMonitor().started();				
+				getMonitor().started(this, length);				
  			}
 		} catch (Exception e) {
 			state = ERROR;
@@ -103,6 +107,9 @@ public class Transfer {
 				read = inputStream.read();
 			}
 			
+			done += count;
+			monitor.worked(this, done, length >= 0 ? length - done : -1);
+			
 			// end of file isn't reached, return.
 			if ( read != -1 ) return;
 
@@ -111,12 +118,20 @@ public class Transfer {
 			outputStream.close();
 			
 			state = DONE;
-			getMonitor().done();
+			getMonitor().done(this);
 			
 		} catch (Exception e ) {
 			state = ERROR;
 			getErrorHandler().handleError(ErrorHandler.ERROR, e);
 		}
+	}
+	
+	public int getDone() {
+		return done;
+	}
+	
+	public int getLength() {
+		return length;
 	}
 	
 	public int getState() {
