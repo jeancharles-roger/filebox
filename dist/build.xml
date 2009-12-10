@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="FileBox" default="build.macosx64">
 	<property file="build.properties" />
-	<delete dir="${destination}" />
+	<delete dir="${destination}/Filebox" />
 	<mkdir dir="${destination}" />
 	<mkdir dir="${destination}/Filebox" />
 	<mkdir dir="${destination}/Filebox/jars" />
@@ -18,6 +18,7 @@
 		</jar>
 	</target>
 	
+	
 	<target name="build.win32" depends="jar">
 		<copy todir="${destination}/Filebox">
 			<fileset dir="${template_dir}/win32/Filebox">
@@ -25,6 +26,9 @@
 				<exclude name="**/.svn" />
 			</fileset>
 		</copy>
+		<copy file="${template_dir}/jars/filebox.properties" tofile="${destination}/Filebox/filebox.properties"/>
+		<replace file="${destination}/Filebox/filebox.properties" token="$version" value="${version}"/>
+		
 		<copy file="jars/org.eclipse.swt.win32.win32.x86_3.5.1.v3555a.jar" tofile="${destination}/Filebox/jars/swt.jar"/>
 		<copy file="jars/jmdns.jar" todir="${destination}/Filebox/jars"/>
 		<copy todir="${destination}/Filebox/homePage">
@@ -35,7 +39,11 @@
 		</copy>
 		
 		<chmod perm="+x" file="${destination}/Filebox/filebox.bat"/>
-		<zip basedir="${destination}/"  destfile="${destination}/filebox-win32.zip" />
+		<zip destfile="${destination}/filebox-${version}-win32.zip">
+			<fileset dir="${destination}" id="id">
+			    <include name="Filebox/**/*"/>
+			</fileset>
+		</zip>
 		<eclipse.refreshLocal resource="dist" />
 	</target>
 	
@@ -46,6 +54,9 @@
 				<exclude name="**/.svn" />
 			</fileset>
 		</copy>
+		<copy file="${template_dir}/jars/filebox.properties" tofile="${destination}/Filebox/filebox.properties"/>
+		<replace file="${destination}/Filebox/filebox.properties" token="$version" value="${version}"/>
+
 		<copy file="jars/org.eclipse.swt.gtk.linux.x86_3.4.1.v3449c.jar" tofile="${destination}/Filebox/jars/swt.jar"/>
 		<copy file="jars/jmdns.jar" todir="${destination}/Filebox/jars"/>
 		<copy todir="${destination}/Filebox/homePage">
@@ -55,7 +66,11 @@
 			</fileset>
 		</copy>
 		<chmod perm="+x" file="${destination}/Filebox/filebox.sh"/>
-		<tar basedir="${destination}" destfile="${destination}/filebox-linux.tar.gz" compression="gzip"/>
+		<tar destfile="${destination}/filebox-${version}-linux.tar.gz" compression="gzip">
+			<fileset dir="${destination}" id="id">
+			    <include name="Filebox/**/*"/>
+			</fileset>
+		</tar>
 		<eclipse.refreshLocal resource="dist" />
 	</target>
 
@@ -67,6 +82,9 @@
 				<exclude name="**/.svn" />
 			</fileset>
 		</copy>
+		<copy file="${template_dir}/jars/filebox.properties" tofile="${destination}/Filebox/filebox.properties"/>
+		<replace file="${destination}/Filebox/filebox.properties" token="$version" value="${version}"/>
+
 		<copy file="${destination}/Filebox/jars/Filebox.jar" todir="${destination}/Filebox.app/Contents/MacOS/jars"/>
 		<copy file="jars/org.eclipse.swt.cocoa.macosx_3.5.0.v3550b.jar" tofile="${destination}/Filebox.app/Contents/MacOS/jars/swt.jar"/>
 		<copy file="jars/jmdns.jar" todir="${destination}/Filebox.app/Contents/MacOS/jars"/>
@@ -88,6 +106,9 @@
 				<exclude name="**/.svn" />
 			</fileset>
 		</copy>
+		<copy file="${template_dir}/jars/filebox.properties" tofile="${destination}/Filebox/filebox.properties"/>
+		<replace file="${destination}/Filebox/filebox.properties" token="$version" value="${version}"/>
+
 		<copy file="${destination}/Filebox/jars/Filebox.jar" todir="${destination}/Filebox.app/Contents/MacOS/jars"/>
 		<copy file="jars/org.eclipse.swt.cocoa.macosx.x86_64_3.5.1.v3555a.jar" tofile="${destination}/Filebox.app/Contents/MacOS/jars/swt.jar"/>
 		<copy file="jars/jmdns.jar" todir="${destination}/Filebox.app/Contents/MacOS/jars"/>
