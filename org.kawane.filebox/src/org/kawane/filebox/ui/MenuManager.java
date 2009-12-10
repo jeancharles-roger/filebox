@@ -111,16 +111,40 @@ public class MenuManager {
 
 			item.setImage(resources.getImage("filebox-tray.png"));
 			item.setToolTipText("Filebox");
-//			item.addSelectionListener(new SelectionAdapter() {
-//				public void widgetSelected(SelectionEvent arg0) {
-//					menu.setVisible(true);
-//				}
-//			});
-			item.addListener(SWT.MenuDetect, new Listener() {
+			Listener itemListener = new Listener() {
 				public void handleEvent(Event event) {
-					menu.setVisible(true);
+					switch (event.type) {
+					case SWT.MenuDetect:
+						menu.setVisible(true);
+						break;
+					case SWT.Dispose:
+						item.removeListener(SWT.MenuDetect, this);
+						item.removeListener(SWT.Dispose, this);
+						break;
+					}
 				}
-			});
+			};
+			item.addListener(SWT.Dispose, itemListener);
+			if ( Utils.isWindows() ) {
+				Listener windowsItemListerner = new Listener() {
+					public void handleEvent(Event event) {
+						switch (event.type) {
+						case SWT.DefaultSelection:
+							IAction action = getShowHideAction();
+							if ( action.getVisibility() == IAction.VISIBILITY_ENABLE ) action.run();
+							break;
+						case SWT.Dispose:
+							item.removeListener(SWT.DefaultSelection, this);
+							item.removeListener(SWT.Dispose, this);
+						}
+					}
+				};
+				item.addListener(SWT.DefaultSelection, windowsItemListerner);
+				item.addListener(SWT.Dispose, windowsItemListerner);
+			}
+			item.addListener(SWT.Selection, itemListener);
+			item.addListener(SWT.MenuDetect, itemListener);
+			item.addListener(SWT.Dispose, itemListener);
 		}
 	}
 
@@ -204,20 +228,22 @@ public class MenuManager {
 		return quitAction;
 	}
 
-	public IAction getShowHideAction(final Shell shell) {
+	public IAction getShowHideAction() {
 		if ( showHideAction == null ) {
 			showHideAction = new IAction.Stub(IAction.STYLE_DEFAULTACTION) {
 
 				@Override
 				public String getLabel() {
-					return shell.isVisible() ? "Hide" : "Show";
+					return application.getContactShell().isVisible() ? "Hide" : "Show";
 				}
 
 				@Override
 				public int run() {
 					// Show hide filebox
+					Shell shell = application.getContactShell();
 					boolean visible = !shell.getVisible();
 					shell.setVisible(visible);
+					shell.forceActive();
 					return STATUS_OK;
 				}
 			};
@@ -345,7 +371,7 @@ public class MenuManager {
 	public List<IAction> getSystemTrayActions(final Shell shell) {
 		if ( systemTrayActions == null ) {
 			systemTrayActions = new ArrayList<IAction>();
-			systemTrayActions.add(getShowHideAction(shell));
+			systemTrayActions.add(getShowHideAction());
 			systemTrayActions.add(getQuitAction(shell));
 		}
 		return systemTrayActions;
