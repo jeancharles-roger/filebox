@@ -74,6 +74,11 @@ public class JmDNSServiceDiscovery implements ServiceListener, ServiceDiscovery,
 				}
 			};
 			thread.start();
+			try {
+				thread.join();
+			} catch (InterruptedException e) {
+				// to bad
+			}
 		}
 	}
 
@@ -94,11 +99,12 @@ public class JmDNSServiceDiscovery implements ServiceListener, ServiceDiscovery,
 
 	public void stop() {
 		if (dns != null) {
-			// synchronized (waitInitialization) {
-			// TODO is this close method call really nesessary in zeroconf
-			// protocol: http://www.zeroconf.org/
-			dns.close();
-			// }
+			
+			 synchronized (waitInitialization) {
+				// TODO is this close method call really nesessary in zeroconf
+				// protocol: http://www.zeroconf.org/
+				dns.close();
+			}
 		}
 	}
 
