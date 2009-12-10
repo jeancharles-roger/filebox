@@ -4,7 +4,6 @@ import java.text.DecimalFormat;
 
 public class Utils {
 
-	
 	final static private DecimalFormat numberFormat = new DecimalFormat("0.###");
 
 	public static String displaySize(long length) {
@@ -25,5 +24,18 @@ public class Utils {
 		return numberFormat.format(l) + unit;
 	}
 
+
+	public static boolean isWindows() {
+		return System.getProperty("os.name").toLowerCase().contains("windows");
+	}
 	
+	public static boolean isMac() {
+		return System.getProperty("os.name").toLowerCase().contains("mac");
+	
+	}
+	
+	public static boolean isLinux() {
+		return System.getProperty("os.name").toLowerCase().contains("linux");
+		
+	}
 }
