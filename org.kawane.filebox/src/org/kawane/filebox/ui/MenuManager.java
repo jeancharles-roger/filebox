@@ -259,8 +259,9 @@ public class MenuManager {
 			fileBoxActions.add(new IAction.Stub("About") {
 				@Override
 				public int run() {
+					String version = application.getPreferences().getProperty("version");
 					Shell dialog = tk.dialogShell(application.getActiveShell(), "About");
-					tk.message(dialog, "FileBox version 1.0.");
+					tk.message(dialog, "FileBox version " + version);
 					tk.message(dialog, "Copyrights Kawane 2009.");
 					Button[] buttons = tk.buttons(dialog, "Ok");
 					tk.computeSizes(dialog, 200);
