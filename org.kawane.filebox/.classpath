@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="jmdns"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/SWT"/>
-	<classpathentry kind="lib" path="/dist/jars/jmdns.jar" sourcepath="C:/allws/workspace-filebox/src/jmdns-2.1/src"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
