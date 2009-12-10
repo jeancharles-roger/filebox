@@ -149,6 +149,8 @@ public class FileboxApplication implements PropertyChangeListener {
 			display.dispose();
 		}
 
+		transferManager.stop();
+		
 		HttpServer server = Globals.getHttpServer();
 		server.stop();
 
@@ -156,7 +158,7 @@ public class FileboxApplication implements PropertyChangeListener {
 		serviceDiscovery.disconnect(null);
 		serviceDiscovery.stop();
 
-		
+		System.out.println("Exiting...");
 		System.exit(0);
 	}
 
