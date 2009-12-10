@@ -125,11 +125,13 @@ public class MenuManager {
 				}
 			};
 			item.addListener(SWT.Dispose, itemListener);
+			item.addListener(SWT.MenuDetect, itemListener);
+			
 			if ( Utils.isWindows() ) {
 				Listener windowsItemListerner = new Listener() {
 					public void handleEvent(Event event) {
 						switch (event.type) {
-						case SWT.DefaultSelection:
+						case SWT.Selection:
 							IAction action = getShowHideAction();
 							if ( action.getVisibility() == IAction.VISIBILITY_ENABLE ) action.run();
 							break;
@@ -142,9 +144,6 @@ public class MenuManager {
 				item.addListener(SWT.DefaultSelection, windowsItemListerner);
 				item.addListener(SWT.Dispose, windowsItemListerner);
 			}
-			item.addListener(SWT.Selection, itemListener);
-			item.addListener(SWT.MenuDetect, itemListener);
-			item.addListener(SWT.Dispose, itemListener);
 		}
 	}
 
