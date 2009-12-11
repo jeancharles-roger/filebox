@@ -447,13 +447,13 @@ public class MenuManager {
 				public int getVisibility() {
 					FileDescriptor file = application.getContactController().getSelectedFile();
 					if ( file == null) return VISIBILITY_HIDDEN;
-					return file.isDirectory() ? VISIBILITY_ENABLE : VISIBILITY_HIDDEN;
+					return file.isDirectory() ? VISIBILITY_HIDDEN : VISIBILITY_HIDDEN;
 				}
 				
 				@Override
 				public int run() {
 					FileDescriptor file = application.getContactController().getSelectedFile();
-					System.out.println("Saving folder " + file.getCompleteURL());
+					
 					return STATUS_OK;
 				}
 			});
