@@ -10,12 +10,6 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.dnd.Clipboard;
-import org.eclipse.swt.dnd.TextTransfer;
-import org.eclipse.swt.dnd.Transfer;
-import org.eclipse.swt.dnd.URLTransfer;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -26,8 +20,6 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
@@ -35,6 +27,7 @@ import org.eclipse.swt.widgets.TableItem;
 import org.kawane.filebox.Resources;
 import org.kawane.filebox.core.DistantFilebox;
 import org.kawane.filebox.core.Filebox;
+import org.kawane.filebox.core.FileboxApplication;
 import org.kawane.filebox.core.FileboxRegistry;
 import org.kawane.filebox.core.Preferences;
 import org.kawane.filebox.json.JSON;
@@ -47,28 +40,9 @@ import org.kawane.filebox.network.http.TransferManager;
 
 public class ContactController {
 
-	private static class FileDescriptor {
-		final boolean directory;
-		final String mime;
-		final String name;
-		final long size;
-		
-		FileDescriptor(boolean directory, String mime, String name, long size) {
-			this.directory = directory;
-			this.mime = mime;
-			this.name = name;
-			this.size = size;
-		}
-	}
-
-	private final Filebox filebox;
-	private final FileboxRegistry registry;
-	private final Preferences preferences;
-	private final TransferManager transferManager;
+	private final FileboxApplication application;
 	private final MimeTypeDatabase mimeTypeDatabase = new MimeTypeDatabase();
 
-	private final Display display;
-	
 	private Shell shell;
 	private Listener shellListener = new Listener() {
 		public void handleEvent(Event event) {
@@ -81,8 +55,8 @@ public class ContactController {
 				event.doit = false;
 				break;
 			case SWT.Dispose:
-				filebox.removePropertyChangeListener(propertiesListener);
-				registry.removePropertyChangeListener(propertiesListener);
+				getFilebox().removePropertyChangeListener(propertiesListener);
+				getFileboxRegistry().removePropertyChangeListener(propertiesListener);
 				break;
 			}
 		}
@@ -113,9 +87,9 @@ public class ContactController {
 			case SWT.SetData:
 				TableItem item = (TableItem)e.item;
 				int index = contactsTable.indexOf(item);
-				if ( registry.getFileboxesCount() < index ) break;
+				if ( getFileboxRegistry().getFileboxesCount() < index ) break;
 				
-				DistantFilebox distantFilebox = registry.getFilebox(index);
+				DistantFilebox distantFilebox = getFileboxRegistry().getFilebox(index);
 				item.setData(distantFilebox);
 				//item.setImage(0, resources.getImage(distantFilebox.isConnected() ? "connected.png" : "disconnected.png"));
 				item.setImage(0, resources.getImage("connected.png"));
@@ -168,11 +142,11 @@ public class ContactController {
 				int index = filesTable.indexOf(item);
 				FileDescriptor fileDescriptor = fileList.get(index);
 				String icon = "folder.png";
-				if ( !fileDescriptor.directory ) {
-					icon = mimeTypeDatabase.searchIconByMime(fileDescriptor.mime);
+				if ( !fileDescriptor.isDirectory() ) {
+					icon = mimeTypeDatabase.searchIconByMime(fileDescriptor.getMime());
 				}
 				item.setImage(0, resources.getImage(icon));
-				item.setText(1, fileDescriptor.name);
+				item.setText(1, fileDescriptor.getName());
 				break;
 			case SWT.Resize:
 				resizeFilesTable();
@@ -184,8 +158,6 @@ public class ContactController {
 				e.widget.removeListener(SWT.SetData, this);
 				e.widget.removeListener(SWT.Dispose, this);
 				break;
-			case SWT.MenuDetect:
-				createFileTableContextMenu(e);
 			}
 		}
 	};
@@ -206,32 +178,9 @@ public class ContactController {
 	
 	private final TransferController transferController;
 	
-	public ContactController(Display display, Filebox filebox, FileboxRegistry registry, Preferences preferences, TransferManager transferManager) {
-		this.display = display;
-		this.filebox = filebox;
-		this.registry = registry;
-		this.preferences = preferences;
-		this.transferManager = transferManager;
-		this.transferController = new TransferController(display, transferManager);
-	}
-
-	// TODO move to menu manager
-	protected void createFileTableContextMenu(Event e) {
-		Menu menu = new Menu(e.display.getActiveShell());
-		MenuItem item = new MenuItem(menu, SWT.PUSH);
-		item.setText("Copy URL to Clipboard");
-		item.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent e) {
-				try {
-					Clipboard clipboard = new Clipboard(display);
-					String url = getSelectedFileURL();
-					clipboard.setContents(new Object[]{url,url}, new Transfer[]{URLTransfer.getInstance(), TextTransfer.getInstance()});
-				} catch (Throwable ex) {
-					ex.printStackTrace();
-				}
-			}
-		});
-		menu.setVisible(true);
+	public ContactController(FileboxApplication application) {
+		this.application = application;
+		this.transferController = new TransferController(getDisplay(), application.getTransferManager());
 	}
 
 	public Shell getShell() {
@@ -252,7 +201,7 @@ public class ContactController {
 	
 	public Shell createShell() {
 
-		shell = new Shell(display);
+		shell = new Shell(getDisplay());
 		shell.setLayout(new GridLayout(1,false));
 		shell.setImage(resources.getImage("filebox-icon-256x256.png"));
 		shell.setSize(300, 500);
@@ -307,8 +256,8 @@ public class ContactController {
 		transferComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 	
 		
-		filebox.addPropertyChangeListener(propertiesListener);
-		registry.addPropertyChangeListener(propertiesListener);
+		getFilebox().addPropertyChangeListener(propertiesListener);
+		getFileboxRegistry().addPropertyChangeListener(propertiesListener);
 		return shell;
 	}
 	
@@ -351,7 +300,8 @@ public class ContactController {
 		filesTable.addListener(SWT.Resize, filesTableListener);
 		filesTable.addListener(SWT.MouseDoubleClick, filesTableListener);
 		filesTable.addListener(SWT.Dispose, filesTableListener);
-		filesTable.addListener(SWT.MenuDetect, filesTableListener);
+
+		getMenuManager().createPopupMenu(filesTable, getMenuManager().getFilesActions(getShell()));
 		
 		iconFileColumn = new TableColumn(filesTable, SWT.NONE);
 		iconFileColumn.setWidth(20);
@@ -393,15 +343,6 @@ public class ContactController {
 		fileList.clear();
 		
 		if ( selected != null ) {
-//			StringBuffer request = new StringBuffer();
-//			request.append("http://");
-//			request.append(selected.getHost());
-//			request.append(":");
-//			request.append(selected.getPort());
-//			request.append("/files");
-//			request.append(Http.encode(path.trim()));
-//			request.append("?format=json");
-			
 			try { 
 				Socket socket = new Socket(selected.getHost(), selected.getPort());
 				HttpRequest request = new HttpRequest("/files" + Http.encode(path.trim()) + "?format=json");
@@ -435,7 +376,7 @@ public class ContactController {
 						}
 						break;
 					case JSON.END_OBJECT:
-							fileList.add(new FileDescriptor(directory, type, name, size));
+							fileList.add(new FileDescriptor(selected, name, path, directory, type, size));
 						break;
 						}
 					token = reader.next();
@@ -448,12 +389,12 @@ public class ContactController {
 	}
 	
 	public void refreshUI() {
-		meLabel.setText(filebox.getName());
+		meLabel.setText(getFilebox().getName());
 		meLabel.getParent().layout();
-		statusCombo.setEnabled(filebox.getState() != Filebox.PENDING);
-		if ( filebox.getState() != Filebox.PENDING )  {
-			statusCombo.select(filebox.getState() - 1);
-			if ( filebox.getState() == Filebox.CONNECTED ) {
+		statusCombo.setEnabled(getFilebox().getState() != Filebox.PENDING);
+		if ( getFilebox().getState() != Filebox.PENDING )  {
+			statusCombo.select(getFilebox().getState() - 1);
+			if ( getFilebox().getState() == Filebox.CONNECTED ) {
 				showFileTable();
 			} else {
 				hideFileTable();
@@ -462,7 +403,7 @@ public class ContactController {
 		meComposite.layout();
 		
 		contactsTable.clearAll();
-		contactsTable.setItemCount(registry.getFileboxesCount());
+		contactsTable.setItemCount(getFileboxRegistry().getFileboxesCount());
 		
 		if ( isFileTableVisible() ) {
 			String path = fileboxPathes.get(getSelectedFilebox());
@@ -476,12 +417,12 @@ public class ContactController {
 	
 	public boolean updateModel(Event event) {
 		if ( statusCombo == event.widget ) {
-			if ( statusCombo.getSelectionIndex()+1 == filebox.getState() ) return false;
+			if ( statusCombo.getSelectionIndex()+1 == getFilebox().getState() ) return false;
 			
 			if ( statusCombo.getSelectionIndex() == 0 ) {
-				filebox.connect(null);
+				getFilebox().connect(null);
 			} else {
-				filebox.disconnect(null);
+				getFilebox().disconnect(null);
 			}
 			return true;
 		}
@@ -512,38 +453,64 @@ public class ContactController {
 					DistantFilebox selectedFilebox = getSelectedFilebox();
 					String path = fileboxPathes.get(selectedFilebox);
 					if ( path == null ) path = "/";
-				String url = path + file.name;
+					String url = path + file.getName();
 
-				if ( file.directory ) {
+				if ( file.isDirectory() ) {
 					fileboxPathes.put(selectedFilebox, url + "/");
 					fillFiles();
 					refreshUI();
 					return true;
 				} else {
-					File destinationFile = new File(preferences.getPublicDir(), file.name);
+					File destinationFile = new File(getPreferences().getPublicDir(), file.getName());
 					if ( !destinationFile.getParentFile().exists() ) destinationFile.getParentFile().mkdirs();
-					transferManager.startDownload(selectedFilebox, "/files" + url, destinationFile, transferController.getTransferMonitor());
+					getTransferManager().startDownload(selectedFilebox, file.getPathURL(), destinationFile, transferController.getTransferMonitor());
 					return false;
 				}
 			}
 		}
 		return false;
 	}
+
+	public TransferController getTransferController() {
+		return transferController;
+	}
 	
-	public String getSelectedFileURL() {
-		FileDescriptor file = fileList.get(filesTable.getSelectionIndex());
-		DistantFilebox selectedFilebox = getSelectedFilebox();
-		String path = fileboxPathes.get(selectedFilebox);
-		if ( path == null ) path = "/";
-		String url = Http.encode(path + file.name);
-		return "http://" + selectedFilebox.getHost() + ":" + selectedFilebox.getPort()+ "/files" + url;
+	public FileDescriptor getSelectedFile() {
+		if ( filesTable != null && filesTable.getSelectionIndex() != - 1 ) {
+			return fileList.get(filesTable.getSelectionIndex());
+		}
+		return null;
 	}
 	
 	
 	public DistantFilebox getSelectedFilebox() {
 		int index = contactsTable.getSelectionIndex();
-		if ( index < 0 || index > (registry.getFileboxesCount() - 1) ) return null;
-		return registry.getFilebox(index);
+		if ( index < 0 || index > (getFileboxRegistry().getFileboxesCount() - 1) ) return null;
+		return getFileboxRegistry().getFilebox(index);
+	}
+
+	public Display getDisplay() {
+		return application.getDisplay();
+	}
+
+	public Filebox getFilebox() {
+		return application.getFilebox();
+	}
+
+	public FileboxRegistry getFileboxRegistry() {
+		return application.getFileboxRegistry();
+	}
+
+	public MenuManager getMenuManager() {
+		return application.getMenuManager();
+	}
+
+	public Preferences getPreferences() {
+		return application.getPreferences();
+	}
+
+	public TransferManager getTransferManager() {
+		return application.getTransferManager();
 	}
 
 }

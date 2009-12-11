@@ -31,10 +31,26 @@ public class FileboxApplication implements PropertyChangeListener {
 	
 	private Preferences preferences;
 	private TransferManager transferManager;
+	private Filebox filebox;
+	private FileboxRegistry fileboxRegistry;
+	
 	
 	private Display display;
 	private ContactController contactController;
 	private Shell contactShell;
+	private MenuManager menuManager;
+	
+	public Filebox getFilebox() {
+		return filebox;
+	}
+	
+	public FileboxRegistry getFileboxRegistry() {
+		return fileboxRegistry;
+	}
+	
+	public TransferManager getTransferManager() {
+		return transferManager;
+	}
 	
 	public Display getDisplay() {
 		return display;
@@ -52,6 +68,10 @@ public class FileboxApplication implements PropertyChangeListener {
 		return contactController;
 	}
 	
+	public MenuManager getMenuManager() {
+		return menuManager;
+	}
+	
 	public Preferences getPreferences() {
 		return preferences;
 	}
@@ -60,10 +80,11 @@ public class FileboxApplication implements PropertyChangeListener {
 		configurationFile = new File(CONFIG_FILENAME);
 		preferences = new Preferences(configurationFile);
 
-		Filebox filebox = new Filebox(preferences);
+		filebox = new Filebox(preferences);
 		Globals.setLocalFilebox(filebox);
 		
-		Globals.setFileboxRegistry(new FileboxRegistry());
+		fileboxRegistry = new FileboxRegistry();
+		Globals.setFileboxRegistry(fileboxRegistry);
 
 	
 		ServiceDiscovery serviceDiscovery = new JmDNSServiceDiscovery();
@@ -110,11 +131,11 @@ public class FileboxApplication implements PropertyChangeListener {
 		logger.log(Level.FINE, "Start file box ui");
 		resources = Resources.getInstance();
 
-		contactController = new ContactController(display, Globals.getLocalFilebox(), Globals.getFileboxRegistry(), preferences, transferManager);
+		contactController = new ContactController(this);
 		contactShell = contactController.createShell();
 		contactController.refreshUI();
 
-		MenuManager menuManager = new MenuManager();
+		menuManager = new MenuManager();
 		menuManager.createMenuBar(contactShell);
 		menuManager.createSystemTray(contactShell);
 
