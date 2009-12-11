@@ -23,6 +23,7 @@ public class TransferController {
 	private Table downloadTable;
 	
 	private final DecimalFormat format = new DecimalFormat("%");
+	private DecimalFormat byteRateFormat = new DecimalFormat("0.#");
 	private final HashMap<Transfer, TableItem> items = new HashMap<Transfer, TableItem>();
 	private final TransferMonitor transferMonitor = new TransferMonitor() {
 
@@ -102,8 +103,8 @@ public class TransferController {
 		builder.append(")");
 		builder.append(" (rate ");
 		if ( transfer.getLength() >= 0 ) {
-			builder.append((int)transfer.getByteRate());
-			builder.append(" ko/s");
+			builder.append(displaySize((long)transfer.getByteRate()*1000));
+			builder.append("/S");
 		} else {
 			builder.append("unknown");
 		}
@@ -132,6 +133,24 @@ public class TransferController {
 			
 		}
 		item.setText(builder.toString());
+	}
+	
+	private String displaySize(long length) {
+		String unit = " B";
+		double l = length;
+		if (l >= 1024) {
+			unit = " KB";
+			l = l / 1024;
+		}
+		if (l >= 1024) {
+			unit = " MB";
+			l = l / 1024;
+		}
+		if (l >= 1024) {
+			unit = " GB";
+			l = l / 1024;
+		}
+		return byteRateFormat.format(l) + unit;
 	}
 	
 	public TransferMonitor getTransferMonitor() {

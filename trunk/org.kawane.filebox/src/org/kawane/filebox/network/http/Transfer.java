@@ -38,6 +38,9 @@ public class Transfer {
 	private ErrorHandler errorHandler = ErrorHandler.Stub;
 	private long lastTimeTransfered;
 	private long lastDone;
+	/**
+	 * Byte/ms
+	 */
 	private double byteRate = 0;
 	
 	public Transfer(DistantFilebox filebox, String url, File file, boolean upload, TransferMonitor monitor) {
@@ -115,12 +118,9 @@ public class Transfer {
 			
 			long time = System.currentTimeMillis();
 			if((time - lastTimeTransfered) > 500) {
-				double koRead = (double)done - lastDone / 1024;
-				long deltams = time - lastTimeTransfered;
-				byteRate  = koRead / (deltams * 1000);
+				byteRate  = (double)(done - lastDone) / (time - lastTimeTransfered);
 				lastTimeTransfered = time;
 				lastDone = done;
-				
 			}
 			monitor.worked(this, done, length >= 0 ? length - done : -1);
 			
