@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="FileBox" default="build">
+	
+	<target name="build">
+		<jar destfile="GoogleCodeUploadFiles.jar">
+			<manifest>
+				<attribute name="Main-Class" value="UploadFile"/>
+			</manifest>
+			<fileset dir="../bin">
+				<include name="**/*" />
+			</fileset>
+		</jar>
+	</target>
+</project>
