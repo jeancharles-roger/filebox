@@ -114,7 +114,7 @@ public class Transfer {
 			done += count;
 			
 			long time = System.currentTimeMillis();
-			if(time > 500) {
+			if((time - lastTimeTransfered) > 500) {
 				double koRead = (double)done - lastDone / 1024;
 				long deltams = time - lastTimeTransfered;
 				byteRate  = koRead / (deltams * 1000);
