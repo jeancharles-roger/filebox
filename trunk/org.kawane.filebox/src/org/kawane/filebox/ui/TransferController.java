@@ -102,7 +102,7 @@ public class TransferController {
 		builder.append(")");
 		builder.append(" (rate ");
 		if ( transfer.getLength() >= 0 ) {
-			builder.append(transfer.getByteRate());
+			builder.append((int)transfer.getByteRate());
 			builder.append(" ko/s");
 		} else {
 			builder.append("unknown");
