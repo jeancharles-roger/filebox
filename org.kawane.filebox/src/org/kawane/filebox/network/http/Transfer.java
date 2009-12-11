@@ -36,6 +36,9 @@ public class Transfer {
 	private InputStream inputStream;
 	private OutputStream outputStream;
 	private ErrorHandler errorHandler = ErrorHandler.Stub;
+	private long lastTimeTransfered;
+	private long lastDone;
+	private double byteRate = 0;
 	
 	public Transfer(DistantFilebox filebox, String url, File file, boolean upload, TransferMonitor monitor) {
 		this.filebox = filebox;
@@ -89,6 +92,8 @@ public class Transfer {
 				String contentLength = response.getHeader().get(Http.HEADER_CONTENT_LENGTH);
 				length = contentLength == null ? -1 : Integer.parseInt(contentLength);
 				state = STARTED;
+				lastTimeTransfered = System.currentTimeMillis();
+				lastDone = 0;
 				getMonitor().started(this, length);				
  			}
 		} catch (Exception e) {
@@ -106,8 +111,17 @@ public class Transfer {
 				if ( count++ >= size ) break;
 				read = inputStream.read();
 			}
-			
 			done += count;
+			
+			long time = System.currentTimeMillis();
+			if(time > 500) {
+				double koRead = (double)done - lastDone / 1024;
+				long deltams = time - lastTimeTransfered;
+				byteRate  = koRead / (deltams * 1000);
+				lastTimeTransfered = time;
+				lastDone = done;
+				
+			}
 			monitor.worked(this, done, length >= 0 ? length - done : -1);
 			
 			// end of file isn't reached, return.
@@ -140,6 +154,10 @@ public class Transfer {
 	
 	public TransferMonitor getMonitor() {
 		return monitor;
+	}
+	
+	public double getByteRate() {
+		return byteRate;
 	}
 
 	@Override
