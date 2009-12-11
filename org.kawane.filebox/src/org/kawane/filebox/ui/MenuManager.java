@@ -131,7 +131,7 @@ public class MenuManager {
 				Listener windowsItemListerner = new Listener() {
 					public void handleEvent(Event event) {
 						switch (event.type) {
-						case SWT.Selection:
+						case SWT.DefaultSelection:
 							IAction action = getShowHideAction();
 							if ( action.getVisibility() == IAction.VISIBILITY_ENABLE ) action.run();
 							break;
