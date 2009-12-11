@@ -55,7 +55,17 @@ public class TransferManager implements Runnable, Observable {
 	public synchronized void startDownload(DistantFilebox filebox, String url, File destinationFile, TransferMonitor monitor) {
 		Transfer transfer = new Transfer(filebox, url, destinationFile, false, monitor);
 		transfer.setErrorHandler(errorHandler);
-		if ( !transferList.contains(transfer) )	transferList.add(transfer);
+		
+		int index = transferList.indexOf(transfer);
+		if ( index != -1 ) {
+			Transfer oldTransfer = transferList.get(index);
+			if ( oldTransfer.getState() != Transfer.STARTED ) {
+				transferList.remove(oldTransfer);
+				transferList.add(transfer);
+			}
+		} else {
+			transferList.add(transfer);
+		}
 	}
 	
 	public synchronized void startUpload(String host, String port, String url, File content, TransferMonitor monitor) {

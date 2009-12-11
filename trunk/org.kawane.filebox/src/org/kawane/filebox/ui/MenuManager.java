@@ -4,6 +4,7 @@
  */
 package org.kawane.filebox.ui;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -11,12 +12,18 @@ import java.util.logging.Logger;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
+import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.dnd.URLTransfer;
 import org.eclipse.swt.events.MenuAdapter;
 import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
@@ -31,6 +38,7 @@ import org.kawane.filebox.core.DistantFilebox;
 import org.kawane.filebox.core.FileboxApplication;
 import org.kawane.filebox.core.Globals;
 import org.kawane.filebox.core.Preferences;
+import org.kawane.filebox.network.http.TransferMonitor;
 import org.kawane.filebox.ui.toolkit.ToolKit;
 
 /**
@@ -67,6 +75,9 @@ public class MenuManager {
 	
 	/** Window menu action list */
 	protected List<IAction> windowActions = null;
+	
+	/** Files menu action list */
+	protected List<IAction> filesActions = null;
 	
 	private FileboxApplication application;
 
@@ -168,15 +179,42 @@ public class MenuManager {
 	}
 
 	/** Creates a popup menu from a list of actions */
-	protected Menu createPopupMenu(final Shell shell, final List<IAction> actions) {
-		final Menu menu = new Menu(shell, SWT.POP_UP);
-		menu.addMenuListener(new MenuAdapter() {
-			@Override
-			public void menuShown(MenuEvent e) {
-				depopulateMenu(menu);
-				populateMenu(menu, actions);
+	public Menu createPopupMenu(final Control control, final List<IAction> actions) {
+		final Menu menu = new Menu(control);
+		Listener listener = new Listener() {
+			
+			public void handleEvent(Event event) {
+				switch (event.type) {
+				case SWT.Show:
+					depopulateMenu(menu);
+					populateMenu(menu, actions);
+					break;
+				case SWT.Dispose:
+					menu.removeListener(SWT.Show, this);
+					menu.removeListener(SWT.Dispose, this);
+					break;
+				}
+				
 			}
-		});
+		};
+		menu.addListener(SWT.Show, listener);
+		menu.addListener(SWT.Dispose, listener);
+		
+		Listener controlListener = new Listener() {
+			public void handleEvent(Event event) {
+				switch (event.type) {
+				case SWT.MenuDetect:
+					menu.setVisible(true);
+					break;
+				case SWT.Dispose:
+					control.removeListener(SWT.MenuDetect, this);
+					control.removeListener(SWT.Dispose, this);
+					break;
+				}
+			}
+		};
+		control.addListener(SWT.MenuDetect, controlListener);
+		control.addListener(SWT.Dispose, controlListener);
 		return menu;
 	}
 
@@ -343,27 +381,6 @@ public class MenuManager {
 	public List<IAction> getWindowActions(final Shell shell) {
 		if ( windowActions == null ) {
 			windowActions = new ArrayList<IAction>();
-			
-//			windowActions.add(new IAction.Stub() {
-//				
-//				@Override
-//				public String getLabel() {
-//					StringBuilder builder = new StringBuilder();
-//					builder.append(application.getTransferShell().isVisible() ? "Hide" : "Show");
-//					builder.append(" Transfert Window");
-//					return builder.toString();
-//				}
-//				
-//				@Override
-//				public int run() {
-//					if ( application.getTransferShell().isVisible() ) {
-//						application.getTransferShell().close();
-//					} else {
-//						application.getTransferShell().open();
-//					}
-//					return STATUS_OK;
-//				}
-//			});
 		}
 		return windowActions;
 	}
@@ -376,4 +393,74 @@ public class MenuManager {
 		}
 		return systemTrayActions;
 	}
+	
+	public List<IAction> getFilesActions(final Shell shell) {
+		if ( filesActions == null ) {
+			filesActions = new ArrayList<IAction>();
+			
+			filesActions.add(new IAction.Stub("Copy URL to clipboard") {
+				@Override
+				public int run() {
+					try {
+						Clipboard clipboard = new Clipboard(application.getDisplay());
+						FileDescriptor file = application.getContactController().getSelectedFile();
+						if ( file != null ) {
+							String url = file.getCompleteURL();
+							clipboard.setContents(new Object[]{url,url}, new Transfer[]{URLTransfer.getInstance(), TextTransfer.getInstance()});
+						}
+					} catch (Throwable ex) {
+						ex.printStackTrace();
+					}
+					return STATUS_OK;
+				}
+			});
+
+			filesActions.add(new IAction.Stub("Save in specific folder\u2026") {
+				
+				@Override
+				public int getVisibility() {
+					FileDescriptor file = application.getContactController().getSelectedFile();
+					if ( file == null) return VISIBILITY_HIDDEN;
+					return file.isDirectory() ? VISIBILITY_HIDDEN : VISIBILITY_ENABLE;
+				}
+				
+				@Override
+				public int run() {
+					DirectoryDialog dialog = new DirectoryDialog(application.getContactShell());
+					dialog.setMessage("Choose directory where to save file");
+					dialog.setText("Filebox");
+					String directory = dialog.open();
+					if  ( directory != null ) {
+						FileDescriptor file = application.getContactController().getSelectedFile();
+						File destinationFile = new File(directory, file.getName());
+						TransferMonitor monitor = application.getContactController().getTransferController().getTransferMonitor();
+						application.getTransferManager().startDownload(file.getFilebox(), file.getPathURL(), destinationFile, monitor);
+					}
+					
+					return STATUS_OK;
+				}
+			});
+			
+			filesActions.add(new IAction.Stub("Save as zip") {
+				
+				@Override
+				public int getVisibility() {
+					FileDescriptor file = application.getContactController().getSelectedFile();
+					if ( file == null) return VISIBILITY_HIDDEN;
+					return file.isDirectory() ? VISIBILITY_ENABLE : VISIBILITY_HIDDEN;
+				}
+				
+				@Override
+				public int run() {
+					FileDescriptor file = application.getContactController().getSelectedFile();
+					System.out.println("Saving folder " + file.getCompleteURL());
+					return STATUS_OK;
+				}
+			});
+		}
+		return filesActions;
+	}
+	
+	
+	
 }
