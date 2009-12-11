@@ -38,6 +38,7 @@
 			</fileset>
 		</copy>
 		
+		
 		<chmod perm="+x" file="${destination}/Filebox/filebox.bat"/>
 		<zip destfile="${destination}/filebox-${version}-win32.zip">
 			<fileset dir="${destination}" id="id">
@@ -112,6 +113,45 @@
 		<copy file="jars/org.eclipse.swt.cocoa.macosx.x86_64_3.5.1.v3555a.jar" tofile="${destination}/Filebox.app/Contents/MacOS/jars/swt.jar"/>
 		<chmod perm="+x" file="${destination}/Filebox.app/Contents/MacOS/filebox"/>
 		<eclipse.refreshLocal resource="dist" />
+	</target>
+	
+	<target name="uploadFileWin32" depends="build.win32">
+		<loadproperties srcfile="upload.properties"/>	
+		<property name="os" value="win32"/>
+		<java jar="jars/GoogleCodeUploadFiles.jar" fork="true">
+			<arg value="-s"/>
+			<arg value="Filebox ${os} ${version}"/>
+			<arg value="-p"/>
+			<arg value="filebox"/>
+			<arg value="-u"/>
+			<arg value="${upload_user}"/>
+			<arg value="-w"/>
+			<arg value="${upload_password}"/>
+			<arg value="-l"/>
+			<arg value="Type-Archive"/>
+			<arg value="-l"/>
+			<arg value="OpSys-Windows"/>
+			<arg value="${destination}/filebox-${version}-${os}.zip"/>
+		</java>
+	</target>
+	<target name="uploadFileLinux" depends="build.linux">
+		<loadproperties srcfile="upload.properties"/>	
+		<property name="os" value="linux"/>
+		<java jar="jars/GoogleCodeUploadFiles.jar" fork="true">
+			<arg value="-s"/>
+			<arg value="Filebox ${os} ${version}"/>
+			<arg value="-p"/>
+			<arg value="filebox"/>
+			<arg value="-u"/>
+			<arg value="${upload_user}"/>
+			<arg value="-w"/>
+			<arg value="${upload_password}"/>
+			<arg value="-l"/>
+			<arg value="Type-Archive"/>
+			<arg value="-l"/>
+			<arg value="OpSys-Linux"/>
+			<arg value="${destination}/filebox-${version}-${os}.tar.gz"/>
+		</java>
 	</target>
 
 </project>
