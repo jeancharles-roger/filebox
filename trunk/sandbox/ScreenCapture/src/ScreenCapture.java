@@ -48,7 +48,7 @@ public class ScreenCapture {
 	private static int nbFramePerSec = 5;
 	private static boolean started = false;
 	private static DatagramSocket socket;
-	private static OutputStream out;
+	private static ByteArrayOutputStream out;
 	private static InetAddress remote;
 	private static long t;
 	private static ImageData imageData;
@@ -304,20 +304,29 @@ public class ScreenCapture {
 		ImageLoader loader = new ImageLoader();
 			 trace("save Image");
 		loader.data = new ImageData[] { image.getImageData() };
-			ByteArrayOutputStream out = new ByteArrayOutputStream();
+		if(out == null) {
+			out = new ByteArrayOutputStream(150000);
+		} else {
+			out.reset();
+		}
 		loader.save(out, SWT.IMAGE_JPEG);
 //			ImageIO.write(convertToAWT(image.getImageData()), "jpg", out);
 			 trace("Image saved");
 			byte[] byteArray = out.toByteArray();
 			byte[] length = intToByteArray(byteArray.length);
-			if (byteArray.length > 0) {
-				socket.send(new DatagramPacket(length, 4, remote, 4444));
-				ByteArrayInputStream in = new ByteArrayInputStream(byteArray);
-				byte[] buf = new byte[socket.getSendBufferSize()];
-				int read = in.read(buf);
-				while (read != -1) {
-					socket.send(new DatagramPacket(buf, 0, read, remote, 4444));
-					read = in.read(buf);
+			if(byteArrayToInt(length)!= byteArray.length){
+				System.err.println("length is not correct: " + byteArrayToInt(length));
+				System.err.println("must be: " + byteArray.length);
+			} else {
+				if (byteArray.length > 0) {
+					socket.send(new DatagramPacket(length, 4, remote, 4444));
+					ByteArrayInputStream in = new ByteArrayInputStream(byteArray);
+					byte[] buf = new byte[socket.getSendBufferSize()];
+					int read = in.read(buf);
+					while (read != -1) {
+						socket.send(new DatagramPacket(buf, 0, read, remote, 4444));
+						read = in.read(buf);
+					}
 				}
 			}
 		} catch (IOException e) {
