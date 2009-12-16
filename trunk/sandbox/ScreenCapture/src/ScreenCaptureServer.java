@@ -90,8 +90,9 @@ public class ScreenCaptureServer {
 				}
 				ImageLoader loader = new ImageLoader();
 				byte[] data = out.toByteArray();
-				final ImageData[] imageData = loader.load(new ByteArrayInputStream(data));
-				display.syncExec(new Runnable() {
+				ByteArrayInputStream stream = new ByteArrayInputStream(data);
+				final ImageData[] imageData = loader.load(stream);
+				display.asyncExec(new Runnable() {
 					public void run() {
 						if(imageData.length > 0) {
 						image = new Image(display, imageData[0]);
@@ -99,6 +100,10 @@ public class ScreenCaptureServer {
 						}
 					}
 				});
+				stream.close();
+				out.close();
+				out = null;
+				stream = null;
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
