@@ -5,7 +5,12 @@
 package org.kawane.filebox.ui;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -296,10 +301,15 @@ public class MenuManager {
 			fileBoxActions.add(new IAction.Stub("About") {
 				@Override
 				public int run() {
-					String version = application.getPreferences().getProperty("version");
 					Shell dialog = tk.dialogShell(application.getActiveShell(), "About");
-					tk.message(dialog, "FileBox version " + version);
-					tk.message(dialog, "Copyrights Kawane 2009.");
+					File about = new File("about.txt");
+					String aboutMessage = getContent(about);
+					if(aboutMessage != null && aboutMessage.length() > 0) {
+						tk.message(dialog, aboutMessage);
+					} else {
+						tk.message(dialog, "FileBox Development version");
+						tk.message(dialog, "Copyrights Kawane "+ Calendar.getInstance().get(Calendar.YEAR)+".");
+					}
 					Button[] buttons = tk.buttons(dialog, "Ok");
 					tk.computeSizes(dialog, 200);
 					dialog.open();
@@ -339,6 +349,26 @@ public class MenuManager {
 
 		}
 		return fileBoxActions;
+	}
+
+	protected String getContent(File file) {
+		if(!file.exists()) return null;
+		StringBuilder b = new StringBuilder();
+		try {
+			InputStreamReader in = new InputStreamReader(new FileInputStream(file), "UTF-8");
+			char[] cbuf = new char[8192];
+			int read = in.read(cbuf);
+			while(read>=0) {
+				b.append(cbuf, 0, read);
+				read = in.read(cbuf);
+			}
+			in.close();
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return b.toString();
 	}
 
 	public List<IAction> getToolsActions(final Shell shell) {
@@ -452,7 +482,7 @@ public class MenuManager {
 				
 				@Override
 				public int run() {
-					FileDescriptor file = application.getContactController().getSelectedFile();
+//					FileDescriptor file = application.getContactController().getSelectedFile();
 					
 					return STATUS_OK;
 				}

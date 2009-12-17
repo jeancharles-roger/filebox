@@ -11,7 +11,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -185,9 +184,10 @@ public class ScreenCapture {
 
 	public static void copyArea() {
 		trace("copy gc to image");
-		nbFramePerSec = 5;
+		nbFramePerSec = 2;
 		float scale = 1.2f;
 		Rectangle bounds = display.getBounds();
+		bounds = new Rectangle(0, 0, 1024, 768);
 		// final Image image = new Image(display, bounds);
 		final Image image = getImage(bounds);
 
@@ -195,14 +195,14 @@ public class ScreenCapture {
 		gc.copyArea(image, 0, 0);
 		trace("End copy");
 
-		Image scaledImage = getScaledImage(scale, bounds);
-//		 Image scaledImage = new Image(display, new Rectangle(bounds.x,
-//		 bounds.y, (int)(bounds.width / scale), (int) (bounds.height /
-//		 scale)));
-		GC igc = getScaledImageGC(scaledImage, scale);
-		igc.drawImage(image, 0, 0);
+//		Image scaledImage = getScaledImage(scale, bounds);
+////		 Image scaledImage = new Image(display, new Rectangle(bounds.x,
+////		 bounds.y, (int)(bounds.width / scale), (int) (bounds.height /
+////		 scale)));
+//		GC igc = getScaledImageGC(scaledImage, scale);
+//		igc.drawImage(image, 0, 0);
 		trace("Send image");
-		sendImage(scaledImage, (int)(bounds.width/scale), (int)(bounds.height/scale));
+		sendImage(image, (int)(bounds.width/scale), (int)(bounds.height/scale));
 		trace("End send");
 	}
 
