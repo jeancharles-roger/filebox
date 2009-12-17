@@ -13,6 +13,7 @@ Sharing info:
   * who has the right to see it
 
 Meta data:
+  * tags
   * length
   * last modification date
   * mime type (including directory mime)
