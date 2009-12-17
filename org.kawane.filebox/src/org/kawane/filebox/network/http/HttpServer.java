@@ -53,9 +53,9 @@ public class HttpServer implements Runnable {
 
 	private void openSocket() {
 		try {
-			InetAddress localHost = Inet4Address.getLocalHost();
-			serverSocket = new ServerSocket(port, 50, localHost);
-//			serverSocket = new ServerSocket(port);
+//			InetAddress localHost = Inet4Address.getLocalHost();
+//			serverSocket = new ServerSocket(port, 50, localHost);
+			serverSocket = new ServerSocket(port);
 //			serverSocket.setSoTimeout(250);
 		} catch (IOException e) {
 			// TODO check errors
