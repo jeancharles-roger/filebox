@@ -1,0 +1,18 @@
+#summary How do we wan't to share files
+
+= Idea =
+
+What is the id of a file:
+  * md5 (for identity)
+
+How to locate the file:
+  * filebox source
+  * local location
+
+Sharing info:
+  * who has the right to see it
+
+Meta data:
+  * length
+  * last modification date
+  * mime type (including directory mime)
