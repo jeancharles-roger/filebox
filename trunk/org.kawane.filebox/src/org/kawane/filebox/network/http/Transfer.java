@@ -42,7 +42,14 @@ public class Transfer {
 	 * Byte/ms
 	 */
 	private double byteRate = 0;
-	
+	/**
+	 * 
+	 * @param filebox
+	 * @param url must be encoded
+	 * @param file
+	 * @param upload
+	 * @param monitor
+	 */
 	public Transfer(DistantFilebox filebox, String url, File file, boolean upload, TransferMonitor monitor) {
 		this.filebox = filebox;
 		this.url = url;
@@ -81,7 +88,7 @@ public class Transfer {
 				// not implemented yet
 			} else {
 				Socket socket = new Socket(filebox.getHost(), filebox.getPort());
-				HttpRequest request = new HttpRequest(Http.encode(url));
+				HttpRequest request = new HttpRequest(url);
 				request.write(socket.getOutputStream());
 				HttpResponse response = HttpResponse.read(socket.getInputStream());
 				if ( response.getCode() != Http.CODE_OK ) {
