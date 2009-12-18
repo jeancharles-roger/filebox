@@ -11,6 +11,7 @@ import java.util.List;
 public class HttpUtil {
 	public static final String GET_METHOD = "GET";
 	public static final String POST_METHOD = "POST";
+	public static final String HEADER_CONTENT_LENGTH = "Content-Length";
 	public static final String HEADER_CONTENT_TYPE = "Content-Type";
 	public static final String HEADER_CONTENT_DISPOSITION = "Content-Disposition";
 	public static final String HEADER_USER_AGENT = "User-Agent";
@@ -25,6 +26,32 @@ public class HttpUtil {
 		return MIME_TYPE_FORM_DATA + "; boundary=" + boundary;
 	}
 
+	public static long getMultipartFormDataLength(List<Object[]> formFields, String boundary) throws IOException {
+		long length = 0;
+		for (Object[] field : formFields) {
+			length +=("--" + boundary).getBytes().length;
+			length += CRLF_BYTE.length;
+			if (field[1] instanceof File) {
+				File file = (File) field[1];
+				length += (HEADER_CONTENT_DISPOSITION + ": form-data; name=\"" + field[0] + "\"; filename=\"" + file.getName() + "\"").getBytes().length;
+				length += CRLF_BYTE.length;
+				length += (HEADER_CONTENT_TYPE + ": application/octet-stream").getBytes().length;
+				length += CRLF_BYTE.length;
+				length += CRLF_BYTE.length;
+				length += file.length();
+			} else {
+				length += (HEADER_CONTENT_DISPOSITION + ": form-data; name=\"" + field[0] + "\"").getBytes().length;
+				length += CRLF_BYTE.length;
+				length += CRLF_BYTE.length;
+				length += (field[1]).toString().getBytes().length;
+			}
+			length += CRLF_BYTE.length;
+		}
+		length += ("--" + boundary + "--").getBytes().length;
+		length += CRLF_BYTE.length;
+		return length;
+	}
+	
 	public static void writeMultipartFormData(List<Object[]> formFields, OutputStream out, String boundary) throws IOException {
 		for (Object[] field : formFields) {
 			out.write(("--" + boundary).getBytes());
