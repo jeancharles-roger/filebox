@@ -1,16 +1,8 @@
-import static http.HttpUtil.CRLF_BYTE;
-import static http.HttpUtil.HEADER_AUTHORIZATION;
-import static http.HttpUtil.HEADER_CONTENT_TYPE;
-import static http.HttpUtil.HEADER_USER_AGENT;
-import static http.HttpUtil.POST_METHOD;
-import static http.HttpUtil.appendHeader;
-import static http.HttpUtil.getContentTypeMultipartForm;
-import static http.HttpUtil.methodHeader;
-import static http.HttpUtil.readLine;
-import static http.HttpUtil.writeMultipartFormData;
+import static http.HttpUtil.*;
 import http.Base64Coder;
 import http.HttpUtil;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -92,7 +84,8 @@ public class UploadFile {
 	        System.out.println("SSL Connection valid: " + session.isValid());
 	        System.out.println("SSL protocol: " +session.getProtocol());
 	        OutputStream out = socket.getOutputStream();
-	        methodHeader(out, HttpUtil.POST_METHOD, urlPath);
+	        out = new BufferedOutputStream(out, socket.getSendBufferSize());
+	        methodHeader(out, HttpUtil.POST_METHOD, "https://" + host + "" + urlPath);
 	        appendHeader(out, HEADER_AUTHORIZATION, "Basic " + auth);
 	        appendHeader(out, HEADER_USER_AGENT, "Kawane java uploader v0.1");
 			List<Object[]> formFields = new ArrayList<Object[]>();
@@ -103,10 +96,11 @@ public class UploadFile {
 			formFields.add(new Object[] { "filename", file });
 			String boundary = "----------Googlecode_boundary_reindeer_flotilla";
 			appendHeader(out, HEADER_CONTENT_TYPE, getContentTypeMultipartForm(boundary));
+			appendHeader(out, HEADER_CONTENT_LENGTH, "" + getMultipartFormDataLength(formFields, boundary));
 			out.write(CRLF_BYTE);
 			out.flush();
 			writeMultipartFormData(formFields, out, boundary);
-			
+			out.flush();
 			InputStream in = socket.getInputStream();
 			read(in);
 			
@@ -120,7 +114,7 @@ public class UploadFile {
 	static public void read(InputStream in) throws IOException {
 //		String http = "HTTP/0.9";
 		int responseCode;
-		String responseMessage;
+		String responseMessage="";
 		Map<String, String> header = new HashMap<String, String>();
 
 		// first line contains 'method url version'
@@ -128,16 +122,20 @@ public class UploadFile {
 		if ( commands.length >= 3 ) {
 //			http = commands[0];
 			responseCode = Integer.parseInt(commands[1]);
-			responseMessage = commands[2];
+			for (int i = 2; i < commands.length; i++) {
+				responseMessage += commands[i] + " ";
+			}
 		} else {
 			return;
 		}
 
 		String line = readLine(in);
-		while (line != null && line.length() > 0 ) {
-			String [] info = line.split(":");
-			if ( info.length == 2 ) {
-				header.put(info[0].trim(), info[1].trim());
+		while (line != null && line.length()>0) {
+			int indexOf = line.indexOf(':');
+			if ( indexOf >=0 ) {
+				header.put(line.substring(0, indexOf), line.substring(indexOf+1));
+			} else {
+				System.out.println(line);
 			}
 			line = readLine(in);
 		}
@@ -146,6 +144,7 @@ public class UploadFile {
 			System.out.println("File has been upload: " + responseMessage);
 			System.out.println("Location: " + location);
 		} else {
+			System.err.println("Response code: " + responseCode);
 			System.err.println("Error when upload file: " + responseMessage);
 			System.err.println("Location: " + location);
 		}
@@ -176,7 +175,7 @@ public class UploadFile {
 			String user = userDef.getOptionsValue().get(0);
 			String password = passwordDef.getOptionsValue().get(0);
 			for (String project : projectDef.getOptionsValue()) {
-				uploadFileToProjectURL(project, file, summary, user, password, labelsDef.getOptionsValue());
+				uploadFileToProject(project, file, summary, user, password, labelsDef.getOptionsValue());
 			}
 		}
 
