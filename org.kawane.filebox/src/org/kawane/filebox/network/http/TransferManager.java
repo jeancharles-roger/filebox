@@ -102,7 +102,7 @@ public class TransferManager implements Runnable, Observable {
 							
 						case Transfer.STARTED:
 							allDone = false;
-							transfer.transfer(2048);
+							transfer.transfer(40960);
 							break;
 							
 						case Transfer.DONE:
